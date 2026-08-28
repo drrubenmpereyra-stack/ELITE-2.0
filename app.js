@@ -1,4 +1,4 @@
-// Configuración de Firebase (Conectado a materiales-terapeuticos)[cite: 3]
+// Configuración de Firebase (Conectado a materiales-terapeuticos)
 const firebaseConfig = {
     apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
     authDomain: "materiales-terapeuticos.firebaseapp.com",
@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Radar de Fiorini)[cite: 3]
+// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Radar de Fiorini)
 const menuData = {
     "1": {
         nombre: "Administración",
@@ -102,7 +102,7 @@ const menuData = {
     }
 };
 
-// Control de Acceso y Login con registro en Firestore[cite: 3]
+// Control de Acceso y Login con registro en Firestore
 document.getElementById('loginBtn').addEventListener('click', async () => {
     const user = document.getElementById('userInput').value.trim();
     const pass = document.getElementById('passInput').value.trim();
@@ -127,7 +127,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     }
 });
 
-// Inicializar Navegación por Barras[cite: 3]
+// Inicializar Navegación por Barras
 function inicializarSistema() {
     const barPrincipal = document.getElementById('barras-principales');
     barPrincipal.innerHTML = '';
@@ -185,7 +185,9 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 } else if (secKey === "3 Est y NC") {
                     cargarVistaIframe("eync.html");
                 } else if (secKey === "5 Genograma") {
-                    cargarVistaIframe("genograma.html"); // <- Integración exacta del módulo de Genograma Avanzado[cite: 2]
+                    cargarVistaIframe("genograma.html");
+                } else if (secKey === "6 Herramientas usadas") {
+                    cargarVistaIframe("herramientas_usadas.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -225,7 +227,7 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
     });
 }
 
-// Función general para cargar vistas HTML limpias mediante iframe[cite: 3]
+// Función general para cargar vistas HTML limpias mediante iframe
 function cargarVistaIframe(archivoHtml) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<iframe src="${archivoHtml}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
@@ -233,5 +235,5 @@ function cargarVistaIframe(archivoHtml) {
 
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`; //[cite: 3]
+    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`; //
 }
