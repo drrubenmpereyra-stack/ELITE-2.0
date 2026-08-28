@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Val Ello - Rúbrica de Valoración Constitutiva del Ello (RVC-E) - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #8c52ff;
+            --secondary-color: #512b58;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #1e3a8a; margin: 15px 0 10px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
+
+        .dimension-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        .dimension-title { font-weight: 700; font-size: 0.95rem; color: #1e3a8a; margin-bottom: 4px; }
+        .dimension-criterion { font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic; }
+
+        .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .level-option { background: #fff; border: 2px solid var(--border-color); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.82rem; display: flex; flex-direction: column; gap: 6px; }
+        .level-option:hover { border-color: var(--primary-color); }
+        .level-option input[type="radio"] { accent-color: var(--primary-color); }
+        .level-option.selected { border-color: var(--primary-color); background: #faf5ff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: #7239e0; }
+        .btn-secondary { background-color: #2563eb; margin-left: 10px; }
+        .btn-secondary:hover { background-color: #1d4ed8; }
+
+        .report-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 20px; border-radius: 6px; margin-top: 20px; white-space: pre-line; font-size: 0.9rem; }
+        .history-item { background: #f8fafc; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialValEllo()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Formulario RVC-E -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-fire"></i> Rúbrica de Valoración Constitutiva del Ello (RVC-E)</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
+                Evalúe las cuatro dimensiones clave de la reserva pulsional seleccionando el nivel correspondiente[cite: 5].
+            </p>
+
+            <form id="valello-form">
+                <!-- Dimensión 1 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">1. Presión Pulsional (Libido)</div>
+                    <div class="dimension-criterion">Criterio: Energía disponible para el vínculo y la tarea (Sistema Dopaminérgico Mesolímbico)[cite: 5].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim1" value="1" required> <strong>Nivel 1: Desadaptativo (1 pt)</strong>
+                            <span>Apatía extrema, anhedonia total o, inversamente, hipersexualidad/voracidad[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim1" value="2"> <strong>Nivel 2: Conflictivo (2 pts)</strong>
+                            <span>Oscilaciones entre el entusiasmo y el desgano; fijación en metas parciales[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim1" value="3"> <strong>Nivel 3: Vital/Integrado (3 pts)</strong>
+                            <span>Energía vital estable; libido dirigida a objetos y proyectos creativos[cite: 5].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dimensión 2 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">2. Cualidad de la Agresión</div>
+                    <div class="dimension-criterion">Criterio: Empuje hacia la acción y autoafirmación (Amígdala / Hipotálamo)[cite: 5].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim2" value="1" required> <strong>Nivel 1: Desadaptativo (1 pt)</strong>
+                            <span>Agresión destructiva, explosiva o autoagresión severa[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim2" value="2"> <strong>Nivel 2: Conflictivo (2 pts)</strong>
+                            <span>Pasivo-agresividad; la agresión se manifiesta como síntoma o inhibición[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim2" value="3"> <strong>Nivel 3: Vital/Integrado (3 pts)</strong>
+                            <span>Agresión transformada en asertividad, competencia y persistencia[cite: 5].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dimensión 3 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">3. Acceso al Proceso Primario</div>
+                    <div class="dimension-criterion">Criterio: Capacidad de fantasear y soñar (Hemisferio derecho / Sueño REM)[cite: 5].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim3" value="1" required> <strong>Nivel 1: Desadaptativo (1 pt)</strong>
+                            <span>Invasión de fantasías en la vigilia (psicosis) o incapacidad total de fantasear (pensamiento operatorio)[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim3" value="2"> <strong>Nivel 2: Conflictivo (2 pts)</strong>
+                            <span>Sueños angustiantes repetitivos; fantasías cargadas de culpa o miedo[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim3" value="3"> <strong>Nivel 3: Vital/Integrado (3 pts)</strong>
+                            <span>Acceso fluido a la imaginación, el juego y la creatividad sin perder el juicio[cite: 5].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dimensión 4 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">4. Urgencia Homeostática</div>
+                    <div class="dimension-criterion">Criterio: Respuesta a necesidades biológicas básicas (Hambre, sueño, sexo)[cite: 5].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim4" value="1" required> <strong>Nivel 1: Desadaptativo (1 pt)</strong>
+                            <span>Descontrol total de ritmos biológicos; imposibilidad de postergar la descarga[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim4" value="2"> <strong>Nivel 2: Conflictivo (2 pts)</strong>
+                            <span>Dependencia de estímulos externos para regular la necesidad (adicciones leves)[cite: 5].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim4" value="3"> <strong>Nivel 3: Vital/Integrado (3 pts)</strong>
+                            <span>Ritmos biológicos regulados; capacidad de espera sin desorganización[cite: 5].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Botón Puntuación</button>
+                    <button type="button" class="btn btn-secondary" onclick="generarInformeValEllo()"><i class="fa-solid fa-file-lines"></i> Botón Informe Valoración del Ello</button>
+                </div>
+            </form>
+
+            <div id="report-output" style="display: none;">
+                <h3 style="margin-top: 20px;">Resultado e Informe Clínico RVC-E</h3>
+                <div class="report-box" id="report-text"></div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Evaluaciones Val Ello</h2>
+            <div id="history-container">
+                <p style="color: #64748b; font-size: 0.9rem;">Seleccione un paciente para ver su historial de valoraciones del Ello.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('patient-select');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error al cargar pacientes:", e);
+            }
+        }
+
+        window.selectLevel = function(label) {
+            const container = label.closest('.dimension-card');
+            container.querySelectorAll('.level-option').forEach(opt => opt.classList.remove('selected'));
+            label.classList.add('selected');
+            label.querySelector('input[type="radio"]').checked = true;
+        }
+
+        window.cargarHistorialValEllo = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if(!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        function obtenerDatosFormulario() {
+            const d1 = document.querySelector('input[name="dim1"]:checked');
+            const d2 = document.querySelector('input[name="dim2"]:checked');
+            const d3 = document.querySelector('input[name="dim3"]:checked');
+            const d4 = document.querySelector('input[name="dim4"]:checked');
+
+            if(!d1 || !d2 || !d3 || !d4) {
+                alert("Por favor, complete todas las dimensiones de la rúbrica.");
+                return null;
+            }
+
+            const total = parseInt(d1.value) + parseInt(d2.value) + parseInt(d3.value) + parseInt(d4.value);
+            return {
+                dim1: parseInt(d1.value),
+                dim2: parseInt(d2.value),
+                dim3: parseInt(d3.value),
+                dim4: parseInt(d4.value),
+                total: total,
+                fecha: new Date().toISOString()
+            };
+        }
+
+        function interpretarPuntaje(total) {
+            if(total >= 4 && total <= 6) {
+                return {
+                    perfil: "Perfil de Desregulación o Vaciamiento (4-6 Puntos)",
+                    diag: "El Ello se presenta como una 'fuerza bruta' no ligada a representaciones[cite: 5].",
+                    clinica: "Trastornos de la impulsividad, adicciones graves o, en el polo opuesto, depresiones anaclíticas donde el Ello parece haberse 'apagado'[cite: 5].",
+                    neuro: "Falla en el 'top-down control' (el córtex no frena al sistema límbico) o hipofuncionalidad del sistema de recompensa[cite: 5].",
+                    sugerencia: "Intervenciones orientadas a contener y regular el desbordamiento pulsional o restablecer la energía vital en casos de vaciamiento."
+                };
+            } else if(total >= 7 && total <= 9) {
+                return {
+                    perfil: "Perfil de Fijación / Inhibición (7-9 Puntos)",
+                    diag: "La energía pulsional está presente pero 'empantanada' en el conflicto[cite: 5].",
+                    clinica: "Es el terreno de las neurosis clásicas. El deseo existe pero está disfrazado de síntoma. Hay una lucha constante donde el Ello intenta expresarse y las otras instancias lo bloquean, generando fatiga crónica[cite: 5].",
+                    neuro: "Activación amigdalina constante que genera estados de hipervigilancia o estrés crónico (cortisol elevado)[cite: 5].",
+                    sugerencia: "Abordaje enfocado en destrabar el conflicto defensivo y permitir la libre circulación de la energía hacia fines adaptativos."
+                };
+            } else {
+                return {
+                    perfil: "Perfil de Vitalidad Sublimatoria (10-12 Puntos)",
+                    diag: "El Ello funciona como un motor eficiente para el Yo[cite: 5].",
+                    clinica: "El individuo tiene acceso a sus deseos, puede disfrutar del placer sensorial y sexual sin desorganizarse, y utiliza su agresividad para defenderse y progresar[cite: 5].",
+                    neuro: "Óptima plasticidad sináptica y equilibrio en la liberación de neurotransmisores (dopamina/serotonina)[cite: 5].",
+                    sugerencia: "Mantenimiento y potenciación de los recursos creativos y sublimatorios del sujeto."
+                };
+            }
+        }
+
+        window.calcularPuntuacion = async function() {
+            const data = obtenerDatosFormulario();
+            if(!data) return;
+
+            const interp = interpretarPuntaje(data.total);
+
+            let texto = `PUNTUACIÓN GLOBAL RVC-E: ${data.total} / 12 Puntos\n` +
+                `Desglose por Dimensión:\n` +
+                `- Presión Pulsional (Libido): ${data.dim1}/3[cite: 5]\n` +
+                `- Cualidad de la Agresión: ${data.dim2}/3[cite: 5]\n` +
+                `- Acceso al Proceso Primario: ${data.dim3}/3[cite: 5]\n` +
+                `- Urgencia Homeostática: ${data.dim4}/3[cite: 5]\n\n` +
+                `Clasificación Inicial: ${interp.perfil}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = texto;
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().val_ello || [];
+                lista.push(data);
+                await updateDoc(ref, { val_ello: lista });
+                alert("¡Puntaje calculado y enviado a la base de datos con éxito!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar puntuación:", e);
+            }
+        }
+
+        window.generarInformeValEllo = async function() {
+            const data = obtenerDatosFormulario();
+            if(!data) return;
+
+            const interp = interpretarPuntaje(data.total);
+
+            let informeTexto = `INFORME CLÍNICO - VALORACIÓN CONSTITUTIVA DEL ELLO (RVC-E)\n` +
+                `Fecha de emisión: ${new Date().toLocaleDateString()}\n\n` +
+                `Puntaje Total Global: ${data.total} / 12\n` +
+                `Perfil Identificado: ${interp.perfil}\n\n` +
+                `DIAGNÓSTICO:\n${interp.diag}\n\n` +
+                `CLÍNICA:\n${interp.clinica}\n\n` +
+                `NEUROCIENCIA:\n${interp.neuro}\n\n` +
+                `ORIENTACIÓN TERAPÉUTICA (FOCO):\n${interp.sugerencia}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = informeTexto;
+
+            data.informe = informeTexto;
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().val_ello || [];
+                lista.push(data);
+                await updateDoc(ref, { val_ello: lista });
+                alert("¡Informe generado y enviado a la base de datos con éxito!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar informe:", e);
+            }
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.val_ello || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay valoraciones del Ello registradas para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Evaluación #${index + 1} (${new Date(item.fecha).toLocaleDateString()})</strong> | <strong>Puntaje Total:</strong> ${item.total} / 12[cite: 5]
+                            <p style="margin-top: 6px;"><strong>Detalle dimensiones:</strong> Libido(${item.dim1}), Agresión(${item.dim2}), Proceso Primario(${item.dim3}), Homeostasis(${item.dim4})</p>
+                            ${item.informe ? `<pre style="margin-top: 8px; font-size: 0.82rem; white-space: pre-line; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">${item.informe}</pre>` : ''}
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

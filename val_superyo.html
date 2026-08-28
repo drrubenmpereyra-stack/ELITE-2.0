@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Val SuperYo - Rúbrica de Valoración Constitutiva del Superyó (RVC-Sy) - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #512b58;
+            --secondary-color: #8c52ff;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #1e3a8a; margin: 15px 0 10px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
+
+        .dimension-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        .dimension-title { font-weight: 700; font-size: 0.95rem; color: #1e3a8a; margin-bottom: 4px; }
+        .dimension-criterion { font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-style: italic; }
+
+        .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .level-option { background: #fff; border: 2px solid var(--border-color); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.82rem; display: flex; flex-direction: column; gap: 6px; }
+        .level-option:hover { border-color: var(--primary-color); }
+        .level-option input[type="radio"] { accent-color: var(--primary-color); }
+        .level-option.selected { border-color: var(--primary-color); background: #fdf4ff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: #3b1d40; }
+        .btn-secondary { background-color: #2563eb; margin-left: 10px; }
+        .btn-secondary:hover { background-color: #1d4ed8; }
+
+        .report-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 20px; border-radius: 6px; margin-top: 20px; white-space: pre-line; font-size: 0.9rem; }
+        .history-item { background: #f8fafc; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialValSuperYo()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Formulario RVC-Sy -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-scale-balanced"></i> Rúbrica de Valoración Constitutiva del Superyó (RVC-Sy)</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
+                Evalúe las cuatro dimensiones clave de la instancia superyoica seleccionando el nivel correspondiente[cite: 4].
+            </p>
+
+            <form id="valsuperyo-form">
+                <!-- Dimensión 1 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">1. Naturaleza del Ideal (Ideal del Yo)</div>
+                    <div class="dimension-criterion">Criterio: Metas y expectativas internas (Sistema de recompensa / Dopamina)[cite: 4].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim1" value="1" required> <strong>Nivel 1: Disfuncional (1 pt)</strong>
+                            <span>Ideales inalcanzables (omnipotentes) o ausencia total de metas[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim1" value="2"> <strong>Nivel 2: Rígido / Lábil (2 pts)</strong>
+                            <span>Ideales prestados de figuras de autoridad; gran presión por el éxito[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim1" value="3"> <strong>Nivel 3: Integrado (3 pts)</strong>
+                            <span>Ideales realistas, flexibles y coherentes con los valores propios[cite: 4].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dimensión 2 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">2. Severidad de la Autocrítica</div>
+                    <div class="dimension-criterion">Criterio: Calidad del "diálogo interno" (Corteza cingulada anterior - monitoreo)[cite: 4].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim2" value="1" required> <strong>Nivel 1: Disfuncional (1 pt)</strong>
+                            <span>Crueldad interna; sentimientos de aniquilación o nula culpa (psicopatía)[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim2" value="2"> <strong>Nivel 2: Rígido / Lábil (2 pts)</strong>
+                            <span>Culpa paralizante; rumiación constante; autocastigo (masoquismo moral)[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim2" value="3"> <strong>Nivel 3: Integrado (3 pts)</strong>
+                            <span>Culpa reparatoria; capacidad de reconocer errores sin desprecio[cite: 4].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dimensión 3 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">3. Internalización de Normas</div>
+                    <div class="dimension-criterion">Criterio: Respeto a la ley y ética social (Corteza prefrontal ventromedial)[cite: 4].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim3" value="1" required> <strong>Nivel 1: Disfuncional (1 pt)</strong>
+                            <span>Conductas antisociales; la norma solo se cumple si hay vigilancia[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim3" value="2"> <strong>Nivel 2: Rígido / Lábil (2 pts)</strong>
+                            <span>Cumplimiento por miedo al castigo, no por convicción ética[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim3" value="3"> <strong>Nivel 3: Integrado (3 pts)</strong>
+                            <span>Autonomía moral; ética internalizada basada en la empatía[cite: 4].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dimensión 4 -->
+                <div class="dimension-card">
+                    <div class="dimension-title">4. Manejo de la Agresión</div>
+                    <div class="dimension-criterion">Criterio: Dirección de la pulsión destructiva (Amígdala vs Control Inhibitorio)[cite: 4].</div>
+                    <div class="levels-grid">
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim4" value="1" required> <strong>Nivel 1: Disfuncional (1 pt)</strong>
+                            <span>Agresión desatada contra el entorno o impulsos suicidas[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim4" value="2"> <strong>Nivel 2: Rígido / Lábil (2 pts)</strong>
+                            <span>Agresión vuelta contra sí mismo (inhibición, somatización)[cite: 4].</span>
+                        </label>
+                        <label class="level-option" onclick="selectLevel(this)">
+                            <input type="radio" name="dim4" value="3"> <strong>Nivel 3: Integrado (3 pts)</strong>
+                            <span>Agresión sublimada en actividades constructivas o asertividad[cite: 4].</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Botón Puntuación</button>
+                    <button type="button" class="btn btn-secondary" onclick="generarInformeValSuperYo()"><i class="fa-solid fa-file-lines"></i> Botón Informe Valoración del SuperYo</button>
+                </div>
+            </form>
+
+            <div id="report-output" style="display: none;">
+                <h3 style="margin-top: 20px;">Resultado e Informe Clínico RVC-Sy</h3>
+                <div class="report-box" id="report-text"></div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Evaluaciones Val SuperYo</h2>
+            <div id="history-container">
+                <p style="color: #64748b; font-size: 0.9rem;">Seleccione un paciente para ver su historial de valoraciones superyoicas.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('patient-select');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error al cargar pacientes:", e);
+            }
+        }
+
+        window.selectLevel = function(label) {
+            const container = label.closest('.dimension-card');
+            container.querySelectorAll('.level-option').forEach(opt => opt.classList.remove('selected'));
+            label.classList.add('selected');
+            label.querySelector('input[type="radio"]').checked = true;
+        }
+
+        window.cargarHistorialValSuperYo = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if(!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        function obtenerDatosFormulario() {
+            const d1 = document.querySelector('input[name="dim1"]:checked');
+            const d2 = document.querySelector('input[name="dim2"]:checked');
+            const d3 = document.querySelector('input[name="dim3"]:checked');
+            const d4 = document.querySelector('input[name="dim4"]:checked');
+
+            if(!d1 || !d2 || !d3 || !d4) {
+                alert("Por favor, complete todas las dimensiones de la rúbrica.");
+                return null;
+            }
+
+            const total = parseInt(d1.value) + parseInt(d2.value) + parseInt(d3.value) + parseInt(d4.value);
+            return {
+                dim1: parseInt(d1.value),
+                dim2: parseInt(d2.value),
+                dim3: parseInt(d3.value),
+                dim4: parseInt(d4.value),
+                total: total,
+                fecha: new Date().toISOString()
+            };
+        }
+
+        function interpretarPuntaje(total) {
+            if(total >= 4 && total <= 6) {
+                return {
+                    perfil: "Perfil Hipotrófico / Primitivo (4-6 Puntos)",
+                    diag: "Superyó laxo o arcaico. Falta de barreras internas contra los impulsos[cite: 4].",
+                    clinica: "Actuaciones delictivas, falta de remordimiento, o bien, un Superyó 'feroz' que castiga con accidentes o fracasos inconscientes (paradoja de la culpa)[cite: 4].",
+                    neuro: "Posible baja actividad en los circuitos de la empatía y en la corteza prefrontal ventromedial[cite: 4].",
+                    sugerencia: "'Fortalecer' el Superyó Laxo: permitir que el paciente pueda sostener un tratamiento y una vida social estable, internalizando normas éticas basadas en la empatía y no en el miedo al castigo[cite: 4]."
+                };
+            } else if(total >= 7 && total <= 9) {
+                return {
+                    perfil: "Perfil Hipertrófico / Punitivo (7-9 Puntos)",
+                    diag: "Superyó severo. Es el perfil típico de la neurosis obsesiva o la melancolía[cite: 4].",
+                    clinica: "El sujeto vive para cumplir deberes; la autocrítica es feroz y el placer está prohibido. El 'Yo' es un esclavo de las exigencias del 'Superyó'[cite: 4].",
+                    neuro: "Hiperconectividad en el circuito cortico-estriado-talámico-cortical (asociado a la rumiación y el perfeccionismo)[cite: 4].",
+                    sugerencia: "'Ablandar' el Superyó Punitivo: reducir la severidad del diálogo interno, habilitar el placer y la autocompasión, y transformar la culpa paralizante en culpa reparatoria[cite: 4]."
+                };
+            } else {
+                return {
+                    perfil: "Perfil Autónomo / Integrado (10-12 Puntos)",
+                    diag: "Superyó como instancia de guía[cite: 4].",
+                    clinica: "Capacidad de autorregulación. El individuo puede fallar sin destruirse. El Ideal del Yo promueve el crecimiento en lugar de la frustración constante[cite: 4].",
+                    neuro: "Equilibrio funcional entre los sistemas de alerta (amígdala) y los sistemas de evaluación social de alto orden[cite: 4].",
+                    sugerencia: "Consolidación de procesos de autorregulación y crecimiento personal basados en valores propios y autonomía ética[cite: 4]."
+                };
+            }
+        }
+
+        window.calcularPuntuacion = async function() {
+            const data = obtenerDatosFormulario();
+            if(!data) return;
+
+            const interp = interpretarPuntaje(data.total);
+
+            let texto = `PUNTUACIÓN GLOBAL RVC-Sy: ${data.total} / 12 Puntos\n` +
+                `Desglose por Dimensión:\n` +
+                `- Naturaleza del Ideal: ${data.dim1}/3\n` +
+                `- Severidad de la Autocrítica: ${data.dim2}/3\n` +
+                `- Internalización de Normas: ${data.dim3}/3\n` +
+                `- Manejo de la Agresión: ${data.dim4}/3\n\n` +
+                `Clasificación Inicial: ${interp.perfil}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = texto;
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().val_superyo || [];
+                lista.push(data);
+                await updateDoc(ref, { val_superyo: lista });
+                alert("¡Puntaje calculado y enviado a la base de datos con éxito!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar puntuación:", e);
+            }
+        }
+
+        window.generarInformeValSuperYo = async function() {
+            const data = obtenerDatosFormulario();
+            if(!data) return;
+
+            const interp = interpretarPuntaje(data.total);
+
+            let informeTexto = `INFORME CLÍNICO - VALORACIÓN CONSTITUTIVA DEL SUPERYÓ (RVC-Sy)\n` +
+                `Fecha de emisión: ${new Date().toLocaleDateString()}\n\n` +
+                `Puntaje Total Global: ${data.total} / 12\n` +
+                `Perfil Identificado: ${interp.perfil}\n\n` +
+                `DIAGNÓSTICO:\n${interp.diag}\n\n` +
+                `CLÍNICA:\n${interp.clinica}\n\n` +
+                `NEUROCIENCIA:\n${interp.neuro}\n\n` +
+                `ORIENTACIÓN TERAPÉUTICA (FOCO):\n${interp.sugerencia}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = informeTexto;
+
+            data.informe = informeTexto;
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().val_superyo || [];
+                lista.push(data);
+                await updateDoc(ref, { val_superyo: lista });
+                alert("¡Informe generado y enviado a la base de datos con éxito!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar informe:", e);
+            }
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.val_superyo || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay valoraciones superyoicas registradas para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Evaluación #${index + 1} (${new Date(item.fecha).toLocaleDateString()})</strong> | <strong>Puntaje Total:</strong> ${item.total} / 12
+                            <p style="margin-top: 6px;"><strong>Detalle dimensiones:</strong> Ideal(${item.dim1}), Autocrítica(${item.dim2}), Normas(${item.dim3}), Agresión(${item.dim4})</p>
+                            ${item.informe ? `<pre style="margin-top: 8px; font-size: 0.82rem; white-space: pre-line; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">${item.informe}</pre>` : ''}
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integración del Aparato Psíquico Freudiano - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #512b58;
+            --secondary-color: #8c52ff;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #1e3a8a; margin: 15px 0 10px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
+
+        .scores-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .score-badge { background: #fdf4ff; border: 1px solid #d8b4fe; border-radius: 6px; padding: 15px; text-align: center; }
+        .score-badge h4 { font-size: 0.9rem; color: var(--primary-color); margin-bottom: 5px; }
+        .score-val { font-size: 1.5rem; font-weight: 700; color: #7c3aed; }
+
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: #3b1d40; }
+        .btn-secondary { background-color: #2563eb; margin-left: 10px; }
+        .btn-secondary:hover { background-color: #1d4ed8; }
+
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin: 20px auto; height: 350px; }
+        .report-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 20px; border-radius: 6px; margin-top: 20px; white-space: pre-line; font-size: 0.9rem; }
+        .history-item { background: #f8fafc; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarDatosPaciente()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Panel de Integración -->
+        <div class="card" id="integration-card" style="display: none;">
+            <h2><i class="fa-solid fa-network-wired"></i> Integración del Aparato Psíquico (Yo, SuperYo y Ello)</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                Recuperación automática de puntajes e informes previos registrados en las rúbricas del aparato psíquico freudiano.
+            </p>
+
+            <!-- Etiquetas de Puntajes -->
+            <div class="scores-grid">
+                <div class="score-badge">
+                    <h4>Valoración del YO (Máx 15)</h4>
+                    <div class="score-val" id="score-yo">-</div>
+                </div>
+                <div class="score-badge">
+                    <h4>Valoración del SUPERYÓ (Máx 12)</h4>
+                    <div class="score-val" id="score-superyo">-</div>
+                </div>
+                <div class="score-badge">
+                    <h4>Valoración del ELLO (Máx 12)</h4>
+                    <div class="score-val" id="score-ello">-</div>
+                </div>
+            </div>
+
+            <!-- Gráfico Radar -->
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn" onclick="generarGraficoRadar()"><i class="fa-solid fa-chart-pie"></i> Botón Radar de Freud</button>
+                <button type="button" class="btn btn-secondary" onclick="generarInformeAparatoPsiquico()"><i class="fa-solid fa-file-medical"></i> Botón Informe Aparato Psíquico</button>
+            </div>
+
+            <div id="report-output" style="display: none;">
+                <h3 style="margin-top: 20px;">Informe Integrado del Aparato Psíquico</h3>
+                <div class="report-box" id="report-text"></div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Integraciones del Aparato Psíquico</h2>
+            <div id="history-container">
+                <p style="color: #64748b; font-size: 0.9rem;">Seleccione un paciente para ver su historial de integraciones.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let patientDataCache = null;
+        let myChart = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('patient-select');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error al cargar pacientes:", e);
+            }
+        }
+
+        window.cargarDatosPaciente = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const card = document.getElementById('integration-card');
+            const historyCard = document.getElementById('history-card');
+
+            if(!activePatientId) {
+                card.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if(snap.exists()) {
+                    patientDataCache = snap.data();
+                    
+                    const valYoList = patientDataCache.val_yo || [];
+                    const valSyList = patientDataCache.val_superyo || [];
+                    const valElloList = patientDataCache.val_ello || [];
+
+                    const latestYo = valYoList.length > 0 ? valYoList[valYoList.length - 1] : null;
+                    const latestSy = valSyList.length > 0 ? valSyList[valSyList.length - 1] : null;
+                    const latestEllo = valElloList.length > 0 ? valElloList[valElloList.length - 1] : null;
+
+                    document.getElementById('score-yo').textContent = latestYo ? `${latestYo.total} / 15` : 'S/D';
+                    document.getElementById('score-superyo').textContent = latestSy ? `${latestSy.total} / 12` : 'S/D';
+                    document.getElementById('score-ello').textContent = latestEllo ? `${latestEllo.total} / 12` : 'S/D';
+
+                    card.style.display = 'block';
+                    historyCard.style.display = 'block';
+                    renderHistory();
+                }
+            } catch(e) {
+                console.error("Error al recuperar datos del paciente:", e);
+            }
+        }
+
+        window.generarGraficoRadar = function() {
+            if(!patientDataCache) return;
+
+            const valYoList = patientDataCache.val_yo || [];
+            const valSyList = patientDataCache.val_superyo || [];
+            const valElloList = patientDataCache.val_ello || [];
+
+            const latestYo = valYoList.length > 0 ? valYoList[valYoList.length - 1] : { total: 0 };
+            const latestSy = valSyList.length > 0 ? valSyList[valSyList.length - 1] : { total: 0 };
+            const latestEllo = valElloList.length > 0 ? valElloList[valElloList.length - 1] : { total: 0 };
+
+            // Normalizamos porcentajes o valores relativos para el gráfico radar
+            const yoScoreNorm = (latestYo.total / 15) * 100;
+            const syScoreNorm = (latestSy.total / 12) * 100;
+            const elloScoreNorm = (latestEllo.total / 12) * 100;
+
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            if(myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Fortaleza del Yo', 'Integración del Superyó', 'Vitalidad / Dinámica del Ello'],
+                    datasets: [{
+                        label: 'Perfil del Aparato Psíquico (%)',
+                        data: [yoScoreNorm, syScoreNorm, elloScoreNorm],
+                        backgroundColor: 'rgba(140, 82, 255, 0.2)',
+                        borderColor: '#8c52ff',
+                        pointBackgroundColor: '#512b58',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#8c52ff'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+
+            alert("¡Gráfico Radar generado con éxito!");
+        }
+
+        window.generarInformeAparatoPsiquico = async function() {
+            if(!patientDataCache) return;
+
+            const valYoList = patientDataCache.val_yo || [];
+            const valSyList = patientDataCache.val_superyo || [];
+            const valElloList = patientDataCache.val_ello || [];
+
+            const latestYo = valYoList.length > 0 ? valYoList[valYoList.length - 1] : null;
+            const latestSy = valSyList.length > 0 ? valSyList[valSyList.length - 1] : null;
+            const latestEllo = valElloList.length > 0 ? valElloList[valElloList.length - 1] : null;
+
+            if(!latestYo || !latestSy || !latestEllo) {
+                alert("Faltan evaluaciones previas de alguna de las instancias (Yo, SuperYo o Ello) para integrar el informe completo.");
+                return;
+            }
+
+            // Análisis de indicadores adicionales solicitados:
+            // - Equilibrio intersistémico
+            // - Plasticidad defensiva
+            // - Capacidad de simbolización
+            let equilibrio = "";
+            if(latestYo.total >= 11 && latestSy.total >= 8 && latestEllo.total >= 9) {
+                equilibrio = "Equilibrio intersistémico favorable: Las exigencias del Superyó y las pulsiones del Ello se encuentran mediadas por un Yo con adecuada fortaleza, permitiendo homeostasis psíquica.";
+            } else if(latestSy.total <= 6 || latestSy.total >= 10) {
+                equilibrio = "Desequilibrio intersistémico por tensión tensional: Se observa asimetría significativa, con predominio de exigencias superyoicas extremas o desborde pulsional que somete al aparato.";
+            } else {
+                equilibrio = "Equilibrio intersistémico en tensión neurótica: El sistema opera bajo un consumo energético elevado para sostener las transacciones defensivas entre instancias.";
+            }
+
+            let plasticidad = latestYo.dim3 >= 2 ? "Plasticidad defensiva adecuada: Presencia de mecanismos neuróticos flexibles o defensas maduras que permiten adaptabilidad." : "Rigidez defensiva marcada: Predominio de defensas primarias o escasa ductilidad en el procesamiento emocional frente al conflicto.";
+
+            let simbolizacion = latestYo.dim5 >= 2 ? "Capacidad de simbolización conservada: Adecuada integración hemisférica, permitiendo insight y elaboración verbal." : "Déficit en la simbolización: Tendencia al acting-out o pensamiento operatorio con restricción en la elaboración representacional.";
+
+            let informeTexto = `INFORME INTEGRADO DEL APARATO PSÍQUICO FREUDIANO\n` +
+                `Fecha de emisión: ${new Date().toLocaleDateString()}\n\n` +
+                `PUNTAJES REGISTRADOS:\n` +
+                `- Valoración del Yo: ${latestYo.total}/15\n` +
+                `- Valoración del Superyó: ${latestSy.total}/12\n` +
+                `- Valoración del Ello: ${latestEllo.total}/12\n\n` +
+                `SÍNTESIS DE INFORMES PREVIOS:\n` +
+                `• Instancia Yoica: ${latestYo.informe ? latestYo.informe.split('\n')[3] : 'Registrada'}\n` +
+                `• Instancia Superyoica: ${latestSy.informe ? latestSy.informe.split('\n')[3] : 'Registrada'}\n` +
+                `• Instancia Pulsional (Ello): ${latestEllo.informe ? latestEllo.informe.split('\n')[3] : 'Registrada'}\n\n` +
+                `VALORACIÓN DE INDICADORES CLÍNICOS ADICIONALES:\n` +
+                `1. ${equilibrio}\n` +
+                `2. ${plasticidad}\n` +
+                `3. ${simbolizacion}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = informeTexto;
+
+            const payload = {
+                fecha: new Date().toISOString(),
+                yo: latestYo.total,
+                superyo: latestSy.total,
+                ello: latestEllo.total,
+                informe: informeTexto
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().integracion_freud || [];
+                lista.push(payload);
+                await updateDoc(ref, { integracion_freud: lista });
+                alert("¡Informe integrado del aparato psíquico generado y guardado en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar integración:", e);
+            }
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.integracion_freud || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay integraciones registradas para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Integración #${index + 1} (${new Date(item.fecha).toLocaleDateString()})</strong> | <strong>Yo:</strong> ${item.yo}/15 | <strong>SuperYo:</strong> ${item.superyo}/12 | <strong>Ello:</strong> ${item.ello}/12
+                            ${item.informe ? `<pre style="margin-top: 8px; font-size: 0.82rem; white-space: pre-line; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">${item.informe}</pre>` : ''}
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
