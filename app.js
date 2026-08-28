@@ -168,7 +168,13 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 cargarBarraTerciaria(subHijos, colorBase);
             } else {
                 barTerciaria.innerHTML = '';
-                mostrarContenido(secKey);
+                
+                // Enlace específico para el componente Pacientes
+                if (secKey === "Pacientes") {
+                    cargarVistaPaciente();
+                } else {
+                    mostrarContenido(secKey);
+                }
             }
         };
         barSecundaria.appendChild(btn);
@@ -192,6 +198,12 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
         };
         barTerciaria.appendChild(btn);
     });
+}
+
+// Función exclusiva para incrustar paciente.html
+function cargarVistaPaciente() {
+    const contentArea = document.getElementById('content-area');
+    contentArea.innerHTML = `<iframe src="paciente.html" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
 }
 
 function mostrarContenido(seccion) {
