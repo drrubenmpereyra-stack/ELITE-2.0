@@ -214,7 +214,7 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
             } else if (terKey === "4.3 Eje 3 Relac TP") {
                 cargarVistaIframe("eje3.html");
             } else if (terKey === "4.4 Radar de Fiorini") {
-                mostrarContenido(terKey); // Listo para enlazar su archivo HTML correspondiente cuando lo indiques
+                cargarVistaIframe("radar_fiorini.html");
             } else {
                 mostrarContenido(terKey);
             }
