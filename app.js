@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Interconsultas)
+// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Aparato Psíquico Freud)
 const menuData = {
     "1": {
         nombre: "Administración",
@@ -189,7 +189,7 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 } else if (secKey === "6 Herramientas usadas") {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
-                    cargarVistaIframe("interconsulta.html"); // <- Integración exacta del módulo de Interconsultas
+                    cargarVistaIframe("interconsulta.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -221,6 +221,14 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("eje3.html");
             } else if (terKey === "4.4 Radar de Fiorini") {
                 cargarVistaIframe("radar_fiorini.html");
+            } else if (terKey === "7.1 Val Yo") {
+                cargarVistaIframe("val_yo.html");
+            } else if (terKey === "7.2 Val SuperYo") {
+                cargarVistaIframe("val_superyo.html");
+            } else if (terKey === "7.3 Val Ello") {
+                cargarVistaIframe("val_ello.html");
+            } else if (terKey === "7.4 Integraciones") {
+                cargarVistaIframe("integracion_freud.html");
             } else {
                 mostrarContenido(terKey);
             }
@@ -237,5 +245,5 @@ function cargarVistaIframe(archivoHtml) {
 
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`; //
+    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
 }
