@@ -259,4 +259,3 @@ function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
 }
-}
