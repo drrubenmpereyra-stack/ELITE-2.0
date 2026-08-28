@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Aparato Psíquico Freud)
+// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Bloques Freud y Psiquismo Creador Integrados)
 const menuData = {
     "1": {
         nombre: "Administración",
@@ -229,6 +229,18 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("val_ello.html");
             } else if (terKey === "7.4 Integraciones") {
                 cargarVistaIframe("integracion_freud.html");
+            } else if (terKey === "8.1 Protocolo Fiorini") {
+                cargarVistaIframe("protocolo_fiorini.html");
+            } else if (terKey === "8.2 Puente simbolización") {
+                cargarVistaIframe("puente_simbolizacion.html");
+            } else if (terKey === "8.3 Proyecto vital") {
+                cargarVistaIframe("proyecto_vital.html");
+            } else if (terKey === "8.4 Via motora") {
+                cargarVistaIframe("via_motora.html");
+            } else if (terKey === "8.5 Temporalidad") {
+                cargarVistaIframe("temporalidad.html");
+            } else if (terKey === "8.6 Convergencia clínica") {
+                cargarVistaIframe("convergencia_clinica.html");
             } else {
                 mostrarContenido(terKey);
             }
@@ -246,4 +258,5 @@ function cargarVistaIframe(archivoHtml) {
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
+}
 }
