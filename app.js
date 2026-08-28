@@ -1,11 +1,11 @@
-// Configuración de Firebase (Reemplaza con tus credenciales de tu proyecto de Firebase)
+// Configuración de Firebase (Conectado a materiales-terapeuticos)
 const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_AUTH_DOMAIN",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_STORAGE_BUCKET",
-    messagingSenderId: "TU_MESSAGING_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+    authDomain: "materiales-terapeuticos.firebaseapp.com",
+    projectId: "materiales-terapeuticos",
+    storageBucket: "materiales-terapeuticos.firebasestorage.app",
+    messagingSenderId: "827133493876",
+    appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -101,7 +101,7 @@ const menuData = {
     }
 };
 
-// Control de Acceso y Login
+// Control de Acceso y Login con registro en Firestore
 document.getElementById('loginBtn').addEventListener('click', async () => {
     const user = document.getElementById('userInput').value.trim();
     const pass = document.getElementById('passInput').value.trim();
@@ -112,14 +112,14 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         document.getElementById('app-container').style.display = 'flex';
         inicializarSistema();
         
-        // Ejemplo de persistencia y guardado en Firestore
         try {
             await db.collection("logs_acceso").add({
                 usuario: user,
                 fecha: new Date().toISOString()
             });
+            console.log("Acceso registrado exitosamente en Firestore.");
         } catch (e) {
-            console.error("Error al registrar en Firestore (Verificar configuración):", e);
+            console.error("Error al registrar en Firestore:", e);
         }
     } else {
         errorDiv.textContent = "Credenciales incorrectas.";
@@ -196,5 +196,5 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
 
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo listo para desarrollar contenido y persistencia en Firestore.</p>`;
+    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
 }
