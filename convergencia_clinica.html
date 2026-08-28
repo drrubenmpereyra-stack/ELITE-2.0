@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estación de Convergencia Clínica Integral - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --esmeralda: #00ff88;
+            --rojo-neon: #ff0000;
+            --cian: #00e5ff;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 2px solid var(--rojo-neon); border-radius: 6px; padding: 20px; box-shadow: 0 0 30px rgba(255,0,0,0.2); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--rojo-neon); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; text-shadow: 0 0 10px var(--rojo-neon); }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--esmeralda); }
+        select, textarea, input[type="date"] { background: #111; color: #fff; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, textarea:focus, input[type="date"]:focus { outline: none; border-color: var(--rojo-neon); }
+        textarea { resize: vertical; min-height: 200px; }
+
+        .convergencia-grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { background-color: var(--rojo-neon); color: #fff; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 11px; text-transform: uppercase; box-shadow: 0 0 10px var(--rojo-neon); transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-pdf { background-color: #064e3b; color: #fff; width: 100%; margin-top: 15px; padding: 20px; font-size: 13px; }
+
+        .visores-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; min-height: 500px; }
+        .visor { position: relative; background: #050505; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; }
+        .visor-img { height: 70%; background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #000; }
+        .v-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.92); color: var(--esmeralda); font-size: 10px; padding: 10px; border-top: 1px solid #333; height: 30%; overflow-y: auto; }
+
+        @keyframes mic-pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .mic-active { animation: mic-pulse 1s infinite; color: white !important; text-shadow: 0 0 10px red; }
+
+        .history-item { background: #080808; border-left: 3px solid var(--rojo-neon); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialConvergencia()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Convergencia Clínica -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-network-wired"></i> Estación de Convergencia Clínica Integral v25.3</h2>
+            
+            <div class="convergencia-grid">
+                <!-- Columna Izquierda: Controles y Micrófono -->
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="form-group">
+                        <label>Fecha del Estudio</label>
+                        <input type="date" id="conv-fecha">
+                    </div>
+                    <div class="form-group" style="position: relative; flex-grow: 1;">
+                        <label>Material Clínico (Voz / Texto)</label>
+                        <textarea id="conv-material" placeholder="Escriba o use el micrófono para dictar material..."></textarea>
+                        <button id="btn-mic" title="Dictar por voz" style="position:absolute; bottom:15px; right:15px; background:transparent; border:none; color:var(--rojo-neon); cursor:pointer; font-size:22px; outline:none;"><i class="fa-solid fa-microphone"></i></button>
+                    </div>
+                    <button class="btn" onclick="procesarAnalisisConvergencia()"><i class="fa-solid fa-bolt"></i> Procesar Análisis Descriptivo</button>
+                </div>
+
+                <!-- Columna Derecha: Visores 2x2 -->
+                <div style="display: flex; flex-direction: column;">
+                    <div class="visores-grid">
+                        <div class="visor">
+                            <div id="v-img-1" class="visor-img" style="background-image: url('fiorini_proyecto.jpg');"></div>
+                            <div id="v-t-1" class="v-label"><b>I. PROYECTO:</b> En espera de análisis...</div>
+                        </div>
+                        <div class="visor">
+                            <div id="v-img-2" class="visor-img" style="background-image: url('fiorini_accion_lograda.jpg');"></div>
+                            <div id="v-t-2" class="v-label"><b>II. ACCIÓN:</b> En espera de análisis...</div>
+                        </div>
+                        <div class="visor">
+                            <div id="v-img-3" class="visor-img" style="background-image: url('fiorini_tiempo_coherente.jpg');"></div>
+                            <div id="v-t-3" class="v-label"><b>III. TIEMPO:</b> En espera de análisis...</div>
+                        </div>
+                        <div class="visor">
+                            <div id="v-img-4" class="visor-img" style="background-image: url('fiorini_neuro_sano.jpg');"></div>
+                            <div id="v-t-4" class="v-label"><b>IV. FISIOPATOLOGÍA:</b> En espera de análisis...</div>
+                        </div>
+                    </div>
+                    <button id="conv-pdf-btn" class="btn btn-pdf" style="display: none;" onclick="generarInformeConvergenciaPDF()"><i class="fa-solid fa-file-pdf"></i> Generar Informe Pericial PDF y Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Estaciones de Convergencia Registradas</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+        let dataFinal = null;
+
+        const COLOR_ROJO_NEON = "#ff0000";
+
+        const MATRIZ_DESCRIPTIVA = {
+            SALUD: {
+                titulo: "DINAMISMO DE SÍNTESIS / YO PROSPECTIVO PLENO",
+                desc: [
+                    "LENGUAJE: Conectores lógicos secuenciales y verbos en futuro indicativo. Símbolo con espesor afectivo.",
+                    "ACCIÓN: Vía piramidal despejada; haz motor con fluidez absoluta hacia la meta.",
+                    "TIEMPO: Grid prospectivo jerarquizado; proyección armónica del horizonte vital.",
+                    "BIOLOGÍA: Eje HPA en equilibrio; niveles de cortisol regulados por alianza terapéutica activa."
+                ],
+                teoria: "Sinergia cortical óptima. El deseo trasciende la inhibición y se materializa en un proyecto vital coherente.",
+                diagnostico: "Salud Creadora / Convergencia Prospectiva Lograda",
+                imgs: ["fiorini_proyecto.jpg", "fiorini_accion_lograda.jpg", "fiorini_tiempo_coherente.jpg", "fiorini_neuro_sano.jpg"]
+            },
+            NEUROSIS: {
+                titulo: "DINAMISMO DE INHIBICIÓN / ESTRUCTURA CONFLICTIVA",
+                desc: [
+                    "LENGUAJE: Uso excesivo de condicionales ('tendría', 'si tan solo'). Bucle rumiante gramatical.",
+                    "ACCIÓN: Interrupción del haz motor a nivel de ganglios basales por interferencia amigdalina.",
+                    "TIEMPO: Tiempo detenido en el área del hipocampo; futuro percibido como repetición del pasado.",
+                    "BIOLOGÍA: Hipercortisolismo reactivo; secuestro amigdalino de las funciones ejecutivas."
+                ],
+                teoria: "La disconvergencia técnica revela un secuestro afectivo de la vía motora.",
+                diagnostico: "Neurosis Inhibitoria / Atrapamiento Rumiante",
+                imgs: ["fiorini_proy_bajo.jpg", "fiorini_accion_bloqueada.jpg", "fiorini_tiempo_detenido.jpg", "fiorini_neuro_inhibido.jpg"]
+            }
+        };
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+            document.getElementById('conv-fecha').value = new Date().toISOString().split('T')[0];
+            inicializarVoz();
+        }
+
+        function inicializarVoz() {
+            const micBtn = document.getElementById('btn-mic');
+            const materialTxt = document.getElementById('conv-material');
+            
+            if ('webkitSpeechRecognition' in window || 'speechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'es-AR';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                let isRecording = false;
+
+                micBtn.onclick = () => {
+                    if (!isRecording) {
+                        recognition.start();
+                        micBtn.classList.add('mic-active');
+                        isRecording = true;
+                    } else {
+                        recognition.stop();
+                        micBtn.classList.remove('mic-active');
+                        isRecording = false;
+                    }
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    materialTxt.value = transcript;
+                };
+
+                recognition.onerror = () => {
+                    micBtn.classList.remove('mic-active');
+                    isRecording = false;
+                };
+            } else {
+                micBtn.style.display = 'none';
+            }
+        }
+
+        window.cargarHistorialConvergencia = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.procesarAnalisisConvergencia = function() {
+            const mat = document.getElementById('conv-material').value.trim();
+            if(!mat) { alert("Ingrese material clínico."); return; }
+            
+            const txt = mat.toLowerCase();
+            const esSalud = ["plan", "hice", "orden", "lograr", "mañana", "proyecto"].some(w => txt.includes(w));
+            dataFinal = esSalud ? MATRIZ_DESCRIPTIVA.SALUD : MATRIZ_DESCRIPTIVA.NEUROSIS;
+
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`v-img-${i}`).style.backgroundImage = `url('${dataFinal.imgs[i-1]}')`;
+                document.getElementById(`v-t-${i}`).innerHTML = `<b>ANÁLISIS DESCRIPTIVO:</b><br>${dataFinal.desc[i-1]}`;
+            }
+            document.getElementById('conv-pdf-btn').style.display = "block";
+        }
+
+        window.generarInformeConvergenciaPDF = async function() {
+            if(!dataFinal) { alert("Debe procesar el análisis antes de generar el PDF."); return; }
+            const fValue = document.getElementById('conv-fecha').value;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: fValue,
+                diagnostico: dataFinal.diagnostico,
+                material: document.getElementById('conv-material').value,
+                teoria: dataFinal.teoria,
+                desc: dataFinal.desc
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().convergencia_clinica || [];
+                lista.push(payload);
+                await updateDoc(ref, { convergencia_clinica: lista });
+                alert("¡Estación de Convergencia guardada exitosamente en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head><style>
+                    body { font-family: sans-serif; padding: 40px; background: #eee; }
+                    .pdf { width: 800px; background: white; margin: auto; padding: 50px; border-top: 10px solid ${COLOR_ROJO_NEON}; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                    .img-c { border: 1px solid #ddd; padding: 10px; font-size: 10px; }
+                    .img-c img { width: 100%; }
+                    .footer { margin-top: 30px; padding: 20px; background: #000; color: white; border-left: 5px solid ${COLOR_ROJO_NEON}; }
+                    .toolbar { width: 800px; margin: 0 auto 15px auto; text-align: right; }
+                    @media print { .toolbar { display: none; } }
+                </style></head>
+                <body>
+                    <div class="toolbar">
+                        <button onclick="window.print()" style="padding:10px 20px; background:${COLOR_ROJO_NEON}; color:#fff; border:none; font-weight:bold; cursor:pointer;">IMPRIMIR</button>
+                        <button onclick="window.close()" style="padding:10px 20px; background:#333; color:#fff; border:none; font-weight:bold; cursor:pointer;">VOLVER</button>
+                    </div>
+                    <div class="pdf">
+                        <h1 style="margin-top:0;">INFORME PERICIAL: CONVERGENCIA CLÍNICA</h1>
+                        <p><strong>PACIENTE:</strong> ${activePatientName} | <strong>FECHA:</strong> ${fValue}</p>
+                        <div class="grid">
+                            <div class="img-c"><img src="${dataFinal.imgs[0]}"><br><b>I. PROYECTO:</b> ${dataFinal.desc[0]}</div>
+                            <div class="img-c"><img src="${dataFinal.imgs[1]}"><br><b>II. ACCIÓN:</b> ${dataFinal.desc[1]}</div>
+                            <div class="img-c"><img src="${dataFinal.imgs[2]}"><br><b>III. TIEMPO:</b> ${dataFinal.desc[2]}</div>
+                            <div class="img-c"><img src="${dataFinal.imgs[3]}"><br><b>IV. FISIO:</b> ${dataFinal.desc[3]}</div>
+                        </div>
+                        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:20px;">
+                            <h3>DISQUISICIÓN TEÓRICA</h3>
+                            <p>${dataFinal.teoria}</p>
+                        </div>
+                        <div class="footer">
+                            <h3>INTERPRETACIÓN DIAGNÓSTICA</h3>
+                            <p>El cuadro es compatible con: <strong>${dataFinal.diagnostico}</strong></p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.convergencia_clinica || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay registros de convergencia clínica para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Estudio #${index + 1} (${item.fecha})</strong> | <strong>Diagnóstico:</strong> ${item.diagnostico}
+                            <p style="margin-top: 4px; color: #ff0000;">Teoría: ${item.teoria}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

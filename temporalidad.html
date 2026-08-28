@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Temporalidad Prospectiva - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --esmeralda: #00ff88;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 1px solid var(--esmeralda); border-radius: 6px; padding: 20px; box-shadow: 0 0 15px rgba(0,255,136,0.15); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--esmeralda); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--esmeralda); }
+        select, textarea, input[type="date"] { background: #111; color: #fff; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, textarea:focus, input[type="date"]:focus { outline: none; border-color: var(--esmeralda); }
+        textarea { resize: vertical; min-height: 250px; }
+
+        .tiempo-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { background-color: var(--esmeralda); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 11px; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-pdf { background-color: #005533; color: #fff; width: 100%; margin-top: 15px; }
+
+        .image-viewer { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; border: 1px solid var(--border-color); min-height: 380px; padding: 10px; border-radius: 4px; }
+        .image-viewer img { max-width: 100%; max-height: 380px; object-fit: contain; }
+
+        .result-box { padding: 15px; background: #020202; border: 1px solid var(--border-color); color: #ddd; font-size: 11px; line-height: 1.5; border-radius: 4px; margin-top: 15px; min-height: 80px; }
+        
+        .history-item { background: #080808; border-left: 3px solid var(--esmeralda); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialTiempo()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Temporalidad -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-hourglass-half"></i> Analizador de Temporalidad Prospectiva v22.1</h2>
+            
+            <div class="tiempo-grid">
+                <!-- Columna Izquierda: Controles -->
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="form-group">
+                        <label>Fecha del Estudio</label>
+                        <input type="date" id="tiempo-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Material Clínico</label>
+                        <textarea id="tiempo-txt" placeholder="Material clínico del paciente..."></textarea>
+                    </div>
+                    <button class="btn" onclick="ejecutarEscaneoTiempo()"><i class="fa-solid fa-bolt"></i> Escanear Horizonte Temporal</button>
+                </div>
+
+                <!-- Columna Derecha: Visualizador e Informe -->
+                <div style="display: flex; flex-direction: column;">
+                    <span style="color:var(--esmeralda); font-size:10px; letter-spacing:1px; margin-bottom: 8px;">MONITOR DE TEMPORALIDAD (MAPEO CFI/FIORINI)</span>
+                    <div class="image-viewer">
+                        <img id="img-tiempo" src="fiorini.jpg" alt="Temporalidad">
+                    </div>
+                    <div class="result-box" id="res-tiempo">
+                        -
+                    </div>
+                    <button class="btn btn-pdf" onclick="generarInformeTiempoPDF()"><i class="fa-solid fa-file-pdf"></i> Abrir Lector PDF y Guardar en Base de Datos</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Estudios de Temporalidad Registrados</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+        let estadoAnalisisTiempo = null;
+
+        const COLOR_ESMERALDA = "#00ff88";
+        const IMAGENES_TIEMPO = {
+            BASE: "fiorini.jpg",
+            COHERENTE: "fiorini_tiempo_coherente.jpg",
+            FRAGMENTADO: "fiorini_tiempo_fragmentado.jpg",
+            DETENIDO: "fiorini_tiempo_detenido.jpg"
+        };
+
+        const MATRIZ_TIEMPO = {
+            COHERENTE: {
+                titulo: "TEMPORALIDAD PROSPECTIVA COHERENTE",
+                inferenciaIA: "Salud Psíquica / Yo Prospectivo Pleno",
+                descTecnica: "Sincronía Hipocampo-Prefrontal funcional. Se observan haces esmeralda jerarquizados proyectando un horizonte temporal estructurado y con sentido.",
+                img: IMAGENES_TIEMPO.COHERENTE
+            },
+            FRAGMENTADO: {
+                titulo: "TEMPORALIDAD FRAGMENTADA",
+                inferenciaIA: "Dinamismo Psicótico / Fragmentación Narrativa",
+                descTecnica: "Falla en la síntesis del Yo. El futuro aparece como ráfagas (shards) inconexas de luz que no logran secuenciarse en un proyecto vital.",
+                img: IMAGENES_TIEMPO.FRAGMENTADO
+            },
+            DETENIDO: {
+                titulo: "TIEMPO DETENIDO / BUCLE RUMIANTE",
+                inferenciaIA: "Dinamismo Depresivo / Inhibición del Proyecto",
+                descTecnica: "Hipoactividad prospectiva. El haz lumínico se curva hacia el hipocampo en un bucle rumiante, dejando el horizonte futuro en vacío.",
+                img: IMAGENES_TIEMPO.DETENIDO
+            }
+        };
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+            document.getElementById('tiempo-fecha').value = new Date().toISOString().split('T')[0];
+        }
+
+        window.cargarHistorialTiempo = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.ejecutarEscaneoTiempo = function() {
+            const mat = document.getElementById('tiempo-txt').value.trim();
+            if(!mat) { alert("Ingrese material clínico."); return; }
+            
+            const motorT = (t) => {
+                const txt = t.toLowerCase();
+                if(["caos","fragmento","estallado"].some(w=>txt.includes(w))) return "FRAGMENTADO";
+                if(["siempre","atrapado","bucle","rumia"].some(w=>txt.includes(w))) return "DETENIDO";
+                if(["mañana","plan","metas","orden"].some(w=>txt.includes(w))) return "COHERENTE";
+                return "DETENIDO";
+            };
+
+            const diag = motorT(mat);
+            const data = MATRIZ_TIEMPO[diag];
+            estadoAnalisisTiempo = { diag, material: mat, data };
+
+            document.getElementById('img-tiempo').src = data.img + "?t=" + Date.now();
+            document.getElementById('res-tiempo').innerHTML = `<b style="color:${COLOR_ESMERALDA}">EXPLICACIÓN TÉCNICA DE LA IMAGEN:</b><br>${data.descTecnica}`;
+        }
+
+        window.generarInformeTiempoPDF = async function() {
+            if(!estadoAnalisisTiempo) { alert("Ejecute el escaneo primero."); return; }
+            const fValue = document.getElementById('tiempo-fecha').value;
+            const data = estadoAnalisisTiempo.data;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: fValue,
+                diagnostico: data.titulo,
+                material: estadoAnalisisTiempo.material,
+                inferencia: data.inferenciaIA,
+                desc: data.descTecnica,
+                img: data.img
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().temporalidad || [];
+                lista.push(payload);
+                await updateDoc(ref, { temporalidad: lista });
+                alert("¡Estudio de Temporalidad guardado exitosamente en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head><style>
+                    body { font-family: 'Segoe UI', sans-serif; padding: 0; margin: 0; background: #323639; }
+                    .pdf-container { width: 850px; background: white; margin: 30px auto; padding: 50px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+                    .membrete { border-bottom: 4px solid ${COLOR_ESMERALDA}; margin-bottom: 30px; padding-bottom: 10px; }
+                    .toolbar { background: #323639; padding: 10px 20px; display: flex; justify-content: flex-end; gap: 15px; position: sticky; top:0; z-index: 100; }
+                    .btn-nav { padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; }
+                    .interpretacion-box { border: 1px solid #eee; padding: 25px; margin-top: 30px; background: #fafafa; border-left: 10px solid ${COLOR_ESMERALDA}; }
+                    @media print { .toolbar { display: none; } .pdf-container { margin: 0; box-shadow: none; width: 100%; } }
+                </style></head>
+                <body>
+                    <div class="toolbar">
+                        <button class="btn-nav" style="background:${COLOR_ESMERALDA};" onclick="window.print()">IMPRIMIR INFORME</button>
+                        <button class="btn-nav" style="background:#f44336; color:white;" onclick="window.close()">SALIR DEL LECTOR</button>
+                    </div>
+                    <div class="pdf-container">
+                        <div class="membrete">
+                            <h1 style="margin:0; font-size: 26px;">DR. Y MGTER. RUBÉN M. PEREYRA</h1>
+                            <p style="margin:5px 0; font-size: 12px; color: #666; letter-spacing: 1px;">DIRECTOR: PROGRAMA DE FORMACIÓN CLÍNICA DE LA CONVERGENCIA</p>
+                        </div>
+                        <p><strong>PACIENTE:</strong> ${activePatientName} | <strong>FECHA:</strong> ${fValue}</p>
+                        <div style="text-align:center;"><img src="${data.img}" style="width: 100%; max-width: 650px; border: 1px solid #ddd; margin: 20px 0;"></div>
+                        <div class="interpretacion-box">
+                            <h3 style="margin-top:0; color:${COLOR_ESMERALDA}; border-bottom: 1px solid #eee; padding-bottom: 10px;">INFORME DE TEMPORALIDAD PROSPECTIVA</h3>
+                            <p><strong>Hallazgos Técnicos Observados:</strong> ${data.descTecnica}</p>
+                            <p style="background: #fff; padding: 15px; border: 1px solid #ddd; margin-top: 15px;">
+                                <strong>INTERPRETACIÓN CLÍNICA IA:</strong><br>
+                                Este mapeo del horizonte temporal es altamente compatible con un psicofuncionamiento de <u>${data.inferenciaIA}</u>.
+                            </p>
+                        </div>
+                    </div>
+                </body></html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.temporalidad || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay registros de temporalidad para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Estudio #${index + 1} (${item.fecha})</strong> | <strong>Diagnóstico:</strong> ${item.diagnostico}
+                            <p style="margin-top: 4px; color: #00ff88;">Inferencia: ${item.inferencia}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potencialidad Creadora - Proyecto Vital (Fiorini) - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff00ff;
+            --bg-dark: #000000;
+            --panel-dark: #050005;
+            --border-color: #220022;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 1px solid var(--primary-color); border-radius: 6px; padding: 20px; box-shadow: 0 0 15px rgba(255,0,255,0.1); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--primary-color); }
+        select, input[type="date"] { background: #0a0a0a; color: #fff; border: 1px solid #333; padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: var(--primary-color); }
+
+        .fiorini-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { padding: 10px; font-size: 10px; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-calc { background: #fff; color: #000; }
+        .btn-ia { background: #ff00ff; color: #000; }
+        .btn-pdf { background: #e0115f; color: #fff; width: 100%; margin-top: 15px; }
+
+        .history-item { background: #080808; border-left: 3px solid var(--primary-color); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div style="display: flex; gap: 15px; max-width: 600px;">
+                <div class="form-group" style="flex: 2;">
+                    <label for="patient-select">Paciente</label>
+                    <select id="patient-select" onchange="cargarHistorialProyectoVital()">
+                        <option value="">-- Seleccione un paciente --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="epc-date-sel">Fecha de Evaluación</label>
+                    <input type="date" id="epc-date-sel">
+                </div>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Proyecto Vital -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-seedling"></i> Potencialidad Creadora (Fiorini)</h2>
+            
+            <div class="fiorini-grid">
+                <!-- Columna Izquierda: Indicadores (Escala 0 a 4) -->
+                <div id="epc-ind-cont" style="overflow-y:auto; max-height:550px; padding-right:15px; border-right:1px solid #220022;">
+                    <!-- Se inyectan dinámicamente los 10 indicadores -->
+                </div>
+
+                <!-- Columna Derecha: Panel de Espiral, Cálculos e Informes -->
+                <div style="display: flex; flex-direction: column; background: #050005; border: 1px solid #220022; padding: 15px; border-radius: 4px;">
+                    <!-- Espiral interactiva -->
+                    <div id="scene-espiral" style="width:100%; height:180px; position:relative; display:flex; justify-content:center; align-items:center; border-bottom: 1px solid #220022; margin-bottom: 15px;">
+                        <svg id="svg-espiral" width="140" height="140" viewBox="0 0 100 100" style="transition: all 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-origin: center;">
+                            <path id="path-fibo" d="M50,50 A10,10 0 0,1 60,60 A20,20 0 0,1 40,80 A30,30 0 0,1 10,50 A50,50 0 0,1 60,0" fill="none" stroke="#e74c3c" stroke-width="2" />
+                            <circle cx="50" cy="50" r="2" fill="#e74c3c" />
+                        </svg>
+                        <div style="position:absolute; bottom:5px; text-align:center;">
+                            <span id="score-epc" style="font-size:24px; color:#e74c3c; font-weight:bold;">0</span>
+                            <div id="label-epc" style="font-size:9px; color:#e74c3c; font-weight:bold; text-transform:uppercase;">Inercia</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de Acción -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 15px;">
+                        <button class="btn btn-calc" onclick="calcularProyectoVital()"><i class="fa-solid fa-calculator"></i> Graficar</button>
+                        <button class="btn btn-ia" onclick="verInformeProyectoVital()"><i class="fa-solid fa-file-lines"></i> Ver Informe</button>
+                    </div>
+
+                    <!-- Visor de Texto / Análisis -->
+                    <div id="epc-viewer" style="flex:1; padding:15px; overflow-y:auto; font-size:11px; line-height:1.5; color:#aaa; background:#020002; border:1px solid #220022; border-radius:4px; min-height: 180px;">
+                        <p style="text-align:center; color:#555; margin-top:40px;">Consigne puntajes (0 a 4) para evaluar el Psiquismo Creador.</p>
+                    </div>
+
+                    <button class="btn btn-pdf" onclick="guardarYGenerarPDF()"><i class="fa-solid fa-file-pdf"></i> Guardar y Generar PDF Final</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Evaluaciones de Proyecto Vital</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+
+        const TEXTOS_FIORINI = {
+            inercia: `<b>0-12 puntos: Inercia Repetitiva.</b> El psiquismo se encuentra capturado por la repetición neurótica o procesos secundarios rígidos. La capacidad de simbolización está al servicio de la defensa.<br><br><h3>Orientaciones Prospectivas</h3><h4>Perspectiva Psicoanalítica</h4><p>1. <b>Ablandamiento de la Resistencia:</b> Trabajar las fijaciones que impiden el juego asociativo.</p><p>2. <b>Búsqueda de la Grieta:</b> Identificar atisbos de novedad no capturados por la repetición.</p><h4>Perspectiva Neurocientífica</h4><p>1. <b>Activación de la Red de Saliencia:</b> Estimular la curiosidad y la atención plena para desactivar la rumiación de la Red por Defecto (DMN).</p>`,
+            desarrollo: `<b>13-25 puntos: Potencialidad en Desarrollo.</b> Aparecen procesos terciarios. El sujeto empieza a jugar con los sentidos y a cuestionar sus verdades absolutas.<br><br><h3>Orientaciones Prospectivas</h3><h4>Perspectiva Psicoanalítica</h4><p>1. <b>Fomento de la Metáfora:</b> Intervenciones poéticas que abran nuevos campos de significación.</p><p>2. <b>Sostén del Proyecto:</b> Apoyar los movimientos de autonomía del paciente.</p><h4>Perspectiva Neurocientífica</h4><p>1. <b>Integración Hemisférica:</b> Mayor diálogo entre afecto (derecho) y narrativa lógica (izquierdo).</p>`,
+            creador: `<b>+26 puntos: Sujeto Creador.</b> El psiquismo opera con fluidez terciaria. El síntoma ha cedido lugar a la creación de un proyecto vital transformador.<br><br><h3>Orientaciones Prospectivas</h3><h4>Perspectiva Psicoanalítica</h4><p>1. <b>Consolidación de la Autoría:</b> El paciente ya no repite, crea.</p><p>2. <b>Trascendencia del Encuadre:</b> Capacidad de crear mundos fuera de la sesión.</p><h4>Perspectiva Neurocientífica</h4><p>1. <b>Optimización de Funciones Ejecutivas:</b> Control creativo de las emociones y alta resiliencia.</p>`
+        };
+
+        const INDICADORES_FIORINI = {
+            "Flexibilidad Simbólica": "Capacidad de abandonar narrativas rígidas para construir nuevos sentidos.",
+            "Tolerancia a la Incertidumbre": "Sostener el vacío de sentido sin precipitarse a cierres defensivos.",
+            "Alianza Creadora": "Grado de colaboración en el 'espacio de juego' terapéutico.",
+            "Integración de Opuestos": "Unir aspectos disociados del sí-mismo en una nueva síntesis.",
+            "Emergencia de Proyectos": "Paso del deseo abstracto a la acción creadora en el mundo.",
+            "Originalidad Asociativa": "Ruptura con el cliché y la respuesta estereotipada.",
+            "Fluidez Terciaria": "Capacidad de unir deseo y realidad de forma novedosa.",
+            "Autoría del Relato": "Posicionamiento del paciente como protagonista de su historia.",
+            "Sensibilidad Estética": "Capacidad de percibir la armonía en la propia reorganización psíquica.",
+            "Resiliencia Transformadora": "Uso de la crisis como material para un nuevo orden interno."
+        };
+
+        const escalasEPC = [
+            {t: "0 - Inercia Repetitiva: Predominio de la repetición y lo dado.", c: "#e74c3c"},
+            {t: "1 - Atisbo Creador: Aparecen emergentes aislados de novedad.", c: "#e67e22"},
+            {t: "2 - Apertura Dialéctica: El sujeto empieza a cuestionar su inercia.", c: "#f1c40f"},
+            {t: "3 - Fluidez Terciaria: Producción activa de sentidos nuevos.", c: "#3498db"},
+            {t: "4 - Potencialidad Transformadora: El sujeto es autor de su proyecto.", c: "#2ecc71"}
+        ];
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+            document.getElementById('epc-date-sel').value = new Date().toISOString().split('T')[0];
+            construirFormularioIndicadores();
+        }
+
+        function construirFormularioIndicadores() {
+            const cont = document.getElementById('epc-ind-cont');
+            cont.innerHTML = '';
+            Object.entries(INDICADORES_FIORINI).forEach(([n, h]) => {
+                cont.innerHTML += `
+                    <div style="margin-bottom:20px; border-bottom:1px solid #220022; padding-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label title="${h}" style="font-size:11px; color:#ff00ff; font-weight:bold; cursor:help;">${n} ⓘ</label>
+                            <input type="number" min="0" max="4" value="0" class="epc-in" style="width:45px; background:#000; color:#fff; border:1px solid #ff00ff; padding:6px; text-align:center; font-size:13px;">
+                        </div>
+                        <div class="epc-msg" style="font-size:10px; color:#e74c3c; margin-top:6px;">${escalasEPC[0].t}</div>
+                    </div>`;
+            });
+
+            const ins = cont.querySelectorAll('.epc-in');
+            const msgs = cont.querySelectorAll('.epc-msg');
+
+            ins.forEach((inp, i) => {
+                inp.oninput = () => {
+                    let v = parseInt(inp.value) || 0; if(v>4) v=4; if(v<0) v=0; inp.value = v;
+                    msgs[i].innerText = escalasEPC[v].t; msgs[i].style.color = escalasEPC[v].c;
+                };
+            });
+        }
+
+        window.cargarHistorialProyectoVital = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.calcularProyectoVital = function() {
+            const ins = document.querySelectorAll('.epc-in');
+            let t = 0; ins.forEach(i => t += parseInt(i.value) || 0);
+            document.getElementById('score-epc').innerText = t;
+            
+            const path = document.getElementById('path-fibo');
+            const lbl = document.getElementById('label-epc');
+            const svg = document.getElementById('svg-espiral');
+            const scoreDisp = document.getElementById('score-epc');
+
+            const scale = 1 + (t / 60);
+            svg.style.transform = `scale(${scale}) rotate(${t * 6}deg)`;
+
+            if(t <= 12) { 
+                lbl.innerText = "Inercia"; lbl.style.color = "#e74c3c"; scoreDisp.style.color = "#e74c3c"; path.style.stroke = "#e74c3c";
+            } else if(t <= 25) { 
+                lbl.innerText = "Desarrollo"; lbl.style.color = "#3498db"; scoreDisp.style.color = "#3498db"; path.style.stroke = "#3498db";
+            } else { 
+                lbl.innerText = "Creador"; lbl.style.color = "#2ecc71"; scoreDisp.style.color = "#2ecc71"; path.style.stroke = "#2ecc71";
+            }
+        }
+
+        window.verInformeProyectoVital = function() {
+            let t = parseInt(document.getElementById('score-epc').innerText);
+            let texto = (t<=12) ? TEXTOS_FIORINI.inercia : (t<=25) ? TEXTOS_FIORINI.desarrollo : TEXTOS_FIORINI.creador;
+            document.getElementById('epc-viewer').innerHTML = `<div style="color:#ff00ff; font-weight:bold; margin-bottom:10px;">ANÁLISIS DE POTENCIALIDAD:</div>${texto}`;
+        }
+
+        window.guardarYGenerarPDF = async function() {
+            calcularProyectoVital();
+            const t = parseInt(document.getElementById('score-epc').innerText);
+            const fec = document.getElementById('epc-date-sel').value;
+            let texto = (t<=12) ? TEXTOS_FIORINI.inercia : (t<=25) ? TEXTOS_FIORINI.desarrollo : TEXTOS_FIORINI.creador;
+            const categoria = document.getElementById('label-epc').innerText;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: fec,
+                puntaje: t,
+                categoria: categoria,
+                informe: texto
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().proyecto_vital || [];
+                lista.push(payload);
+                await updateDoc(ref, { proyecto_vital: lista });
+                alert("¡Evaluación de Proyecto Vital guardada en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Informe Proyecto Vital - Dr. Pereyra</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+                        .header { border-bottom: 2px solid #ff00ff; padding-bottom: 15px; margin-bottom: 30px; }
+                        .no-print { background: #eee; padding: 20px; text-align: center; margin-bottom: 30px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print">
+                        <button style="padding:15px 30px; background:#ff00ff; color:#fff; border:none; font-weight:bold; cursor:pointer;" onclick="window.print()">IMPRIMIR / GUARDAR</button>
+                        <button style="padding:15px 30px; background:#333; color:#fff; border:none; margin-left:10px; cursor:pointer;" onclick="window.close()">VOLVER</button>
+                    </div>
+                    <div class="header">
+                        <h2 style="margin:0; font-size:18px;">DR. Y MGTER. RUBÉN M. PEREYRA</h2>
+                        <p style="margin:2px 0; font-size:10px; color:#555;">Potencialidad Transformadora | Psiquismo Creador</p>
+                    </div>
+                    <p><strong>Paciente:</strong> ${activePatientName} | <strong>Fecha:</strong> ${fec}</p>
+                    <div style="text-align:center; padding:30px; background:#f9f9f9; border:1px solid #ccc; margin:30px 0;">
+                        <h1 style="margin:0; font-size:42px; color:#ff00ff;">${t} PUNTOS</h1>
+                        <p style="font-weight:bold; text-transform:uppercase;">${categoria}</p>
+                    </div>
+                    <div style="font-size:12px; line-height:1.6;">${texto}</div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.proyecto_vital || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay registros de proyecto vital para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Evaluación #${index + 1} (${item.fecha})</strong> | <strong>Puntaje:</strong> ${item.puntaje} (${item.categoria})
+                            <div style="margin-top: 5px; color: #ff00ff; font-size: 10px;">${item.informe.substring(0, 120)}...</div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

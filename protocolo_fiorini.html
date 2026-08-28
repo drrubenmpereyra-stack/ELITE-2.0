@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapeadora de Fiorini (Psiquismo Creador) - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --turquesa: #00ffc8;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 1px solid var(--turquesa); border-radius: 6px; padding: 20px; box-shadow: 0 0 15px rgba(0,255,200,0.1); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--turquesa); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--turquesa); }
+        select, textarea { background: #111; color: #fff; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, textarea:focus { outline: none; border-color: var(--turquesa); }
+        textarea { resize: vertical; min-height: 250px; }
+
+        .fiorini-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { background-color: var(--turquesa); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 11px; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-pdf { background-color: #e0115f; color: #fff; width: 100%; margin-top: 15px; }
+
+        .image-viewer { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; border: 1px solid var(--border-color); min-height: 400px; padding: 10px; border-radius: 4px; }
+        .image-viewer img { max-width: 100%; max-height: 400px; object-fit: contain; }
+
+        .result-box { padding: 15px; background: #020202; border: 1px solid var(--border-color); color: #aaa; font-size: 12px; line-height: 1.5; border-radius: 4px; margin-top: 15px; }
+        
+        .history-item { background: #080808; border-left: 3px solid var(--turquesa); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialFiorini()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Protocolo Fiorini -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-project-diagram"></i> Mapeadora de Fiorini (Procesos del Psiquismo)</h2>
+            
+            <div class="fiorini-grid">
+                <!-- Columna Izquierda: Controles -->
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="form-group">
+                        <label>Material Clínico</label>
+                        <textarea id="p-txt" placeholder="Ingrese el material clínico para análisis de síntesis..."></textarea>
+                    </div>
+                    <button class="btn" id="p-run" onclick="graficarSintesis()"><i class="fa-solid fa-bolt"></i> Graficar Síntesis</button>
+                </div>
+
+                <!-- Columna Derecha: Visualizador e Informe -->
+                <div style="display: flex; flex-direction: column;">
+                    <div class="image-viewer">
+                        <img id="p-img" src="fiorini.jpg" alt="Esquema Fiorini">
+                    </div>
+                    <div class="result-box" id="p-res">
+                        En espera de graficación...
+                    </div>
+                    <button class="btn btn-pdf" onclick="generarInformePDF()"><i class="fa-solid fa-file-pdf"></i> Informe PDF Fiorini y Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Protocolos Fiorini Registrados</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+        let nivelActual = null;
+
+        const IMAGENES = {
+            BASE: "fiorini.jpg",
+            PRIMARIO: "fiorini_primario.jpg",
+            SECUNDARIO: "fiorini_secundario.jpg",
+            TERCIARIO: "fiorini_terciario.jpg"
+        };
+
+        const RUBRICAS = {
+            PRIMARIO: {
+                sim: "PROCESO PRIMARIO: Pensamiento concreto, descarga pulsional caótica. Falla en la función alfa. Predominio del empuje somático.",
+                neu: "Correlato: Hiperactivación de núcleos del tronco (VTA/Locus) con bajo control inhibitorio prefrontal."
+            },
+            SECUNDARIO: {
+                sim: "PROCESO SECUNDARIO: Rigidez lógica y juicio de realidad formal. Pensamiento compartimentado. Represión eficiente.",
+                neu: "Correlato: Activación predominante de la Corteza Prefrontal Dorso-lateral (DL-PFC). Red DMN inhibida."
+            },
+            TERCIARIO: {
+                sim: "PROCESO TERCIARIO (SÍNTESIS CREADORA): Integración de lo pulsional con el sentido. Producción de metáforas inéditas.",
+                neu: "Correlato: Alta conectividad funcional Tronco-Corteza. Sincronía rítmica y plasticidad neuronal activa."
+            }
+        };
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+        }
+
+        window.cargarHistorialFiorini = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.graficarSintesis = function() {
+            const t = document.getElementById('p-txt').value.trim();
+            if(!t) { alert("Ingrese material clínico para el análisis."); return; }
+            
+            const score = Math.min(t.length / 4 + (t.toLowerCase().includes("como") ? 45 : 0), 100);
+            nivelActual = (score > 66) ? "TERCIARIO" : (score > 35) ? "SECUNDARIO" : "PRIMARIO";
+            
+            document.getElementById('p-img').src = IMAGENES[nivelActual] + "?t=" + Date.now();
+            document.getElementById('p-res').innerHTML = `
+                <b style="color:var(--turquesa)">SÍNTESIS DETECTADA: ${nivelActual}</b><br><br>
+                ${RUBRICAS[nivelActual].sim}<br><br>
+                <em>${RUBRICAS[nivelActual].neu}</em>
+            `;
+        }
+
+        window.generarInformePDF = async function() {
+            if(!nivelActual) { alert("Debe graficar antes de generar el informe."); return; }
+            const material = document.getElementById('p-txt').value;
+            const imgPath = document.getElementById('p-img').src;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: new Date().toISOString(),
+                nivel: nivelActual,
+                material: material,
+                informe: RUBRICAS[nivelActual].sim + " | " + RUBRICAS[nivelActual].neu
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().protocolos_fiorini || [];
+                lista.push(payload);
+                await updateDoc(ref, { protocolos_fiorini: lista });
+                alert("¡Protocolo Fiorini guardado exitosamente en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Informe Fiorini - Clínica de la Convergencia</title>
+                    <style>
+                        body { font-family: monospace; padding: 40px; color: #333; }
+                        .header { border-bottom: 3px solid #00ffc8; padding-bottom: 10px; margin-bottom: 20px; }
+                        .section { margin-top: 20px; border-left: 4px solid #eee; padding-left: 15px; }
+                        @media print { .no-print { display: none; } }
+                        .btn-box { padding: 20px; background: #f9f9f9; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print btn-box">
+                        <button onclick="window.print()" style="padding:15px 30px; background:#00ffc8; border:none; font-weight:bold; cursor:pointer;">GUARDAR / IMPRIMIR</button>
+                        <button onclick="window.close()" style="padding:15px 30px; background:#333; color:#fff; border:none; margin-left:10px; cursor:pointer;">SALIR</button>
+                    </div>
+                    <div class="header">
+                        <h1>DR. Y MGTER. RUBÉN M. PEREYRA</h1>
+                        <p>Protocolo de Síntesis: Psiquismo Creador</p>
+                    </div>
+                    <p><strong>Paciente:</strong> ${activePatientName} | <strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
+                    <div style="text-align:center; margin:30px 0;"><img src="${imgPath}" style="max-width:550px; border:1px solid #ddd;"></div>
+                    <div class="section"><strong>Nivel:</strong> ${nivelActual}</div>
+                    <div class="section"><strong>Interpretación:</strong><br>${RUBRICAS[nivelActual].sim}</div>
+                    <div class="section"><strong>Correlato:</strong><br><em>${RUBRICAS[nivelActual].neu}</em></div>
+                    <div class="section"><strong>Material:</strong><br><em>"${material}"</em></div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.protocolos_fiorini || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay protocolos registrados para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Evaluación #${index + 1} (${new Date(item.fecha).toLocaleDateString()})</strong> | <strong>Nivel:</strong> ${item.nivel}
+                            <p style="margin-top: 4px;"><strong>Material:</strong> "${item.material}"</p>
+                            <p style="margin-top: 4px; color: #00ffc8;">${item.informe}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

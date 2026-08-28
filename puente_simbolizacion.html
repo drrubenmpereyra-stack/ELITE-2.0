@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puente de Simbolización - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --turquesa: #00ffc8;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 1px solid var(--turquesa); border-radius: 6px; padding: 20px; box-shadow: 0 0 15px rgba(0,255,200,0.1); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--turquesa); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--turquesa); }
+        select, textarea { background: #111; color: #fff; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, textarea:focus { outline: none; border-color: var(--turquesa); }
+        textarea { resize: vertical; min-height: 250px; }
+
+        .puente-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { background-color: var(--turquesa); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 11px; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-pdf { background-color: #e0115f; color: #fff; width: 100%; margin-top: 15px; }
+
+        .image-viewer { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; border: 1px solid var(--border-color); min-height: 400px; padding: 10px; border-radius: 4px; }
+        .image-viewer img { max-width: 100%; max-height: 400px; object-fit: contain; }
+
+        .result-box { padding: 15px; background: #020202; border: 1px solid var(--border-color); color: #aaa; font-size: 12px; line-height: 1.5; border-radius: 4px; margin-top: 15px; }
+        
+        .history-item { background: #080808; border-left: 3px solid var(--turquesa); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialPuente()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Puente de Simbolización -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-brain"></i> Puente de Simbolización</h2>
+            
+            <div class="puente-grid">
+                <!-- Columna Izquierda: Controles -->
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="form-group">
+                        <label>Material Clínico</label>
+                        <textarea id="p-txt" placeholder="Ingrese el material clínico para análisis del puente de simbolización..."></textarea>
+                    </div>
+                    <button class="btn" id="p-run" onclick="ejecutarAnalisisPuente()"><i class="fa-solid fa-bolt"></i> Ejecutar Análisis y Graficar</button>
+                </div>
+
+                <!-- Columna Derecha: Visualizador e Informe -->
+                <div style="display: flex; flex-direction: column;">
+                    <div class="image-viewer">
+                        <img id="p-img" src="tronco_corteza.jpg" alt="Puente de Simbolización">
+                    </div>
+                    <div class="result-box" id="p-res">
+                        Inicie el análisis para visualizar el estado de integración.
+                    </div>
+                    <button class="btn btn-pdf" onclick="generarInformePuentePDF()"><i class="fa-solid fa-file-pdf"></i> Generar Informe Final (PDF) y Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Puentes de Simbolización Registrados</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+        let nivelActual = null;
+
+        const IMAGENES = {
+            BASE: "tronco_corteza.jpg",
+            BAJA: "simb_baja.jpg",
+            MEDIA: "simb_media.jpg",
+            ALTA: "simb_alta.jpg"
+        };
+
+        const RUBRICAS = {
+            BAJA: {
+                sim: "Significado clínico: Pensamiento concreto, descarga somática, falla en la función alfa o material puramente descriptivo (Proceso Secundario rígido).",
+                neu: "Correlato Neurocientífico: Activación basal de núcleos del tronco (VTA, Locus, Rafe) con baja proyección ascendente. Silencio cortical."
+            },
+            MEDIA: {
+                sim: "Significado Clínico: Simbolización en tránsito. Aparición de los primeros nexos metafóricos ('como si'), sueños con algún nivel de elaboración o angustia que empieza a ser nombrada.",
+                neu: "Correlato Neurocientífico: Incremento de la modulación noradrenérgica y serotoninérgica. Conectividad tronco-cortical incipiente."
+            },
+            ALTA: {
+                sim: "Significado Clínico: Síntesis Terciaria lograda. Producción poética, metáforas inéditas, integración de lo pulsional con el sentido. El espacio intersubjetivo está plenamente activo.",
+                neu: "Correlato Neurocientífico: Máxima sincronía rítmica. Activación intensa de la Corteza Prefrontal y áreas de asociación terciaria."
+            }
+        };
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+        }
+
+        window.cargarHistorialPuente = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.ejecutarAnalisisPuente = function() {
+            const t = document.getElementById('p-txt').value.trim();
+            if(!t) { alert("Ingrese material clínico para el análisis."); return; }
+            
+            const score = Math.min(t.length / 4 + (t.toLowerCase().includes("como") ? 45 : 0), 100);
+            nivelActual = (score > 66) ? "ALTA" : (score > 35) ? "MEDIA" : "BAJA";
+            
+            document.getElementById('p-img').src = IMAGENES[nivelActual] + "?t=" + Date.now();
+            document.getElementById('p-res').innerHTML = `
+                <b style="color:#00ffc8">ESTADO DE ACTIVACIÓN: ${nivelActual}</b><br><br>
+                ${RUBRICAS[nivelActual].sim}<br><br>
+                <span style="color:#666; font-style:italic;">${RUBRICAS[nivelActual].neu}</span>
+            `;
+            document.getElementById('p-res').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.generarInformePuentePDF = async function() {
+            if(!nivelActual) { alert("Debe ejecutar el análisis antes de generar el informe."); return; }
+            const material = document.getElementById('p-txt').value;
+            const imgPath = document.getElementById('p-img').src;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: new Date().toISOString(),
+                nivel: nivelActual,
+                material: material,
+                informe: RUBRICAS[nivelActual].sim + " | " + RUBRICAS[nivelActual].neu
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().puente_simbolizacion || [];
+                lista.push(payload);
+                await updateDoc(ref, { puente_simbolizacion: lista });
+                alert("¡Puente de Simbolización guardado exitosamente en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Reporte - Dr. Pereyra</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+                        .header { border-bottom: 3px solid #00ffc8; padding-bottom: 10px; margin-bottom: 30px; }
+                        .no-print { background: #eee; padding: 20px; text-align: center; margin-bottom: 30px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print">
+                        <button style="padding:15px 30px; background:#00ffc8; border:none; font-weight:bold; cursor:pointer;" onclick="window.print()">IMPRIMIR / GUARDAR</button>
+                        <button style="padding:15px 30px; background:#333; color:#fff; border:none; margin-left:10px; cursor:pointer;" onclick="window.close()">VOLVER</button>
+                    </div>
+                    <div class="header">
+                        <h1>DR. Y MGTER. RUBÉN M. PEREYRA</h1>
+                        <p>Especialista en Psicoanálisis Focalizado y Neurociencias</p>
+                    </div>
+                    <p><strong>Paciente:</strong> ${activePatientName} | <strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
+                    <div style="text-align:center; margin:30px 0;"><img src="${imgPath}" style="max-width:450px;"></div>
+                    <h3>Significado Clínico:</h3><p>${RUBRICAS[nivelActual].sim}</p>
+                    <h3>Correlato Neurocientífico:</h3><p><em>${RUBRICAS[nivelActual].neu}</em></p>
+                    <h3>Material Analizado:</h3><p><em>"${material}"</em></p>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.puente_simbolizacion || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay registros para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Registro #${index + 1} (${new Date(item.fecha).toLocaleDateString()})</strong> | <strong>Nivel:</strong> ${item.nivel}
+                            <p style="margin-top: 4px;"><strong>Material:</strong> "${item.material}"</p>
+                            <p style="margin-top: 4px; color: #00ffc8;">${item.informe}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

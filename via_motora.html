@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Pericial de la Vía Motora - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --esmeralda: #00ff88;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 1px solid var(--esmeralda); border-radius: 6px; padding: 20px; box-shadow: 0 0 15px rgba(0,255,136,0.1); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--esmeralda); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--esmeralda); }
+        select, textarea, input[type="date"] { background: #111; color: #fff; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, textarea:focus, input[type="date"]:focus { outline: none; border-color: var(--esmeralda); }
+        textarea { resize: vertical; min-height: 250px; }
+
+        .motor-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { background-color: var(--esmeralda); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 11px; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-pdf { background-color: #005533; color: #fff; width: 100%; margin-top: 15px; }
+
+        .image-viewer { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; border: 1px solid var(--border-color); min-height: 380px; padding: 10px; border-radius: 4px; }
+        .image-viewer img { max-width: 100%; max-height: 380px; object-fit: contain; }
+
+        .result-box { padding: 15px; background: #020202; border: 1px solid var(--border-color); color: #ddd; font-size: 11px; line-height: 1.5; border-radius: 4px; margin-top: 15px; min-height: 80px; }
+        
+        .history-item { background: #080808; border-left: 3px solid var(--esmeralda); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialMotor()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Vía Motora -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid id-card"></i> Análisis Pericial de la Vía Motora v21.9</h2>
+            
+            <div class="motor-grid">
+                <!-- Columna Izquierda: Controles -->
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="form-group">
+                        <label>Fecha del Estudio</label>
+                        <input type="date" id="motor-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Material Clínico</label>
+                        <textarea id="motor-txt" placeholder="Material clínico focalizado en la ejecución del proyecto..."></textarea>
+                    </div>
+                    <button class="btn" onclick="ejecutarEscaneoMotor()"><i class="fa-solid fa-bolt"></i> Ejecutar Escaneo Descriptivo</button>
+                </div>
+
+                <!-- Columna Derecha: Visualizador e Informe -->
+                <div style="display: flex; flex-direction: column;">
+                    <span style="color:var(--esmeralda); font-size:10px; letter-spacing:1px; margin-bottom: 8px;">MONITOR DE HALLAZGOS TÉCNICOS (NO INTERPRETATIVO)</span>
+                    <div class="image-viewer">
+                        <img id="img-motor" src="fiorini.jpg" alt="Vía Motora">
+                    </div>
+                    <div class="result-box" id="res-motor">
+                        -
+                    </div>
+                    <button class="btn btn-pdf" onclick="generarInformeMotorPDF()"><i class="fa-solid fa-file-pdf"></i> Abrir Lector PDF y Guardar en Base de Datos</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Estudios de Vía Motora Registrados</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+        let estadoAnalisisMotor = null;
+
+        const COLOR_ESMERALDA = "#00ff88";
+        const IMAGENES_MOTORAS = {
+            BASE: "fiorini.jpg",
+            LOGRADA: "fiorini_accion_lograda.jpg",
+            BLOQUEADA: "fiorini_accion_bloqueada.jpg",
+            IMPULSIVA: "fiorini_accion_impulsiva.jpg"
+        };
+
+        const MATRIZ_MOTOR = {
+            EJECUCION: {
+                titulo: "ACCIÓN TRANSFORMADORA LOGRADA",
+                inferenciaIA: "Yo Prospectivo Saludable / Capacidad de Ejecución Plena",
+                descMotor: "Sinergia Prefrontal-Motora funcional. El haz esmeralda desciende con potencia por la vía piramidal hacia la médula espinal, indicando una intencionalidad que se plasma en acto eficaz.",
+                img: IMAGENES_MOTORAS.LOGRADA
+            },
+            BLOQUEO: {
+                titulo: "ACCIÓN ATRAPADA / INHIBIDA",
+                inferenciaIA: "Neurosis / Inhibición del Proyecto Vital",
+                descMotor: "Atrapamiento de la intención. El haz esmeralda se corta abruptamente en el centro del cerebro y es atrapado por una estructura de contención azulada, formando un vórtice caótico.",
+                img: IMAGENES_MOTORAS.BLOQUEADA
+            },
+            IMPULSO: {
+                titulo: "ACCIÓN IMPULSIVA / BYPASS LÍMBICO",
+                inferenciaIA: "Dinamismo Psicopático / Simulación de Acción",
+                descMotor: "Ejecución directa por bypass. Un rayo esmeralda tipo 'láser' muy fino realiza un descenso instantáneo sin pasar por los filtros de evaluación afectiva o resonancia límbica.",
+                img: IMAGENES_MOTORAS.IMPULSIVA
+            }
+        };
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+            document.getElementById('motor-fecha').value = new Date().toISOString().split('T')[0];
+        }
+
+        window.cargarHistorialMotor = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.ejecutarEscaneoMotor = function() {
+            const mat = document.getElementById('motor-txt').value.trim();
+            if(!mat) { alert("Ingrese material clínico."); return; }
+            
+            const motorLogico = (t) => {
+                const txt = t.toLowerCase();
+                if(["rápido","bypass","frío","inmediato"].some(w=>txt.includes(w)) && ["logré","hice"].some(w=>txt.includes(w))) return "IMPULSO";
+                if(["bloqueado","no puedo","traba","atrapado"].some(w=>txt.includes(w))) return "BLOQUEO";
+                if(["hice","pude","logré","acciono"].some(w=>txt.includes(w))) return "EJECUCION";
+                return "BLOQUEO";
+            };
+
+            const diag = motorLogico(mat);
+            const data = MATRIZ_MOTOR[diag];
+            estadoAnalisisMotor = { diag, material: mat, data };
+
+            document.getElementById('img-motor').src = data.img + "?t=" + Date.now();
+            document.getElementById('res-motor').innerHTML = `<b style="color:${COLOR_ESMERALDA}">EXPLICACIÓN TÉCNICA DE LA IMAGEN:</b><br>${data.descMotor}`;
+        }
+
+        window.generarInformeMotorPDF = async function() {
+            if(!estadoAnalisisMotor) { alert("Debe ejecutar el escaneo descriptivo antes de generar el PDF."); return; }
+            const fValue = document.getElementById('motor-fecha').value;
+            const data = estadoAnalisisMotor.data;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: fValue,
+                diagnostico: data.titulo,
+                material: estadoAnalisisMotor.material,
+                inferencia: data.inferenciaIA,
+                desc: data.descMotor,
+                img: data.img
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().via_motora || [];
+                lista.push(payload);
+                await updateDoc(ref, { via_motora: lista });
+                alert("¡Estudio de Vía Motora guardado exitosamente en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head><style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 0; margin: 0; background: #525659; }
+                    .pdf-viewer { width: 800px; background: white; margin: 20px auto; padding: 60px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
+                    .header-membrete { border-bottom: 4px solid ${COLOR_ESMERALDA}; margin-bottom: 40px; padding-bottom: 15px; }
+                    .no-print-bar { background: #323639; padding: 10px 20px; display: flex; justify-content: flex-end; gap: 15px; position: sticky; top:0; z-index: 100; }
+                    .btn { padding: 8px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; }
+                    .btn-print { background: ${COLOR_ESMERALDA}; color: #000; }
+                    .btn-exit { background: #f44336; color: #fff; }
+                    .label { font-weight: bold; color: #555; text-transform: uppercase; font-size: 11px; }
+                    .content-box { margin-top: 30px; border: 1px solid #ddd; padding: 20px; }
+                    @media print { .no-print-bar { display: none; } .pdf-viewer { margin: 0; box-shadow: none; width: 100%; } body { background: white; } }
+                </style></head>
+                <body>
+                    <div class="no-print-bar">
+                        <button class="btn btn-print" onclick="window.print()">IMPRIMIR INFORME</button>
+                        <button class="btn btn-exit" onclick="window.close()">SALIR DEL LECTOR</button>
+                    </div>
+                    <div class="pdf-viewer">
+                        <div class="header-membrete">
+                            <h1 style="margin:0; font-size: 24px;">DR. Y MGTER. RUBÉN M. PEREYRA</h1>
+                            <p style="margin:5px 0; font-size: 12px; color: #666; letter-spacing: 1px;">DIRECTOR: PROGRAMA DE FORMACIÓN CLÍNICA DE LA CONVERGENCIA</p>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                            <div><span class="label">Paciente:</span><br><strong>${activePatientName}</strong></div>
+                            <div><span class="label">Fecha:</span><br><strong>${fValue}</strong></div>
+                        </div>
+
+                        <div style="text-align:center;">
+                            <span class="label">Mapeo de la Vía Motora (Acción Transformadora)</span><br>
+                            <img src="${data.img}" style="width: 100%; max-width: 600px; border: 1px solid #eee; margin: 15px 0;">
+                        </div>
+
+                        <div class="content-box">
+                            <h3 style="margin-top:0; color:${COLOR_ESMERALDA}; border-bottom: 1px solid #eee;">ANÁLISIS DE LA CONVERGENCIA</h3>
+                            <p><strong>Hallazgos Descriptivos:</strong> ${data.descMotor}</p>
+                            <p style="background: #f9f9f9; padding: 15px; border-left: 5px solid #000;">
+                                <strong>INTERPRETACIÓN CLÍNICA IA:</strong><br>
+                                Este mapeo de la vía motora es altamente compatible con un psicofuncionamiento de <u>${data.inferenciaIA}</u>.
+                            </p>
+                        </div>
+
+                        <div style="margin-top: 50px; font-size: 10px; color: #999; border-top: 1px dashed #ccc; padding-top: 10px;">
+                            <strong>Referencia de material clínico:</strong> "${estadoAnalisisMotor.material.substring(0,100)}..."
+                        </div>
+                    </div>
+                </body></html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.via_motora || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay registros de vía motora para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Estudio #${index + 1} (${item.fecha})</strong> | <strong>Diagnóstico:</strong> ${item.diagnostico}
+                            <p style="margin-top: 4px; color: #00ff88;">Inferencia: ${item.inferencia}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
