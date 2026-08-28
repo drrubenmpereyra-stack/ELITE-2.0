@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Radar de Fiorini)
+// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Interconsultas)
 const menuData = {
     "1": {
         nombre: "Administración",
@@ -188,6 +188,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("genograma.html");
                 } else if (secKey === "6 Herramientas usadas") {
                     cargarVistaIframe("herramientas_usadas.html");
+                } else if (secKey === "9 Interconsultas") {
+                    cargarVistaIframe("interconsulta.html"); // <- Integración exacta del módulo de Interconsultas
                 } else {
                     mostrarContenido(secKey);
                 }
