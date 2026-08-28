@@ -1,88 +1,143 @@
-// Configuración de Firebase y SDKs Compat
+// Configuración de Firebase (Reemplaza con tus credenciales de tu proyecto de Firebase)
 const firebaseConfig = {
-    apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
-    authDomain: "materiales-terapeuticos.firebaseapp.com",
-    projectId: "materiales-terapeuticos",
-    storageBucket: "materiales-terapeuticos.firebasestorage.app",
-    messagingSenderId: "827133493876",
-    appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_AUTH_DOMAIN",
+    projectId: "TU_PROJECT_ID",
+    storageBucket: "TU_STORAGE_BUCKET",
+    messagingSenderId: "TU_MESSAGING_SENDER_ID",
+    appId: "TU_APP_ID"
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura de Menús de la Aplicación
-const estructuraMenu = {
-    "Historia Clínica": {
-        color: "#1e3c72",
+// Estructura Jerárquica Completa del Menú
+const menuData = {
+    "1": {
+        nombre: "Pacientes y Gestión",
+        color: "linear-gradient(135deg, #1e3c72, #2a5298)",
         hijos: {
             "Pacientes": {},
-            "1 Registro de Sesiones": {},
-            "2 Primera entrevista": {},
-            "3 Est y NC": {},
-            "5 Genograma": {}
-        }
-    },
-    "Agenda": {
-        color: "#134e5e",
-        hijos: {
-            "Agenda": {}
-        }
-    },
-    "Contabilidad": {
-        color: "#f39c12",
-        hijos: {
-            "Contabilidad": {}
-        }
-    },
-    "Herramientas": {
-        color: "#d35400",
-        hijos: {
+            "Agenda": {},
+            "Contabilidad": {},
             "Centro de impresiones": {}
+        }
+    },
+    "2": {
+        nombre: "Historia Clínica",[cite: 2]
+        color: "linear-gradient(135deg, #134e5e, #71b280)",[cite: 2]
+        hijos: {
+            "1 Registro de Sesiones": {},[cite: 2]
+            "2 Primera entrevista": {},[cite: 2]
+            "3 Est y NC": {},[cite: 2]
+            "4 Ejes Proceso Terap": {[cite: 2]
+                "4.1 Eje 1 Foco": {},[cite: 2]
+                "4.2 Eje 2 Func yoicas": {},[cite: 2]
+                "4.3 Eje 3 Relac TP": {}[cite: 2]
+            },
+            "5 Genograma": {},[cite: 2]
+            "6 Herramientas usadas": {},[cite: 2]
+            "7 Aparato Psiquico Freud": {[cite: 2]
+                "7.1 Val Yo": {},[cite: 2]
+                "7.2 Val SuperYo": {},[cite: 2]
+                "7.3 Val Ello": {},[cite: 2]
+                "7.4 Integraciones": {}[cite: 2]
+            },
+            "8 Psiquismo creador": {[cite: 2]
+                "8.1 Protocolo Fiorini": {},[cite: 2]
+                "8.2 Puente simbolización": {},[cite: 2]
+                "8.3 Proyecto vital": {},[cite: 2]
+                "8.4 Via motora": {},[cite: 2]
+                "8.5 Temporalidad": {},[cite: 2]
+                "8.6 Convergencia clínica": {}[cite: 2]
+            },
+            "9 Interconsultas": {}[cite: 2]
+        }
+    },
+    "3": {
+        nombre: "Herramientas Clínicas Pacientes",[cite: 3]
+        color: "linear-gradient(135deg, #f39c12, #f1c40f)",[cite: 3]
+        hijos: {
+            "3.1 Potencial acting out": {},[cite: 3]
+            "3.2 Exp emocional creativa": {},[cite: 3]
+            "3.3 Med neuropsicológicos": {},[cite: 3]
+            "3.4 Psicodiagnóstico": {},[cite: 3]
+            "3.5 Test": {},[cite: 3]
+            "3.6 Riesgos en PB": {},[cite: 3]
+            "3.7 Memorias traumáticas": {},[cite: 3]
+            "3.8 Ritmos circadianos": {},[cite: 3]
+            "3.9 Mapeos visuales": {},[cite: 3]
+            "3.10 Adherencia al tratamiento": {},[cite: 3]
+            "3.11 Resonancia CT": {},[cite: 3]
+            "3.12 Inteligencia Elite": {}[cite: 3]
+        }
+    },
+    "4": {
+        nombre: "Herramientas Clínicas Terapeuta",[cite: 4]
+        color: "linear-gradient(135deg, #d35400, #e67e22)",[cite: 4]
+        hijos: {
+            "4.1 Exp emocional creador T": {},[cite: 4]
+            "4.2 Contratransferencia": {},[cite: 4]
+            "4.3 Terminación Separación": {},[cite: 4]
+            "4.4 Autoevaluación": {[cite: 4]
+                "4.4.1 Rol profesional": {},[cite: 4]
+                "4.4.2 Alianza terapéutica": {},[cite: 4]
+                "4.4.3 Estilo de intervención y eficacia": {},[cite: 4]
+                "4.4.4 Cuidado del self y estado psicofisiológico": {}[cite: 4]
+            },
+            "4.5 Farmacología": {}[cite: 4]
+        }
+    },
+    "5": {
+        nombre: "Materiales Teóricos de Consulta",
+        color: "linear-gradient(135deg, #512b58, #8c52ff)",
+        hijos: {
+            "5.1 Esquemas Neurodinámicos": {},
+            "5.2 Esquemas Psicodinámicos": {},
+            "5.3 Esquemas PNIE": {},
+            "5.4 Psicotrópicos": {},
+            "5.5 Rúbricas": {}
         }
     }
 };
 
-// Autenticación de Acceso
-document.getElementById('loginBtn').onclick = async () => {
+// Control de Acceso y Login
+document.getElementById('loginBtn').addEventListener('click', async () => {
     const user = document.getElementById('userInput').value.trim();
     const pass = document.getElementById('passInput').value.trim();
     const errorDiv = document.getElementById('loginError');
 
     if (user === "DRPEREYRA" && pass === "235689") {
-        errorDiv.textContent = "";
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        inicializarSistema();
+        
+        // Ejemplo de persistencia y guardado en Firestore
         try {
             await db.collection("logs_acceso").add({
                 usuario: user,
-                fecha: firebase.firestore.FieldValue.serverTimestamp()
+                fecha: new Date().toISOString()
             });
         } catch (e) {
-            console.error("Error al registrar acceso:", e);
+            console.error("Error al registrar en Firestore (Verificar configuración):", e);
         }
-
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        
-        inicializarMenus();
     } else {
         errorDiv.textContent = "Credenciales incorrectas.";
     }
-};
+});
 
-// Inicialización de la Navegación por Menús
-function inicializarMenus() {
+// Inicializar Navegación por Barras
+function inicializarSistema() {
     const barPrincipal = document.getElementById('barras-principales');
     barPrincipal.innerHTML = '';
 
-    Object.keys(estructuraMenu).forEach(menuKey => {
-        const item = estructuraMenu[menuKey];
+    Object.keys(menuData).forEach(key => {
+        const item = menuData[key];
         const btn = document.createElement('button');
         btn.className = 'nav-btn';
-        btn.textContent = menuKey;
+        btn.textContent = `${key} - ${item.nombre.split(' ')[0]}`;
         btn.style.background = item.color;
-
+        
         btn.onclick = () => {
             document.querySelectorAll('#barras-principales .nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -90,9 +145,6 @@ function inicializarMenus() {
         };
         barPrincipal.appendChild(btn);
     });
-
-    const primerBtn = barPrincipal.querySelector('button');
-    if (primerBtn) primerBtn.click();
 }
 
 function cargarBarraSecundaria(hijosSecundarios, colorBase) {
@@ -116,33 +168,11 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 cargarBarraTerciaria(subHijos, colorBase);
             } else {
                 barTerciaria.innerHTML = '';
-                
-                if (secKey === "Pacientes") {
-                    cargarVistaIframe("paciente.html");
-                } else if (secKey === "Agenda") {
-                    cargarVistaIframe("agenda.html");
-                } else if (secKey === "Contabilidad") {
-                    cargarVistaIframe("contabilidad.html");
-                } else if (secKey === "Centro de impresiones") {
-                    cargarVistaIframe("impresiones.html");
-                } else if (secKey === "1 Registro de Sesiones") {
-                    cargarVistaIframe("sesiones.html");
-                } else if (secKey === "2 Primera entrevista") {
-                    cargarVistaIframe("entrevista.html");
-                } else if (secKey === "3 Est y NC") {
-                    cargarVistaIframe("eync.html");
-                } else if (secKey === "5 Genograma") {
-                    cargarVistaIframe("genograma.html");
-                } else {
-                    mostrarContenido(secKey);
-                }
+                mostrarContenido(secKey);
             }
         };
         barSecundaria.appendChild(btn);
     });
-
-    const primerBtnSec = barSecundaria.querySelector('button');
-    if (primerBtnSec) primerBtnSec.click();
 }
 
 function cargarBarraTerciaria(hijosTerciarios, colorBase) {
@@ -162,18 +192,9 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
         };
         barTerciaria.appendChild(btn);
     });
-
-    const primerBtnTer = barTerciaria.querySelector('button');
-    if (primerBtnTer) primerBtnTer.click();
-}
-
-// Carga de Vistas mediante Iframe Integrado
-function cargarVistaIframe(urlArchivo) {
-    const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<iframe src="${urlArchivo}" style="width:100%; height:100%; border:none; min-height:750px;"></iframe>`;
 }
 
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<h2>${seccion}</h2><p>Módulo de gestión para ${seccion}.</p>`;
+    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo listo para desarrollar contenido y persistencia en Firestore.</p>`;
 }
