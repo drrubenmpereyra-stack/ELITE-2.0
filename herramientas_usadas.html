@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramientas Usadas y Nivel de Aprendizaje - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #d35400;
+            --secondary-color: #e67e22;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="text"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
+        
+        .strategy-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 12px; transition: all 0.2s; }
+        .strategy-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .strategy-title { font-weight: 700; font-size: 0.95rem; color: #1e3a8a; display: flex; align-items: center; gap: 10px; }
+        .strategy-desc { font-size: 0.82rem; color: #64748b; margin-top: 4px; margin-left: 24px; }
+        
+        .semaforo-container { display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; gap: 15px; align-items: center; margin-left: 24px; }
+        .semaforo-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; opacity: 0.4; transition: all 0.2s; }
+        .semaforo-btn.active { opacity: 1; transform: scale(1.15); box-shadow: 0 0 8px rgba(0,0,0,0.2); }
+        .btn-green { background-color: #10b981; border-color: #059669; }
+        .btn-yellow { background-color: #f59e0b; border-color: #d97706; }
+        .btn-red { background-color: #ef4444; border-color: #dc2626; }
+        
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { background-color: #b44300; }
+        .btn-secondary { background-color: #2563eb; }
+        .btn-secondary:hover { background-color: #1d4ed8; }
+
+        .report-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 20px; border-radius: 6px; margin-top: 20px; white-space: pre-line; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Formulario de Estrategias -->
+        <div class="card">
+            <h2><i class="fa-solid fa-toolbox"></i> Herramientas y Estrategias Terapéuticas Usadas</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
+                Marque la casilla de verificación de cada estrategia utilizada para desplegar su semáforo de valoración del nivel de aprendizaje.
+            </p>
+
+            <div id="strategies-list">
+                <!-- Se inyectarán dinámicamente -->
+            </div>
+
+            <!-- Sección para agregar nueva estrategia -->
+            <div style="margin-top: 25px; padding-top: 15px; border-top: 2px solid #e2e8f0;">
+                <h3><i class="fa-solid fa-plus-circle"></i> Incorporar Nueva Estrategia</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="new-title" placeholder="Nombre de la estrategia">
+                    <input type="text" id="new-desc" placeholder="Explicación conceptual">
+                </div>
+                <button type="button" class="btn btn-secondary" style="margin-top: 10px;" onclick="agregarEstrategiaPersonalizada()">
+                    <i class="fa-solid fa-plus"></i> Añadir a la lista
+                </button>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; gap: 10px;">
+                <button type="button" class="btn" onclick="generarInformeEstrategias()">
+                    <i class="fa-solid fa-file-lines"></i> Generar Informe de Estrategias
+                </button>
+            </div>
+
+            <div id="report-output" style="display: none;">
+                <h3 style="margin-top: 20px; color: var(--primary-color);">Informe Clínico e Interpretación</h3>
+                <div class="report-box" id="report-text"></div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const baseStrategies = [
+            { id: "s1", title: "1- Microexperiencia de reparación (Depresión)", desc: "Vivencias mínimas de logro" },
+            { id: "s2", title: "2- Intervención de sostén (Depresión)", desc: "Apuntalamiento del Yo en crisis" },
+            { id: "s3", title: "3- Transformación del afecto (Depresión)", desc: "Viraje de la carga afectiva negativa" },
+            { id: "s4", title: "4- Enraizamiento corporal (Grounding)", desc: "Conexión al presente vía estímulos físicos" },
+            { id: "s5", title: "5- Focalización interoceptiva", desc: "Atención a sensaciones corporales internas" },
+            { id: "s6", title: "6- Respiración diafragmática consciente", desc: "Regulación del sistema nervioso" },
+            { id: "s7", title: "7- Movimiento rítmico o balanceo", desc: "Estimulación propioceptiva" },
+            { id: "s8", title: "8- Meditación guiada", desc: "Práctica de visualización y calma" },
+            { id: "s9", title: "9- Registro de pensamientos automáticos", desc: "Identificación de distorsiones cognitivas" },
+            { id: "s10", title: "10- Dibujo libre (expresión simbólica)", desc: "Proyección de contenidos inconscientes" },
+            { id: "s11", title: "11- Línea de vida (Resignificación)", desc: "Revisión histórica de hitos vitales" }
+        ];
+
+        let activePatientId = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('patient-select');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error cargando pacientes:", e);
+            }
+            renderStrategies(baseStrategies);
+        }
+
+        function renderStrategies(list) {
+            const container = document.getElementById('strategies-list');
+            container.innerHTML = '';
+            list.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'strategy-item';
+                div.innerHTML = `
+                    <div class="strategy-header">
+                        <div class="strategy-title">
+                            <input type="checkbox" class="strat-checkbox" data-id="${s.id}" data-title="${s.title}" onchange="toggleSemaforo(this)">
+                            ${s.title}
+                        </div>
+                    </div>
+                    <div class="strategy-desc">${s.desc}</div>
+                    <div class="semaforo-container" id="semaforo-${s.id}">
+                        <span style="font-size: 0.8rem; font-weight: 600;">Nivel de Aprendizaje:</span>
+                        <div class="semaforo-btn btn-green" title="Aprendida" onclick="setValoracion('${s.id}', 'Aprendida', 2)"></div>
+                        <div class="semaforo-btn btn-yellow" title="En proceso" onclick="setValoracion('${s.id}', 'En proceso', 1)"></div>
+                        <div class="semaforo-btn btn-red" title="No aprendida" onclick="setValoracion('${s.id}', 'No aprendida', 0)"></div>
+                        <span id="label-${s.id}" style="font-size: 0.8rem; color: #64748b; margin-left: 10px; font-style: italic;">Sin valorar</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.toggleSemaforo = function(checkbox) {
+            const id = checkbox.getAttribute('data-id');
+            const sem = document.getElementById(`semaforo-${id}`);
+            sem.style.display = checkbox.checked ? 'flex' : 'none';
+            if (!checkbox.checked) {
+                sem.setAttribute('data-val', '');
+                sem.setAttribute('data-score', '');
+                document.getElementById(`label-${id}`).textContent = 'Sin valorar';
+                document.querySelectorAll(`#semaforo-${id} .semaforo-btn`).forEach(b => b.classList.remove('active'));
+            }
+        }
+
+        window.setValoracion = function(id, textVal, scoreVal) {
+            const sem = document.getElementById(`semaforo-${id}`);
+            sem.setAttribute('data-val', textVal);
+            sem.setAttribute('data-score', scoreVal);
+            document.getElementById(`label-${id}`).textContent = `Estado: ${textVal}`;
+            
+            const btns = sem.querySelectorAll('.semaforo-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            if(textVal === 'Aprendida') btns[0].classList.add('active');
+            if(textVal === 'En proceso') btns[1].classList.add('active');
+            if(textVal === 'No aprendida') btns[2].classList.add('active');
+        }
+
+        window.agregarEstrategiaPersonalizada = function() {
+            const t = document.getElementById('new-title').value.trim();
+            const d = document.getElementById('new-desc').value.trim();
+            if(!t) { alert("Ingrese el nombre de la estrategia."); return; }
+            const newId = "custom_" + Date.now();
+            baseStrategies.push({ id: newId, title: t, desc: d });
+            renderStrategies(baseStrategies);
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-desc').value = '';
+        }
+
+        window.generarInformeEstrategias = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            if(!activePatientId) { alert("Seleccione un paciente activo."); return; }
+
+            const checkboxes = document.querySelectorAll('.strat-checkbox:checked');
+            if(checkboxes.length === 0) { alert("Seleccione al menos una estrategia usada."); return; }
+
+            let informeHTML = `INFORME DE ESTRATEGIAS TERAPÉUTICAS Y APRENDIZAJE\nFecha: ${new Date().toLocaleDateString()}\n\n`;
+            let totalScore = 0;
+            let count = 0;
+            let itemsReport = [];
+
+            checkboxes.forEach(cb => {
+                const id = cb.getAttribute('data-id');
+                const title = cb.getAttribute('data-title');
+                const sem = document.getElementById(`semaforo-${id}`);
+                const val = sem.getAttribute('data-val') || 'No valorado';
+                const score = parseInt(sem.getAttribute('data-score')) || 0;
+
+                if(sem.getAttribute('data-score') !== null) {
+                    totalScore += score;
+                    count++;
+                }
+
+                informeHTML += `• ${title}\n  - Nivel: ${val}\n\n`;
+                itemsReport.push({ title, valoracion: val });
+            });
+
+            let interpretacion = "";
+            let prom = count > 0 ? (totalScore / count) : 0;
+            if(prom >= 1.5) interpretacion = "Criterio de interpretación: Alto grado de apropiación e integración instrumental por parte del paciente. Las estrategias muestran eficacia consolidada.";
+            else if(prom >= 0.8) interpretacion = "Criterio de interpretación: Apropiación parcial o en curso. Se recomienda sostener el andamiaje clínico y reforzar los ejercicios en sesión.";
+            else interpretacion = "Criterio de interpretación: Baja internalización instrumental. Predominio de estrategias no aprendidas o en fase inicial de resistencia/dificultad.";
+
+            informeHTML += `\n--- CRITERIOS Y ESCALA ---\n${interpretacion}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = informeHTML;
+
+            // Guardar en Firestore
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().informes_estrategias || [];
+                lista.push({ fecha: new Date().toISOString(), informe: informeHTML, items: itemsReport });
+                await updateDoc(ref, { informes_estrategias: lista });
+                alert("¡Informe generado y enviado exitosamente a la base de datos!");
+            } catch(e) {
+                console.error("Error al guardar informe:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
