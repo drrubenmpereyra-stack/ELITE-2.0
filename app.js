@@ -24,68 +24,68 @@ const menuData = {
         }
     },
     "2": {
-        nombre: "Historia Clínica",[cite: 2]
-        color: "linear-gradient(135deg, #134e5e, #71b280)",[cite: 2]
+        nombre: "Historia Clínica",
+        color: "linear-gradient(135deg, #134e5e, #71b280)",
         hijos: {
-            "1 Registro de Sesiones": {},[cite: 2]
-            "2 Primera entrevista": {},[cite: 2]
-            "3 Est y NC": {},[cite: 2]
-            "4 Ejes Proceso Terap": {[cite: 2]
-                "4.1 Eje 1 Foco": {},[cite: 2]
-                "4.2 Eje 2 Func yoicas": {},[cite: 2]
-                "4.3 Eje 3 Relac TP": {}[cite: 2]
+            "1 Registro de Sesiones": {},
+            "2 Primera entrevista": {},
+            "3 Est y NC": {},
+            "4 Ejes Proceso Terap": {
+                "4.1 Eje 1 Foco": {},
+                "4.2 Eje 2 Func yoicas": {},
+                "4.3 Eje 3 Relac TP": {}
             },
-            "5 Genograma": {},[cite: 2]
-            "6 Herramientas usadas": {},[cite: 2]
-            "7 Aparato Psiquico Freud": {[cite: 2]
-                "7.1 Val Yo": {},[cite: 2]
-                "7.2 Val SuperYo": {},[cite: 2]
-                "7.3 Val Ello": {},[cite: 2]
-                "7.4 Integraciones": {}[cite: 2]
+            "5 Genograma": {},
+            "6 Herramientas usadas": {},
+            "7 Aparato Psiquico Freud": {
+                "7.1 Val Yo": {},
+                "7.2 Val SuperYo": {},
+                "7.3 Val Ello": {},
+                "7.4 Integraciones": {}
             },
-            "8 Psiquismo creador": {[cite: 2]
-                "8.1 Protocolo Fiorini": {},[cite: 2]
-                "8.2 Puente simbolización": {},[cite: 2]
-                "8.3 Proyecto vital": {},[cite: 2]
-                "8.4 Via motora": {},[cite: 2]
-                "8.5 Temporalidad": {},[cite: 2]
-                "8.6 Convergencia clínica": {}[cite: 2]
+            "8 Psiquismo creador": {
+                "8.1 Protocolo Fiorini": {},
+                "8.2 Puente simbolización": {},
+                "8.3 Proyecto vital": {},
+                "8.4 Via motora": {},
+                "8.5 Temporalidad": {},
+                "8.6 Convergencia clínica": {}
             },
-            "9 Interconsultas": {}[cite: 2]
+            "9 Interconsultas": {}
         }
     },
     "3": {
-        nombre: "Herramientas Clínicas Pacientes",[cite: 3]
-        color: "linear-gradient(135deg, #f39c12, #f1c40f)",[cite: 3]
+        nombre: "Herramientas Clínicas Pacientes",
+        color: "linear-gradient(135deg, #f39c12, #f1c40f)",
         hijos: {
-            "3.1 Potencial acting out": {},[cite: 3]
-            "3.2 Exp emocional creativa": {},[cite: 3]
-            "3.3 Med neuropsicológicos": {},[cite: 3]
-            "3.4 Psicodiagnóstico": {},[cite: 3]
-            "3.5 Test": {},[cite: 3]
-            "3.6 Riesgos en PB": {},[cite: 3]
-            "3.7 Memorias traumáticas": {},[cite: 3]
-            "3.8 Ritmos circadianos": {},[cite: 3]
-            "3.9 Mapeos visuales": {},[cite: 3]
-            "3.10 Adherencia al tratamiento": {},[cite: 3]
-            "3.11 Resonancia CT": {},[cite: 3]
-            "3.12 Inteligencia Elite": {}[cite: 3]
+            "3.1 Potencial acting out": {},
+            "3.2 Exp emocional creativa": {},
+            "3.3 Med neuropsicológicos": {},
+            "3.4 Psicodiagnóstico": {},
+            "3.5 Test": {},
+            "3.6 Riesgos en PB": {},
+            "3.7 Memorias traumáticas": {},
+            "3.8 Ritmos circadianos": {},
+            "3.9 Mapeos visuales": {},
+            "3.10 Adherencia al tratamiento": {},
+            "3.11 Resonancia CT": {},
+            "3.12 Inteligencia Elite": {}
         }
     },
     "4": {
-        nombre: "Herramientas Clínicas Terapeuta",[cite: 4]
-        color: "linear-gradient(135deg, #d35400, #e67e22)",[cite: 4]
+        nombre: "Herramientas Clínicas Terapeuta",
+        color: "linear-gradient(135deg, #d35400, #e67e22)",
         hijos: {
-            "4.1 Exp emocional creador T": {},[cite: 4]
-            "4.2 Contratransferencia": {},[cite: 4]
-            "4.3 Terminación Separación": {},[cite: 4]
-            "4.4 Autoevaluación": {[cite: 4]
-                "4.4.1 Rol profesional": {},[cite: 4]
-                "4.4.2 Alianza terapéutica": {},[cite: 4]
-                "4.4.3 Estilo de intervención y eficacia": {},[cite: 4]
-                "4.4.4 Cuidado del self y estado psicofisiológico": {}[cite: 4]
+            "4.1 Exp emocional creador T": {},
+            "4.2 Contratransferencia": {},
+            "4.3 Terminación Separación": {},
+            "4.4 Autoevaluación": {
+                "4.4.1 Rol profesional": {},
+                "4.4.2 Alianza terapéutica": {},
+                "4.4.3 Estilo de intervención y eficacia": {},
+                "4.4.4 Cuidado del self y estado psicofisiológico": {}
             },
-            "4.5 Farmacología": {}[cite: 4]
+            "4.5 Farmacología": {}
         }
     },
     "5": {
