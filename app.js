@@ -1,4 +1,4 @@
-// Configuración de Firebase (Conectado a materiales-terapeuticos)
+// Configuración de Firebase y SDKs Compat
 const firebaseConfig = {
     apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
     authDomain: "materiales-terapeuticos.firebaseapp.com",
@@ -8,137 +8,81 @@ const firebaseConfig = {
     appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Radar de Fiorini)
-const menuData = {
-    "1": {
-        nombre: "Administración",
-        color: "linear-gradient(135deg, #1e3c72, #2a5298)",
+// Estructura de Menús de la Aplicación
+const estructuraMenu = {
+    "Historia Clínica": {
+        color: "#1e3c72",
         hijos: {
             "Pacientes": {},
-            "Agenda": {},
-            "Contabilidad": {},
-            "Centro de impresiones": {}
-        }
-    },
-    "2": {
-        nombre: "Historia Clínica",
-        color: "linear-gradient(135deg, #134e5e, #71b280)",
-        hijos: {
             "1 Registro de Sesiones": {},
             "2 Primera entrevista": {},
             "3 Est y NC": {},
-            "4 Ejes Proceso Terap": {
-                "4.1 Eje 1 Foco": {},
-                "4.2 Eje 2 Func yoicas": {},
-                "4.3 Eje 3 Relac TP": {},
-                "4.4 Radar de Fiorini": {}
-            },
-            "5 Genograma": {},
-            "6 Herramientas usadas": {},
-            "7 Aparato Psiquico Freud": {
-                "7.1 Val Yo": {},
-                "7.2 Val SuperYo": {},
-                "7.3 Val Ello": {},
-                "7.4 Integraciones": {}
-            },
-            "8 Psiquismo creador": {
-                "8.1 Protocolo Fiorini": {},
-                "8.2 Puente simbolización": {},
-                "8.3 Proyecto vital": {},
-                "8.4 Via motora": {},
-                "8.5 Temporalidad": {},
-                "8.6 Convergencia clínica": {}
-            },
-            "9 Interconsultas": {}
+            "5 Genograma": {}
         }
     },
-    "3": {
-        nombre: "Herramientas Clínicas Pacientes",
-        color: "linear-gradient(135deg, #f39c12, #f1c40f)",
+    "Agenda": {
+        color: "#134e5e",
         hijos: {
-            "3.1 Potencial acting out": {},
-            "3.2 Exp emocional creativa": {},
-            "3.3 Med neuropsicológicos": {},
-            "3.4 Psicodiagnóstico": {},
-            "3.5 Test": {},
-            "3.6 Riesgos en PB": {},
-            "3.7 Memorias traumáticas": {},
-            "3.8 Ritmos circadianos": {},
-            "3.9 Mapeos visuales": {},
-            "3.10 Adherencia al tratamiento": {},
-            "3.11 Resonancia CT": {},
-            "3.12 Inteligencia Elite": {}
+            "Agenda": {}
         }
     },
-    "4": {
-        nombre: "Herramientas Clínicas Terapeuta",
-        color: "linear-gradient(135deg, #d35400, #e67e22)",
+    "Contabilidad": {
+        color: "#f39c12",
         hijos: {
-            "4.1 Exp emocional creador T": {},
-            "4.2 Contratransferencia": {},
-            "4.3 Terminación Separación": {},
-            "4.4 Autoevaluación": {
-                "4.4.1 Rol profesional": {},
-                "4.4.2 Alianza terapéutica": {},
-                "4.4.3 Estilo de intervención y eficacia": {},
-                "4.4.4 Cuidado del self y estado psicofisiológico": {}
-            },
-            "4.5 Farmacología": {}
+            "Contabilidad": {}
         }
     },
-    "5": {
-        nombre: "Materiales Teóricos de Consulta",
-        color: "linear-gradient(135deg, #512b58, #8c52ff)",
+    "Herramientas": {
+        color: "#d35400",
         hijos: {
-            "5.1 Esquemas Neurodinámicos": {},
-            "5.2 Esquemas Psicodinámicos": {},
-            "5.3 Esquemas PNIE": {},
-            "5.4 Psicotrópicos": {},
-            "5.5 Rúbricas": {}
+            "Centro de impresiones": {}
         }
     }
 };
 
-// Control de Acceso y Login con registro en Firestore
-document.getElementById('loginBtn').addEventListener('click', async () => {
+// Autenticación de Acceso
+document.getElementById('loginBtn').onclick = async () => {
     const user = document.getElementById('userInput').value.trim();
     const pass = document.getElementById('passInput').value.trim();
     const errorDiv = document.getElementById('loginError');
 
     if (user === "DRPEREYRA" && pass === "235689") {
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        inicializarSistema();
-        
+        errorDiv.textContent = "";
         try {
             await db.collection("logs_acceso").add({
                 usuario: user,
-                fecha: new Date().toISOString()
+                fecha: firebase.firestore.FieldValue.serverTimestamp()
             });
-            console.log("Acceso registrado exitosamente en Firestore.");
         } catch (e) {
-            console.error("Error al registrar en Firestore:", e);
+            console.error("Error al registrar acceso:", e);
         }
+
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'flex';
+        
+        inicializarMenus();
     } else {
         errorDiv.textContent = "Credenciales incorrectas.";
     }
-});
+};
 
-// Inicializar Navegación por Barras
-function inicializarSistema() {
+// Inicialización de la Navegación por Menús
+function inicializarMenus() {
     const barPrincipal = document.getElementById('barras-principales');
     barPrincipal.innerHTML = '';
 
-    Object.keys(menuData).forEach(key => {
-        const item = menuData[key];
+    Object.keys(estructuraMenu).forEach(menuKey => {
+        const item = estructuraMenu[menuKey];
         const btn = document.createElement('button');
         btn.className = 'nav-btn';
-        btn.textContent = `${key} - ${item.nombre}`;
+        btn.textContent = menuKey;
         btn.style.background = item.color;
-        
+
         btn.onclick = () => {
             document.querySelectorAll('#barras-principales .nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -146,6 +90,9 @@ function inicializarSistema() {
         };
         barPrincipal.appendChild(btn);
     });
+
+    const primerBtn = barPrincipal.querySelector('button');
+    if (primerBtn) primerBtn.click();
 }
 
 function cargarBarraSecundaria(hijosSecundarios, colorBase) {
@@ -184,6 +131,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("entrevista.html");
                 } else if (secKey === "3 Est y NC") {
                     cargarVistaIframe("eync.html");
+                } else if (secKey === "5 Genograma") {
+                    cargarVistaIframe("genograma.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -191,6 +140,9 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
         };
         barSecundaria.appendChild(btn);
     });
+
+    const primerBtnSec = barSecundaria.querySelector('button');
+    if (primerBtnSec) primerBtnSec.click();
 }
 
 function cargarBarraTerciaria(hijosTerciarios, colorBase) {
@@ -206,30 +158,22 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
         btn.onclick = () => {
             document.querySelectorAll('#barras-terciarias .nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            if (terKey === "4.1 Eje 1 Foco") {
-                cargarVistaIframe("eje1.html");
-            } else if (terKey === "4.2 Eje 2 Func yoicas") {
-                cargarVistaIframe("elite_func_yoicas.html");
-            } else if (terKey === "4.3 Eje 3 Relac TP") {
-                cargarVistaIframe("eje3.html");
-            } else if (terKey === "4.4 Radar de Fiorini") {
-                cargarVistaIframe("radar_fiorini.html");
-            } else {
-                mostrarContenido(terKey);
-            }
+            mostrarContenido(terKey);
         };
         barTerciaria.appendChild(btn);
     });
+
+    const primerBtnTer = barTerciaria.querySelector('button');
+    if (primerBtnTer) primerBtnTer.click();
 }
 
-// Función general para cargar vistas HTML limpias mediante iframe
-function cargarVistaIframe(archivoHtml) {
+// Carga de Vistas mediante Iframe Integrado
+function cargarVistaIframe(urlArchivo) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<iframe src="${archivoHtml}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
+    contentArea.innerHTML = `<iframe src="${urlArchivo}" style="width:100%; height:100%; border:none; min-height:750px;"></iframe>`;
 }
 
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
+    contentArea.innerHTML = `<h2>${seccion}</h2><p>Módulo de gestión para ${seccion}.</p>`;
 }
