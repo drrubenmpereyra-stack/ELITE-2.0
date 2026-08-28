@@ -11,10 +11,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa del Menú
+// Estructura Jerárquica con Nombres Exactos Ordenados
 const menuData = {
     "1": {
-        nombre: "Pacientes y Gestión",
+        nombre: "Administración",
         color: "linear-gradient(135deg, #1e3c72, #2a5298)",
         hijos: {
             "Pacientes": {},
@@ -135,7 +135,7 @@ function inicializarSistema() {
         const item = menuData[key];
         const btn = document.createElement('button');
         btn.className = 'nav-btn';
-        btn.textContent = `${key} - ${item.nombre.split(' ')[0]}`;
+        btn.textContent = `${key} - ${item.nombre}`;
         btn.style.background = item.color;
         
         btn.onclick = () => {
