@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite 2.0 - Clínica de la Convergencia</title>
+    <style>
+        :root {
+            --color-azul-1: #1e3c72; --color-azul-2: #2a5298;
+            --color-verde-1: #134e5e; --color-verde-2: #71b280;
+            --color-amarillo-1: #f39c12; --color-amarillo-2: #f1c40f;
+            --color-naranja-1: #d35400; --color-naranja-2: #e67e22;
+            --color-violeta-1: #512b58; --color-violeta-2: #8c52ff;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; }
+        
+        /* Pantalla de Login */
+        #login-container {
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+            background: linear-gradient(135deg, var(--color-azul-1), var(--color-azul-2));
+        }
+        .login-box {
+            background: white; padding: 40px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            text-align: center; width: 350px;
+        }
+        .login-box img, .app-header img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-azul-2); }
+        .login-box h2 { font-size: 18px; color: #333; margin: 5px 0; }
+        .login-box h3 { font-size: 14px; color: #666; margin-bottom: 20px; font-weight: normal; }
+        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 10px; background: var(--color-azul-2); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .login-box button:hover { background: var(--color-azul-1); }
+
+        /* Aplicación Principal */
+        #app-container { display: none; height: 100vh; flex-direction: column; }
+        
+        /* Cabecera de la App con el Logotipo */
+        .app-header {
+            display: flex; align-items: center; padding: 10px 20px; background: #ffffff; border-bottom: 1px solid #ddd; gap: 15px;
+        }
+        .app-header-text h2 { font-size: 16px; color: #333; margin: 0; }
+        .app-header-text h3 { font-size: 12px; color: #666; margin: 2px 0 0 0; font-weight: normal; }
+
+        /* Barras de Navegación */
+        .nav-bar { display: flex; align-items: center; padding: 10px; min-height: 45px; gap: 10px; overflow-x: auto; }
+        #barras-principales { background: #222; border-bottom: 2px solid #444; }
+        #barras-secundarias { background: #333; border-bottom: 1px solid #555; }
+        #barras-terciarias { background: #444; }
+
+        .nav-btn {
+            padding: 8px 15px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        .nav-btn:hover { opacity: 0.85; }
+        .nav-btn.active { box-shadow: inset 0 0 0 2px white; }
+
+        /* Contenido Dinámico */
+        #content-area { flex: 1; padding: 30px; background: #fff; overflow-y: auto; }
+        .error-msg { color: red; font-size: 12px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN -->
+    <div id="login-container">
+        <div class="login-box">
+            <img src="logotipo.jpg" alt="Logotipo Clínica">
+            <h2>Clínica de la Convergencia</h2>
+            <h3>Dr. y Mgter. Rubén M. Pereyra</h3>
+            <input type="text" id="userInput" placeholder="Usuario">
+            <input type="password" id="passInput" placeholder="Contraseña">
+            <button id="loginBtn">Ingresar</button>
+            <div id="loginError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="app-container">
+        <!-- Logotipo arriba de los botones en la pantalla principal -->
+        <div class="app-header">
+            <img src="logotipo.jpg" alt="Logotipo Clínica">
+            <div class="app-header-text">
+                <h2>Clínica de la Convergencia</h2>
+                <h3>Dr. y Mgter. Rubén M. Pereyra</h3>
+            </div>
+        </div>
+
+        <div id="barras-principales" class="nav-bar"></div>
+        <div id="barras-secundarias" class="nav-bar"></div>
+        <div id="barras-terciarias" class="nav-bar"></div>
+        
+        <div id="content-area">
+            <h2>Bienvenido a Elite 2.0</h2>
+            <p>Seleccione una opción de los menús superiores para comenzar.</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

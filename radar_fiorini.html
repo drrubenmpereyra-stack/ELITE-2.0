@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar de Fiorini - Ejes del Proceso Terapéutico | ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js para el gráfico de radar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #1e3c72;
+            --secondary-color: #2a5298;
+            --hc-sesiones: #059669;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label.select-label { font-size: 0.9rem; font-weight: 600; color: var(--primary-color); display: block; margin-bottom: 8px; }
+        select { width: 100%; max-width: 400px; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; }
+        select:focus { outline: none; border-color: var(--primary-color); }
+
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .metric-card { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; text-align: center; }
+        .metric-title { font-size: 0.85rem; font-weight: 700; color: var(--primary-color); text-transform: uppercase; margin-bottom: 5px; }
+        .metric-value { font-size: 1.4rem; font-weight: bold; color: var(--hc-sesiones); }
+        .metric-desc { font-size: 0.8rem; color: #64748b; margin-top: 5px; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 11px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+        .btn:hover { background-color: var(--secondary-color); }
+        .btn-informe { background-color: #7c3aed; }
+        .btn-informe:hover { background-color: #6d28d9; }
+
+        .chart-container { position: relative; width: 100%; max-width: 550px; margin: 0 auto 20px auto; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+        .result-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
+        .result-card.active { display: block; }
+        .result-section { margin-bottom: 12px; font-size: 0.95rem; }
+        .result-section strong { color: var(--primary-color); display: block; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-chart-radar"></i> Radar de Fiorini - Síntesis de Ejes del Proceso Terapéutico</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Visualización integral y multidimensional de las puntuaciones registradas en los Ejes 1, 2 y 3 para el paciente activo.
+            </p>
+
+            <div class="form-group">
+                <label class="select-label" for="select-patient"><i class="fa-solid fa-user"></i> Seleccionar Paciente:</label>
+                <select id="select-patient" onchange="cargarDatosPaciente()">
+                    <option value="">-- Cargando pacientes desde la nube --</option>
+                </select>
+            </div>
+
+            <!-- Etiquetas numéricas solicitadas -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Puntuación Eje 1 (Foco)</div>
+                    <div class="metric-value" id="lbl-eje1">-- / 15 pts</div>
+                    <div class="metric-desc" id="desc-eje1">Sin evaluar</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Puntuación Eje 2 (Funciones Yoicas)</div>
+                    <div class="metric-value" id="lbl-eje2">-- / 36 pts</div>
+                    <div class="metric-desc" id="desc-eje2">Sin evaluar</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Puntuación Eje 3 (RTP)</div>
+                    <div class="metric-value" id="lbl-eje3">-- / 15 pts</div>
+                    <div class="metric-desc" id="desc-eje3">Sin evaluar</div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn" onclick="generarGraficoRadar()"><i class="fa-solid fa-chart-pie"></i> Obtener Gráfico Radar de Fiorini</button>
+                <button type="button" class="btn btn-informe" onclick="generarInformeGlobal()"><i class="fa-solid fa-file-medical-alt"></i> Informe del Gráfico</button>
+            </div>
+
+            <!-- Contenedor del Gráfico -->
+            <div class="chart-container" id="box-chart" style="display: none;">
+                <canvas id="fioriniRadarChart"></canvas>
+            </div>
+
+            <!-- Contenedor del Informe Global -->
+            <div id="global-result-card" class="result-card">
+                <h3><i class="fa-solid fa-file-lines"></i> Informe Global del Proceso Terapéutico (Radar de Fiorini)</h3>
+                <hr style="margin: 10px 0 15px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                <div class="result-section"><strong>Síntesis Diagnóstica Inter-Ejes:</strong> <p id="res-synthesis" style="color: #475569; margin-top: 4px;">-</p></div>
+                <div class="result-section"><strong>Direcionalidad Estratégica:</strong> <p id="res-strategy" style="color: #475569; margin-top: 4px;">-</p></div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let pacienteDataCache = {
+            eje1Score: 0,
+            eje2Score: 0,
+            eje3Score: 0
+        };
+
+        let radarChartInstance = null;
+
+        async function initPatients() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('select-patient');
+                selectEl.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+        }
+
+        initPatients();
+
+        window.cargarDatosPaciente = async function() {
+            const patientId = document.getElementById('select-patient').value;
+            if (!patientId) {
+                limpiarEtiquetas();
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", patientId);
+                const snap = await getDoc(ref);
+
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // Recuperar Eje 1 (Foco) - Guardado previamente en ultimaEvaluacionFoco
+                    const e1 = data.ultimaEvaluacionFoco ? data.ultimaEvaluacionFoco.puntaje : null;
+                    // Recuperar Eje 2 (Funciones Yoicas) - Guardado en ultimaEvaluacionFuncionesYoicas
+                    const e2 = data.ultimaEvaluacionFuncionesYoicas ? data.ultimaEvaluacionFuncionesYoicas.puntaje : null;
+                    
+                    // Recuperar Eje 3 (RTP) - Buscando en la colección 'fiorini_radar' o en el documento
+                    let e3 = null;
+                    const radarSnap = await getDocs(collection(db, "fiorini_radar"));
+                    let ultimoE3 = 0;
+                    radarSnap.forEach(d => {
+                        const dData = d.data();
+                        if (dData.patientId === patientId && dData.axis?.includes("Eje 3")) {
+                            ultimoE3 = dData.score;
+                        }
+                    });
+                    e3 = ultimoE3 > 0 ? ultimoE3 : (data.ultimoEje3Score || null);
+
+                    pacienteDataCache.eje1Score = e1 !== null ? e1 : 0;
+                    pacienteDataCache.eje2Score = e2 !== null ? e2 : 0;
+                    pacienteDataCache.eje3Score = e3 !== null ? e3 : 0;
+
+                    // Actualizar Etiquetas con los puntajes obtenidos
+                    document.getElementById('lbl-eje1').innerText = e1 !== null ? `${e1} / 15 pts` : "No evaluado";
+                    document.getElementById('desc-eje1').innerText = obtenerDescEje1(e1);
+
+                    document.getElementById('lbl-eje2').innerText = e2 !== null ? `${e2} / 36 pts` : "No evaluado";
+                    document.getElementById('desc-eje2').innerText = obtenerDescEje2(e2);
+
+                    document.getElementById('lbl-eje3').innerText = e3 !== null ? `${e3} / 15 pts` : "No evaluado";
+                    document.getElementById('desc-eje3').innerText = obtenerDescEje3(e3);
+                }
+            } catch (error) {
+                console.error("Error al recuperar los datos del paciente:", error);
+            }
+        };
+
+        function limpiarEtiquetas() {
+            document.getElementById('lbl-eje1').innerText = "-- / 15 pts";
+            document.getElementById('desc-eje1').innerText = "Sin evaluar";
+            document.getElementById('lbl-eje2').innerText = "-- / 36 pts";
+            document.getElementById('desc-eje2').innerText = "Sin evaluar";
+            document.getElementById('lbl-eje3').innerText = "-- / 15 pts";
+            document.getElementById('desc-eje3').innerText = "Sin evaluar";
+            pacienteDataCache = { eje1Score: 0, eje2Score: 0, eje3Score: 0 };
+            document.getElementById('box-chart').style.display = 'none';
+            document.getElementById('global-result-card').classList.remove('active');
+        }
+
+        function obtenerDescEje1(v) {
+            if (v === null) return "Sin datos";
+            if (v <= 8) return "Foco Difuso / Insuficiente";
+            if (v <= 12) return "Foco en Constitución";
+            return "Foco Consolidado y Operativo";
+        }
+
+        function obtenerDescEje2(v) {
+            if (v === null) return "Sin datos";
+            if (v <= 9) return "Funciones Colapsadas";
+            if (v <= 22) return "Funciones Débiles / Inestables";
+            return "Funciones Funcionales / Óptimas";
+        }
+
+        function obtenerDescEje3(v) {
+            if (v === null) return "Sin datos";
+            if (v <= 8) return "Rango Deficiente (Iatrogenia)";
+            if (v <= 12) return "Rango En Proceso (Pasivo)";
+            return "Rango Excelente (Consolidado)";
+        }
+
+        window.generarGraficoRadar = function() {
+            const patientId = document.getElementById('select-patient').value;
+            if (!patientId) {
+                alert("Por favor, seleccione un paciente primero.");
+                return;
+            }
+
+            document.getElementById('box-chart').style.display = 'block';
+            const ctx = document.getElementById('fioriniRadarChart').getContext('2d');
+
+            // Normalizar valores a porcentaje (Eje 1 max 15 -> %, Eje 2 max 36 -> %, Eje 3 max 15 -> %)
+            const val1Pct = Math.round((pacienteDataCache.eje1Score / 15) * 100);
+            const val2Pct = Math.round((pacienteDataCache.eje2Score / 36) * 100);
+            const val3Pct = Math.round((pacienteDataCache.eje3Score / 15) * 100);
+
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Eje 1: Foco Terapéutico',
+                        'Eje 2: Funciones Yoicas',
+                        'Eje 3: Relación de Trabajo (RTP)'
+                    ],
+                    datasets: [{
+                        label: 'Desempeño Clínico (%)',
+                        data: [val1Pct, val2Pct, val3Pct],
+                        backgroundColor: 'rgba(5, 150, 105, 0.2)',
+                        borderColor: '#059669',
+                        pointBackgroundColor: '#1e3c72',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#059669'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        };
+
+        window.generarInformeGlobal = async function() {
+            const patientId = document.getElementById('select-patient').value;
+            if (!patientId) {
+                alert("Por favor, seleccione un paciente primero.");
+                return;
+            }
+
+            const e1 = pacienteDataCache.eje1Score;
+            const e2 = pacienteDataCache.eje2Score;
+            const e3 = pacienteDataCache.eje3Score;
+
+            let sintesis = `Evaluación integrativa basada en los puntajes: Eje 1 (${e1}/15 pts), Eje 2 (${e2}/36 pts) y Eje 3 (${e3}/15 pts). `;
+            let estrategia = "";
+
+            if (e1 <= 8 || e2 <= 9 || e3 <= 8) {
+                sintesis += "Se detecta alta fragilidad estructural o desorganización en al menos uno de los vectores principales del proceso analítico. Las defensas masivas o el colapso yoico comprometen la estabilidad vincular y la delimitación del foco.";
+                estrategia = "Priorizar intervenciones de sostén, contención somato-emocional y clarificación preliminar. Evitar interpretaciones profundas y revisar el encuadre vincular (RTP) para restablecer la seguridad antes de recortar el foco.";
+            } else if (e1 <= 12 || e2 <= 22 || e3 <= 12) {
+                sintesis += "El proceso psicoterapéutico se encuentra en fase de constitución intermedia. Existen recursos yoicos y zonas de insight, pero operan de manera intermitente ante situaciones de estrés o ansiedad moderada.";
+                estrategia = "Orientar las intervenciones hacia la confrontación sistemática de resistencias, la pregunta focalizada y el fortalecimiento del rol del terapeuta como 'yo auxiliar' para co-regular el proceso.";
+            } else {
+                sintesis += "Excelente consolidación global del proceso focalizado. Se observa alta sintonía en el encuadre interno, fortaleza yoica óptima y una relación de trabajo altamente colaborativa y sincronizada.";
+                estrategia = "Mantener la estrategia interpretativa actual. Aprovechar la plasticidad de la reconsolidación de la memoria para promover experiencias emocionales correctoras y la resolución progresiva de los síntomas.";
+            }
+
+            const cardRes = document.getElementById('global-result-card');
+            cardRes.classList.add('active');
+            document.getElementById('res-synthesis').innerText = sintesis;
+            document.getElementById('res-strategy').innerText = estrategia;
+
+            try {
+                const informeGlobalRef = doc(db, "fiorini_radar_global", patientId);
+                await setDoc(informeGlobalRef, {
+                    patientId: patientId,
+                    eje1Score: e1,
+                    eje2Score: e2,
+                    eje3Score: e3,
+                    sintesis: sintesis,
+                    estrategia: estrategia,
+                    fecha: new Date().toISOString()
+                });
+                console.log("Informe global del Radar de Fiorini guardado en la base de datos.");
+            } catch (error) {
+                console.error("Error al guardar el informe global en Firebase:", error);
+            }
+        };
+    </script>
+</body>
+</html>

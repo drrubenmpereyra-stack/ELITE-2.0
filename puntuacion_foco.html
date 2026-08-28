@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación y Puntuación del Foco Terapéutico | ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #0d9488;
+            --hc-sesiones: #059669;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--hc-sesiones); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .rubric-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.86rem; }
+        .rubric-table th, .rubric-table td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; vertical-align: top; }
+        .rubric-table th { background-color: #f1f5f9; color: var(--primary-color); font-weight: 700; }
+        .rubric-table tr:hover { background-color: #f8fafc; }
+        .dimension-title { font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 4px; font-size: 0.95rem; }
+        
+        .checkbox-option { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+        .checkbox-option input { margin-top: 3px; cursor: pointer; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .btn { background-color: var(--hc-sesiones); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { background-color: #047857; }
+        .btn-secundario { background-color: #2563eb; }
+        .btn-secundario:hover { background-color: #1d4ed8; }
+
+        .result-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
+        .result-box.active { display: block; }
+        .score-display { font-size: 1.3rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-clipboard-check"></i> Rúbrica de Evaluación del Foco Terapéutico</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Seleccione una opción por cada una de las cinco dimensiones de análisis detalladas a continuación.
+            </p>
+
+            <form id="evaluacion-foco-form">
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 22%;">Dimensión</th>
+                            <th style="width: 26%;">Nivel 1 (Insuficiente / Disperso)</th>
+                            <th style="width: 26%;">Nivel 2 (En Desarrollo / Parcial)</th>
+                            <th style="width: 26%;">Nivel 3 (Consolidado / Operativo)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="dimension-title">Zona Conflictiva Central</span></td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim1" value="1">
+                                    <span>El discurso del paciente es divagante; predominan la queja crónica o la viñeta anecdótica sin articulación estructural.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim1" value="2">
+                                    <span>Se vislumbra un conflicto nuclear, pero aparece oscurecido por defensas masivas o se confunde con múltiples motivos de consulta periféricos.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim1" value="3">
+                                    <span>El conflicto nuclear se encuentra delimitado con precisión; se evidencia el enlace dinámico entre la situación actual y los ejes neuróticos estructurales.</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dimension-title">Ansiedades y Defensas</span></td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim2" value="1">
+                                    <span>Las ansiedades básicas operan de forma caótica (pánico, desborde) o las defensas son tan rígidas que impiden el registro afectivo.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim2" value="2">
+                                    <span>Se identifican los temores predominantes, aunque las defensas oscilan y dificultan el acceso al núcleo del conflicto.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim2" value="3">
+                                    <span>Hay registro y elaboración de las ansiedades básicas; las defensas operativas se reconocen en su función de blindaje o facilitación del proceso.</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dimension-title">Recursos y Déficits Yoicos</span></td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim3" value="1">
+                                    <span>Predominan déficits severos de simbolización, acting-out frecuentes o incapacidad absoluta para la autoobservación.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim3" value="2">
+                                    <span>Se evidencian recursos yoicos intermitentes; la función reflexiva se activa solo con intervención activa y sostenida del analista.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim3" value="3">
+                                    <span>El paciente demuestra capacidad de discriminación, insight parcial y metabolización psíquica adecuada para sostener el trabajo analítico focalizado.</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dimension-title">Proyección Temporal</span></td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim4" value="1">
+                                    <span>Desconexión temporal radical: anclaje exclusivo en el pasado traumático o inmediatez absoluta en el presente sin lectura evolutiva.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim4" value="2">
+                                    <span>El paciente relata hechos del pasado o expectativas de futuro, pero desconecta los eslabones que los unen a su problemática actual.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim4" value="3">
+                                    <span>Articulación fluida y espontánea entre pasado, presente y futuro; comprende la génesis histórica de sus repeticiones actuales.</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dimension-title">Dinámica Vincular (Transferencia)</span></td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim5" value="1">
+                                    <span>El vínculo transferencial es caótico, plano, o se encuentra masivamente tomado por la actuación o la resistencia hermética.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim5" value="2">
+                                    <span>La transferencia opera de manera ambivalente; el paciente logra registrar el vínculo con el analista pero con interferencias defensivas recurrentes.</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option">
+                                    <input type="checkbox" name="dim5" value="3">
+                                    <span>La transferencia es el motor principal del proceso; el paciente integra y utiliza operativamente los señalamientos vinculares en sesión.</span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="btn-group">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Puntuación</button>
+                    <button type="button" class="btn btn-secundario" onclick="generarInformeFoco()"><i class="fa-solid fa-file-lines"></i> Informe del foco</button>
+                </div>
+            </form>
+
+            <div id="resultado-evaluacion" class="result-box">
+                <div id="display-score" class="score-display"></div>
+                <div id="display-informe"></div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientId = urlParams.get('patientId');
+
+        // Permitir solo un checkbox por dimensión para mantener coherencia de puntaje
+        document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+            chk.addEventListener('change', function() {
+                if (this.checked) {
+                    const name = this.name;
+                    document.querySelectorAll(`input[name="${name}"]`).forEach(other => {
+                        if (other !== this) other.checked = false;
+                    });
+                }
+            });
+        });
+
+        function obtenerSeleccionPuntuacion() {
+            let total = 0;
+            let marcas = {};
+            for (let i = 1; i <= 5; i++) {
+                const seleccionado = document.querySelector(`input[name="dim${i}"]:checked`);
+                if (seleccionado) {
+                    const val = parseInt(seleccionado.value);
+                    total += val;
+                    marcas[`dim${i}`] = val;
+                } else {
+                    marcas[`dim${i}`] = 0;
+                }
+            }
+            return { total, marcas };
+        }
+
+        window.calcularPuntuacion = async function() {
+            const { total, marcas } = obtenerSeleccionPuntuacion();
+            const box = document.getElementById('resultado-evaluacion');
+            box.classList.add('active');
+            
+            document.getElementById('display-score').innerHTML = `<i class="fa-solid fa-star"></i> Puntuación Total Obtenida: ${total} / 15 Puntos`;
+            document.getElementById('display-informe').innerHTML = `<p style="color: #475569;">Puntuación calculada correctamente sobre un rango de 5 a 15 puntos. Haga clic en <strong>"Informe del foco"</strong> para ver los criterios de interpretación detallados.</p>`;
+
+            if (patientId) {
+                try {
+                    const ref = doc(db, "patients", patientId);
+                    await updateDoc(ref, { ultimaEvaluacionFoco: { puntaje: total, marcas, fecha: new Date().toISOString() } });
+                    console.log("Puntaje guardado en Firestore.");
+                } catch (e) {
+                    console.error("Error al guardar puntuación:", e);
+                }
+            }
+        };
+
+        window.generarInformeFoco = async function() {
+            const { total, marcas } = obtenerSeleccionPuntuacion();
+            const box = document.getElementById('resultado-evaluacion');
+            box.classList.add('active');
+
+            let interpretacion = "";
+            let tituloRango = "";
+
+            if (total >= 5 && total <= 8) {
+                tituloRango = "Rango 5 - 8 puntos (Foco Difuso o Insuficiente)";
+                interpretacion = "Indica una dispersión clínica significativa. El encuadre focal no está operativo debido a defensas masivas o desorganización yoica. Se requiere priorizar intervenciones de sostén, contención y clarificación preliminar antes de intentar cualquier recorte focal.";
+            } else if (total >= 9 && total <= 12) {
+                tituloRango = "Rango 9 - 12 puntos (Foco en Constitución / Parcial)";
+                interpretacion = "Revela un proceso analítico en marcha donde el foco se vislumbra pero requiere ajustes constantes. El paciente posee zonas de insight intermitentes. Las intervenciones deben orientarse a la confrontación sistemática de las resistencias que fragmentan el campo asociativo.";
+            } else if (total >= 13 && total <= 15) {
+                tituloRango = "Rango 13 - 15 puntos (Foco Consolidado y Operativo)";
+                interpretacion = "Denota alta eficacia del modelo focalizado. El encuadre interno del paciente y del analista coinciden en la dirección del tratamiento. Permite sostener interpretaciones de profundidad y trabajar activamente sobre el vector de cambio y resolución sintomática.";
+            } else {
+                interpretacion = "Por favor, marque una opción por cada una de las cinco dimensiones de la rúbrica para generar el informe interpretativo completo.";
+            }
+
+            document.getElementById('display-score').innerHTML = `<i class="fa-solid fa-star"></i> Puntuación Total Obtenida: ${total} / 15 Puntos`;
+            document.getElementById('display-informe').innerHTML = `
+                <hr style="margin: 12px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                <h3 style="color: var(--primary-color); margin-bottom: 6px;"><i class="fa-solid fa-brain"></i> Criterios de Interpretación:</h3>
+                <h4 style="color: #0d9488; margin-bottom: 8px; font-size: 0.95rem;">${tituloRango}</h4>
+                <p style="font-size: 0.95rem; color: #1e293b; line-height: 1.6;">${interpretacion}</p>
+            `;
+
+            if (patientId) {
+                try {
+                    const ref = doc(db, "patients", patientId);
+                    await updateDoc(ref, { ultimoInformeFoco: { puntaje: total, interpretacion, marcas, fecha: new Date().toISOString() } });
+                    console.log("Informe guardado en Firestore.");
+                } catch (e) {
+                    console.error("Error al guardar informe:", e);
+                }
+            }
+        };
+    </script>
+</body>
+</html>

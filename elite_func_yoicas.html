@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historia Clínica - Eje 2: Funciones Yoicas | ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3c72;
+            --secondary-color: #2a5298;
+            --hc-sesiones: #059669;
+            --bg-color: #0b0b0b;
+            --card-bg: #121212;
+            --text-color: #ffffff;
+            --border-color: #00e5ff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.15); margin-bottom: 20px; }
+        h2 { font-size: 1.2rem; color: var(--border-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--border-color); }
+        select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; background: #1a1a1a; color: #fff; width: 100%; max-width: 400px; }
+        select:focus { outline: none; border-color: #059669; }
+
+        .rubric-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 0.85rem; }
+        .rubric-table th, .rubric-table td { border: 1px solid #2a2a2a; padding: 12px; text-align: left; vertical-align: top; }
+        .rubric-table th { background-color: #1a1a1a; color: var(--border-color); font-weight: 700; }
+        .rubric-table tr:hover { background-color: #181818; }
+        .funcion-title { font-weight: 700; color: #00e5ff; display: block; margin-bottom: 4px; font-size: 0.95rem; }
+        
+        .checkbox-option { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; color: #cbd5e1; font-size: 0.8rem; margin-bottom: 6px; }
+        .checkbox-option input { margin-top: 3px; cursor: pointer; accent-color: var(--border-color); }
+
+        .seccion-titulo { background: #151515; color: #00e5ff; padding: 8px 12px; font-weight: bold; font-size: 0.9rem; border-left: 4px solid #00e5ff; margin: 20px 0 10px 0; border-radius: 4px; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+        .btn { background-color: #00e5ff; color: black; border: none; padding: 11px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-informe { background-color: #b21f1f; color: white; }
+
+        .result-box { background: #000; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
+        .result-box.active { display: block; }
+        .score-display { font-size: 1.2rem; font-weight: bold; color: var(--border-color); margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente</h2>
+            <div class="form-group">
+                <label for="select-patient"><i class="fa-solid fa-user"></i> Paciente Activo</label>
+                <select id="select-patient">
+                    <option value="">-- Seleccionar paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-brain"></i> Eje 2: Rúbrica de Evaluación de Funciones Yoicas (Modelo Fiorini - Neurociencias)</h2>
+            <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 20px;">
+                Evaluación de las 9 funciones yoicas fundamentales y su correlato con las redes neuronales[cite: 17]. Marque el nivel operativo (de 0 a 4) correspondiente para cada función[cite: 17].
+            </p>
+
+            <form id="evaluacion-yoica-form">
+                
+                <div class="seccion-titulo">FUNCIONES 1-3: Adaptación y Realidad (Red de Modo Por Defecto vs. Atención Ejecutiva)[cite: 17]</div>
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Función Yoica</th>
+                            <th style="width: 25%;">0 - Ausente / Deficitaria</th>
+                            <th style="width: 25%;">1 - Débil / 2 - Inestable</th>
+                            <th style="width: 25%;">3 - Funcional / 4 - Óptima</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">1. Prueba de Realidad</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad para diferenciar fantasía de hechos y reconocer la situación de enfermedad/conflicto[cite: 17].<br><b>Rol Terapeuta:</b> Rectifica distorsiones cognitivas y mantiene el encuadre frente a la regresión[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="0"><span><b>0 - Ausente:</b> Función colapsada (ej. brote psicótico, delirio). Terapeuta 100% directivo[cite: 17].</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="1"><span><b>1 - Débil:</b> Aparece solo con intervención constante del terapeuta[cite: 17].</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="2"><span><b>2 - Inestable:</b> La usa pero la pierde ante niveles moderados de ansiedad[cite: 17].</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="3"><span><b>3 - Funcional:</b> Recupera la función tras un señalamiento[cite: 17].</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="4"><span><b>4 - Óptima:</b> Realiza auto-señalamientos y mantiene autonomía focal[cite: 17].</span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">2. Adaptación</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Flexibilidad para modificar conductas en función de las metas del tratamiento[cite: 17].<br><b>Rol Terapeuta:</b> Propone tareas terapéuticas y objetivos alcanzables (foco)[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f2" value="0"><span><b>0 - Ausente:</b> Rigidez adaptativa total, incapacidad de ajuste al encuadre.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f2" value="1"><span><b>1 - Débil:</b> Depende de directivas constantes.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f2" value="2"><span><b>2 - Inestable:</b> Cambios efímeros ante resistencia ambiental.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f2" value="3"><span><b>3 - Funcional:</b> Trabajo colaborativo fluido.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f2" value="4"><span><b>4 - Óptima:</b> Flexibilidad autónoma excelente.</span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">3. Sentido de Realidad</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Vivencia de la propia identidad y del cuerpo sin despersonalización[cite: 17].<br><b>Rol Terapeuta:</b> Valida la experiencia subjetiva mientras ancla al paciente en el "aquí y ahora"[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f3" value="0"><span><b>0 - Ausente:</b> Despersonalización severa o fragmentación yoica.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f3" value="1"><span><b>1 - Débil:</b> Requiere anclaje externo constante.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f3" value="2"><span><b>2 - Inestable:</b> Pérdida de cohesión corporal ante la angustia.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f3" value="3"><span><b>3 - Funcional:</b> Cohesión restablecida rápidamente.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f3" value="4"><span><b>4 - Óptima:</b> Vivencia identitaria firme y estable.</span></label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="seccion-titulo">FUNCIONES 4-6: Cognitivas y de Regulación (Control Inhibitorio y Memoria de Trabajo)[cite: 17]</div>
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Función Yoica</th>
+                            <th style="width: 25%;">0 - Ausente / Deficitaria</th>
+                            <th style="width: 25%;">1 - Débil / 2 - Inestable</th>
+                            <th style="width: 25%;">3 - Funcional / 4 - Óptima</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">4. Control de Impulsos</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de postergar la descarga motora o verbal (Tolerancia a la frustración)[cite: 17].<br><b>Rol Terapeuta:</b> Actúa como regulador externo y ayuda a verbalizar antes de actuar (Simbología vs. Acción)[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f4" value="0"><span><b>0 - Ausente:</b> Acting-out inmediato, impulsividad extrema.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f4" value="1"><span><b>1 - Débil:</b> Requiere contención verbal estricta.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f4" value="2"><span><b>2 - Inestable:</b> Control selectivo frágil ante estímulos intensos.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f4" value="3"><span><b>3 - Funcional:</b> Demora efectiva de la descarga motora.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f4" value="4"><span><b>4 - Óptima:</b> Elevada tolerancia a la frustración y simbolización.</span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">5. Pensamiento (Proceso Secundario)</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de síntesis, lógica y mantenimiento del hilo conductor sobre el foco[cite: 17].<br><b>Rol Terapeuta:</b> Organiza el material disperso; jerarquiza lo relevante sobre lo accesorio[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f5" value="0"><span><b>0 - Ausente:</b> Pensamiento disgregado o incapacidad lógica.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f5" value="1"><span><b>1 - Débil:</b> Dispersión constante sin guía analítica.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f5" value="2"><span><b>2 - Inestable:</b> Pierde el hilo conductor ante cargas afectivas.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f5" value="3"><span><b>3 - Funcional:</b> Síntesis lógica y sostenimiento del foco.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f5" value="4"><span><b>4 - Óptima:</b> Jerarquización impecable y pensamiento autónomo.</span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">6. Juicio de Valor</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Evaluación de las consecuencias de sus actos sobre sí mismo y otros[cite: 17].<br><b>Rol Terapeuta:</b> Confronta las conductas autodestructivas mediante el señalamiento de contradicciones[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f6" value="0"><span><b>0 - Ausente:</b> Conductas de alto riesgo sin registro de consecuencias.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f6" value="1"><span><b>1 - Débil:</b> Requiere confrontación permanente.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f6" value="2"><span><b>2 - Inestable:</b> Evalúa consecuencias solo a posteriori.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f6" value="3"><span><b>3 - Funcional:</b> Anticipación adecuada de efectos conductuales.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f6" value="4"><span><b>4 - Óptima:</b> Juicio crítico autónomo consolidado.</span></label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="seccion-titulo">FUNCIONES 7-9: Sintético-Integrativas y de Enlace (Conectividad Hipocampo - CPF)[cite: 17]</div>
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Función Yoica</th>
+                            <th style="width: 25%;">0 - Ausente / Deficitaria</th>
+                            <th style="width: 25%;">1 - Débil / 2 - Inestable</th>
+                            <th style="width: 25%;">3 - Funcional / 4 - Óptima</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">7. Auto-observación (Insight)</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de disociación operativa: una parte del yo observa a la otra[cite: 17].<br><b>Rol Terapeuta:</b> Fomenta la curiosidad reflexiva y la "mentalización" (Teoría de la Mente)[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f7" value="0"><span><b>0 - Ausente:</b> Incapacidad total de autoobservación; externalización masiva.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f7" value="1"><span><b>1 - Débil:</b> Insight inducido por el analista.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f7" value="2"><span><b>2 - Inestable:</b> Disociación operativa frágil.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f7" value="3"><span><b>3 - Funcional:</b> Disociación operativa y reflexiva.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f7" value="4"><span><b>4 - Óptima:</b> Mentalización y auto-reflexión espontánea excelente.</span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">8. Memoria y Anticipación</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de ligar experiencias pasadas con el presente y proyectar cambios[cite: 17].<br><b>Rol Terapeuta:</b> Realiza interpretaciones extra-transferenciales que conectan el foco con la biografía[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f8" value="0"><span><b>0 - Ausente:</b> Desconexión biográfica absoluta o amnesia defensiva.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f8" value="1"><span><b>1 - Débil:</b> Conecta pasado y presente solo mediante guía.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f8" value="2"><span><b>2 - Inestable:</b> Anticipación dificultada por angustia anticipatoria.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f8" value="3"><span><b>3 - Funcional:</b> Nexo biográfico y proyección operativa.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f8" value="4"><span><b>4 - Óptima:</b> Integración histórico-temporal fluida y prospectiva.</span></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="funcion-title">9. Elaboración (Work-through)</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Persistencia en el trabajo sobre el conflicto a pesar de las resistencias[cite: 17].<br><b>Rol Terapeuta:</b> Mantiene la tensión focal y evita la dispersión defensiva hacia otros temas[cite: 17].</span>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f9" value="0"><span><b>0 - Ausente:</b> Fuga temática constante, resistencia impenetrable al trabajo.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f9" value="1"><span><b>1 - Débil:</b> Fatiga rápida ante el trabajo elaborativo.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f9" value="2"><span><b>2 - Inestable:</b> Elaboración interrumpida por defensas secundarias.</span></label>
+                            </td>
+                            <td>
+                                <label class="checkbox-option"><input type="checkbox" name="f9" value="3"><span><b>3 - Funcional:</b> Sostenimiento del trabajo a pesar de resistencias.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f9" value="4"><span><b>4 - Óptima:</b> Capacidad de elaboración profunda y sostenida.</span></label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="btn-group">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Puntuación</button>
+                    <button type="button" class="btn btn-informe" onclick="generarInformeFuncionesYoicas()"><i class="fa-solid fa-file-lines"></i> Informe Funciones Yoicas</button>
+                </div>
+            </form>
+
+            <div id="resultado-evaluacion" class="result-box">
+                <div id="display-score" class="score-display"></div>
+                <div id="display-informe"></div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let activePatientId = urlParams.get('patientId');
+
+        async function initPacientes() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('select-patient');
+                selectEl.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    if (docSnap.id === activePatientId) {
+                        opt.selected = true;
+                    }
+                    selectEl.appendChild(opt);
+                });
+
+                selectEl.addEventListener('change', (e) => {
+                    activePatientId = e.target.value;
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+        }
+
+        initPacientes();
+
+        // Permitir un solo checkbox seleccionado por cada función (f1 a f9)
+        for (let i = 1; i <= 9; i++) {
+            document.querySelectorAll(`input[name="f${i}"]`).forEach(chk => {
+                chk.addEventListener('change', function() {
+                    if (this.checked) {
+                        document.querySelectorAll(`input[name="f${i}"]`).forEach(other => {
+                            if (other !== this) other.checked = false;
+                        });
+                    }
+                });
+            });
+        }
+
+        function obtenerSeleccionPuntuacion() {
+            let total = 0;
+            let marcas = {};
+            for (let i = 1; i <= 9; i++) {
+                const seleccionado = document.querySelector(`input[name="f${i}"]:checked`);
+                if (seleccionado) {
+                    const val = parseInt(seleccionado.value);
+                    total += val;
+                    marcas[`f${i}`] = val;
+                } else {
+                    marcas[`f${i}`] = 0;
+                }
+            }
+            return { total, marcas };
+        }
+
+        window.calcularPuntuacion = async function() {
+            if (!activePatientId) {
+                alert("Por favor, seleccione un paciente activo antes de calcular la puntuación.");
+                return;
+            }
+
+            const { total, marcas } = obtenerSeleccionPuntuacion();
+            const box = document.getElementById('resultado-evaluacion');
+            box.classList.add('active');
+            
+            document.getElementById('display-score').innerHTML = `<i class="fa-solid fa-star"></i> Puntuación Total Obtenida: ${total} / 36 Puntos`;
+            document.getElementById('display-informe').innerHTML = `<p style="color: #94a3b8;">Puntuación de Funciones Yoicas calculada correctamente (sobre un máximo de 36 puntos). Haga clic en <strong>"Informe Funciones Yoicas"</strong> para ver los criterios detallados de interpretación.</p>`;
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                await updateDoc(ref, { ultimaEvaluacionFuncionesYoicas: { puntaje: total, marcas, fecha: new Date().toISOString() } });
+                console.log("Puntaje de funciones yoicas guardado en Firestore.");
+            } catch (e) {
+                console.error("Error al guardar puntuación:", e);
+            }
+        };
+
+        window.generarInformeFuncionesYoicas = async function() {
+            if (!activePatientId) {
+                alert("Por favor, seleccione un paciente activo antes de generar el informe.");
+                return;
+            }
+
+            const { total, marcas } = obtenerSeleccionPuntuacion();
+            const box = document.getElementById('resultado-evaluacion');
+            box.classList.add('active');
+
+            let interpretacion = "";
+            let nivelClinico = "";
+
+            if (total >= 0 && total <= 9) {
+                nivelClinico = "Rango 0 - 9 puntos (Funciones Colapsadas / Alta Fragilidad)";
+                interpretacion = "Indica un colapso operativo severo o debilidad masiva de las funciones yoicas. El paciente requiere un terapeuta 100% directivo, con un fuerte rol de regulación externa, sostén y contención somato-emocional para evitar desbordes o acting-out.";
+            } else if (total >= 10 && total <= 22) {
+                nivelClinico = "Rango 10 - 22 puntos (Funciones Débiles / Inestables)";
+                interpretacion = "Las funciones yoicas aparecen de forma intermitente o se pierden ante niveles moderados de ansiedad. El terapeuta debe actuar permanentemente como 'yo auxiliar', utilizando la confrontación estructurada y el señalamiento constante para mantener la tensión focal.";
+            } else if (total >= 23 && total <= 36) {
+                nivelClinico = "Rango 23 - 36 puntos (Funciones Funcionales / Óptimas)";
+                interpretacion = "Denota una excelente fortaleza yoica y capacidad de trabajo colaborativo. El paciente recupera las funciones con facilidad, realiza auto-señalamientos y sostiene un proceso analítico focalizado autónomo con alta conectividad prefrontal.";
+            } else {
+                interpretacion = "Por favor, seleccione una opción por cada una de las 9 funciones de la rúbrica para generar el informe clínico completo.";
+            }
+
+            document.getElementById('display-score').innerHTML = `<i class="fa-solid fa-star"></i> Puntuación Total Obtenida: ${total} / 36 Puntos`;
+            document.getElementById('display-informe').innerHTML = `
+                <hr style="margin: 12px 0; border: 0; border-top: 1px solid #2a2a2a;">
+                <h3 style="color: var(--border-color); margin-bottom: 6px;"><i class="fa-solid fa-file-medical"></i> Criterios de Interpretación (Funciones Yoicas):</h3>
+                <h4 style="color: #059669; margin-bottom: 8px; font-size: 0.95rem;">${nivelClinico}</h4>
+                <p style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.6;">${interpretacion}</p>
+            `;
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                await updateDoc(ref, { ultimoInformeFuncionesYoicas: { puntaje: total, interpretacion, marcas, fecha: new Date().toISOString() } });
+                console.log("Informe de funciones yoicas guardado en Firestore.");
+            } catch (e) {
+                console.error("Error al guardar informe:", e);
+            }
+        };
+    </script>
+</body>
+</html>
