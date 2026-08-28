@@ -169,9 +169,15 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
             } else {
                 barTerciaria.innerHTML = '';
                 
-                // Enlace específico para el componente Pacientes
+                // Enlaces específicos de Administración hacia sus respectivos archivos HTML limpios
                 if (secKey === "Pacientes") {
-                    cargarVistaPaciente();
+                    cargarVistaIframe("paciente.html");
+                } else if (secKey === "Agenda") {
+                    cargarVistaIframe("agenda.html");
+                } else if (secKey === "Contabilidad") {
+                    cargarVistaIframe("contabilidad.html");
+                } else if (secKey === "Centro de impresiones") {
+                    cargarVistaIframe("impresiones.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -200,10 +206,10 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
     });
 }
 
-// Función exclusiva para incrustar paciente.html
-function cargarVistaPaciente() {
+// Función general para cargar vistas HTML limpias mediante iframe
+function cargarVistaIframe(archivoHtml) {
     const contentArea = document.getElementById('content-area');
-    contentArea.innerHTML = `<iframe src="paciente.html" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
+    contentArea.innerHTML = `<iframe src="${archivoHtml}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
 }
 
 function mostrarContenido(seccion) {
