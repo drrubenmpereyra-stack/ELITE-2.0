@@ -13,7 +13,7 @@ if (!firebase.apps.length) {
 }
 const db = firebase.firestore();
 
-// Estructura de Menús de la Aplicación
+// Estructura Completa de Menús, Submenús y Botones de ELITE 2.0
 const estructuraMenu = {
     "Historia Clínica": {
         color: "#1e3c72",
@@ -28,19 +28,31 @@ const estructuraMenu = {
     "Agenda": {
         color: "#134e5e",
         hijos: {
-            "Agenda": {}
+            "Agenda de Turnos": {},
+            "Calendario General": {}
         }
     },
     "Contabilidad": {
         color: "#f39c12",
         hijos: {
-            "Contabilidad": {}
+            "Ingresos y Egresos": {},
+            "Honorarios": {},
+            "Reportes": {}
         }
     },
     "Herramientas": {
         color: "#d35400",
         hijos: {
-            "Centro de impresiones": {}
+            "Centro de impresiones": {},
+            "Test y Evaluaciones": {}
+        }
+    },
+    "Administración": {
+        color: "#512b58",
+        hijos: {
+            "Usuarios": {},
+            "Configuración del Sistema": {},
+            "Logs de Acceso": {}
         }
     }
 };
@@ -119,9 +131,9 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 
                 if (secKey === "Pacientes") {
                     cargarVistaIframe("paciente.html");
-                } else if (secKey === "Agenda") {
+                } else if (secKey === "Agenda de Turnos" || secKey === "Agenda") {
                     cargarVistaIframe("agenda.html");
-                } else if (secKey === "Contabilidad") {
+                } else if (secKey === "Ingresos y Egresos" || secKey === "Contabilidad") {
                     cargarVistaIframe("contabilidad.html");
                 } else if (secKey === "Centro de impresiones") {
                     cargarVistaIframe("impresiones.html");
