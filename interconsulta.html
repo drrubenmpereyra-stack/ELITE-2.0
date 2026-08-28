@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interconsultas Clínicas - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #134e5e;
+            --secondary-color: #71b280;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #1e3a8a; margin: 15px 0 10px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        input, select, textarea { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--secondary-color); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Semáforo de Estado con 4 componentes (Rojo, Amarillo, Verde, Azul) */
+        .semaforo-group { display: flex; gap: 12px; align-items: center; margin: 10px 0; }
+        .semaforo-option { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; opacity: 0.4; transition: all 0.2s; border: 2px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.2); }
+        .dot-red { background-color: #ef4444; }
+        .dot-yellow { background-color: #f59e0b; }
+        .dot-green { background-color: #10b981; }
+        .dot-blue { background-color: #3b82f6; }
+        input[type="radio"]:checked + .dot { opacity: 1; transform: scale(1.2); }
+        input[type="radio"] { display: none; }
+
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: #0d3844; }
+
+        .report-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 20px; border-radius: 6px; margin-top: 20px; white-space: pre-line; font-size: 0.9rem; }
+        
+        .history-item { background: #f8fafc; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialInterconsultas()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Formulario de Interconsulta -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid id-card fa-file-medical"></i> Registro de Interconsulta Médica / Psicológica</h2>
+            
+            <form id="interconsulta-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Motivo de la interconsulta</label>
+                        <input type="text" id="int-motivo" required placeholder="Ej: Evaluación psiquiátrica y farmacológica">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de la interconsulta</label>
+                        <input type="date" id="int-fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Profesional consultado</label>
+                        <input type="text" id="int-profesional" required placeholder="Nombre y especialidad">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Detalle de la interconsulta</label>
+                    <textarea id="int-detalle" placeholder="Describa el planteo clínico y los objetivos de la derivación..."></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Respuesta obtenida</label>
+                        <textarea id="int-respuesta" placeholder="Síntesis de la devolución del colega..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de la respuesta</label>
+                        <input type="date" id="int-fecha-resp">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Acciones y estrategias definidas</label>
+                    <textarea id="int-acciones" placeholder="Pautas terapéuticas conjuntas o derivaciones secundarias..."></textarea>
+                </div>
+
+                <!-- Estado de Interconsulta (Semáforo de Componentes) -->
+                <div class="form-group">
+                    <label>Estado de la Interconsulta</label>
+                    <div class="semaforo-group">
+                        <label class="semaforo-option">
+                            <input type="radio" name="estado" value="Iniciada" required>
+                            <span class="dot dot-red"></span> Iniciada
+                        </label>
+                        <label class="semaforo-option">
+                            <input type="radio" name="estado" value="Enviada">
+                            <span class="dot dot-yellow"></span> Enviada
+                        </label>
+                        <label class="semaforo-option">
+                            <input type="radio" name="estado" value="Respondida">
+                            <span class="dot dot-green"></span> Respondida
+                        </label>
+                        <label class="semaforo-option">
+                            <input type="radio" name="estado" value="No respondida y cerrada">
+                            <span class="dot dot-blue"></span> No respondida y cerrada
+                        </label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Informe y registro</button>
+                </div>
+            </form>
+
+            <div id="report-output" style="display: none;">
+                <h3 style="margin-top: 20px;">Informe Generado de Interconsulta</h3>
+                <div class="report-box" id="report-text"></div>
+            </div>
+        </div>
+
+        <!-- Historial de Interconsultas -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Interconsultas Efectuadas</h2>
+            <div id="history-container">
+                <p style="color: #64748b; font-size: 0.9rem;">Seleccione un paciente para ver su historial clínico de interconsultas.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('patient-select');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error al cargar pacientes:", e);
+            }
+        }
+
+        window.cargarHistorialInterconsultas = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if(!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            document.getElementById('int-fecha').valueAsDate = new Date();
+            renderHistory();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const interconsultas = data.interconsultas || [];
+                    container.innerHTML = '';
+                    
+                    if (interconsultas.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay interconsultas registradas para este paciente.</p>';
+                        return;
+                    }
+
+                    interconsultas.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Motivo: ${item.motivo}</strong> | <strong>Fecha:</strong> ${item.fecha} | <strong>Estado:</strong> ${item.estado}
+                            <p style="margin-top: 6px;"><strong>Profesional:</strong> ${item.profesional}</p>
+                            <p style="margin-top: 4px;"><strong>Detalle:</strong> ${item.detalle || 'N/D'}</p>
+                            <p style="margin-top: 4px;"><strong>Respuesta (${item.fechaResp || 'Pendiente'}):</strong> ${item.respuesta || 'Sin respuesta aún'}</p>
+                            <p style="margin-top: 4px;"><strong>Acciones definidas:</strong> ${item.acciones || 'N/D'}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        document.getElementById('interconsulta-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!activePatientId) return;
+
+            const estadoSelected = document.querySelector('input[name="estado"]:checked').value;
+
+            const payload = {
+                id: Date.now().toString(),
+                motivo: document.getElementById('int-motivo').value,
+                fecha: document.getElementById('int-fecha').value,
+                profesional: document.getElementById('int-profesional').value,
+                detalle: document.getElementById('int-detalle').value,
+                respuesta: document.getElementById('int-respuesta').value,
+                fechaResp: document.getElementById('int-fecha-resp').value,
+                acciones: document.getElementById('int-acciones').value,
+                estado: estadoSelected
+            };
+
+            let informeTexto = `INFORME DE INTERCONSULTA CLÍNICA\nFecha de emisión: ${new Date().toLocaleDateString()}\n\n` +
+                `• Motivo: ${payload.motivo}\n` +
+                `• Fecha de Solicitud: ${payload.fecha}\n` +
+                `• Profesional Consultado: ${payload.profesional}\n` +
+                `• Estado Actual: ${payload.estado}\n\n` +
+                `DETALLE:\n${payload.detalle}\n\n` +
+                `RESPUESTA OBTENIDA (${payload.fechaResp || 'S/F'}):\n${payload.respuesta || 'Sin registro de devolución'}\n\n` +
+                `ACCIONES Y ESTRATEGIAS DEFINIDAS:\n${payload.acciones || 'Ninguna especificada'}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = informeTexto;
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().interconsultas || [];
+                lista.push(payload);
+                await updateDoc(ref, { interconsultas: lista });
+                alert("¡Informe generado y guardado exitosamente en la base de datos!");
+                renderHistory();
+            } catch(err) {
+                console.error("Error al guardar interconsulta:", err);
+                alert("Error al registrar en la base de datos.");
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
