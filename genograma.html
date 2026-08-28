@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genograma Multigeneracional Avanzado - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #0d9488;
+            --hc-sesiones: #059669;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1350px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: var(--secondary-color); margin: 15px 0 10px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.8rem; font-weight: 600; color: var(--primary-color); }
+        input, select, textarea { padding: 7px 10px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--hc-sesiones); }
+        textarea { resize: vertical; min-height: 70px; }
+
+        .btn { background-color: var(--hc-sesiones); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: #047857; }
+        .btn-secondary { background-color: #2563eb; }
+        .btn-secondary:hover { background-color: #1d4ed8; }
+
+        /* Estilo del Lienzo con Etiquetas de Nivel Gen en el Margen Izquierdo */
+        .genogram-canvas-wrapper { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 10px; padding: 15px; min-height: 700px; position: relative; overflow-x: auto; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        
+        .gen-row-container { display: flex; align-items: center; margin: 30px 0; position: relative; z-index: 2; width: 100%; }
+        
+        /* Margen Izquierdo con los Niveles Gen */
+        .gen-level-label { width: 180px; font-weight: 700; font-size: 0.8rem; color: #1e3a8a; border-right: 3px solid #cbd5e1; padding-right: 12px; text-transform: uppercase; flex-shrink: 0; line-height: 1.2; }
+        
+        /* Contenido de los Nodos alineados al centro */
+        .gen-nodes-content { display: flex; justify-content: center; align-items: center; gap: 30px; flex-grow: 1; position: relative; }
+
+        /* Símbolos con Estilos y Colores Distintos por Generación */
+        .gen-symbol { background: #fff; padding: 8px 12px; text-align: center; font-size: 0.75rem; min-width: 105px; box-shadow: 0 3px 6px rgba(0,0,0,0.08); position: relative; }
+        
+        /* Gen 1: Abuelos (Tono Púrpura / Azulado clásico) */
+        .gen-row-gen1 .gen-symbol { border: 2px solid #512b58; background: #fdf4ff; }
+        .gen-row-gen1 .gen-symbol .name { color: #512b58; }
+
+        /* Gen 2: Padres (Tono Azul Profundo) */
+        .gen-row-gen2 .gen-symbol { border: 2px solid #1e3a8a; background: #f0fdf4; }
+        .gen-row-gen2 .gen-symbol .name { color: #1e3a8a; }
+
+        /* Gen 3: Paciente e Hermanos (Tono Turquesa e Indicadores) */
+        .gen-row-gen3 .gen-symbol { border: 2px solid #0d9488; background: #f0fdfa; }
+        .gen-row-gen3 .gen-symbol .name { color: #0d9488; }
+
+        /* Paciente Índice (Resaltado Especial Destacado) */
+        .gen-symbol.patient { border: 3px double #059669 !important; background: #ecfdf5 !important; font-weight: bold; transform: scale(1.08); }
+        .gen-symbol.patient .name { color: #059669 !important; }
+
+        /* Gen 4: Hijos (Tono Ámbar / Cálido) */
+        .gen-row-gen4 .gen-symbol { border: 2px solid #d97706; background: #fffbeb; }
+        .gen-row-gen4 .gen-symbol .name { color: #d97706; }
+
+        .gen-symbol.male { border-radius: 3px; } /* Cuadrado hombre */
+        .gen-symbol.female { border-radius: 50px; width: 95px; height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; } /* Círculo mujer */
+
+        .gen-symbol .name { font-weight: 700; font-size: 0.8rem; }
+        .gen-symbol .details { color: #64748b; font-size: 0.68rem; margin-top: 2px; }
+
+        #genogram-svg-real { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .history-item { background: #f8fafc; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="gen-patient">Paciente Activo (Índice)</label>
+                <select id="gen-patient" onchange="loadPatientData()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Formulario Completo con Hipótesis Sistémica -->
+        <div id="genogram-form-card" class="card" style="display: none;">
+            <h2><i class="fa-solid fa-sitemap"></i> Constructor Multigeneracional con Niveles Gen</h2>
+            <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 20px;">
+                Complete los datos por generación, añada la hipótesis sistémica familiar y presione <strong>"Obtener Gráfico"</strong> para visualizar el esquema con niveles y colores diferenciales.
+            </p>
+            
+            <form id="genogram-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Título del Genograma</label>
+                        <input type="text" id="g-titulo" value="Genograma Estructural Sistémico" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="g-fecha" required>
+                    </div>
+                </div>
+
+                <!-- GEN 1: ABUELOS -->
+                <h3>Gen 1: Abuelos (Origen Transgeneracional)</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Abuelo Paterno</label><input type="text" id="g-abuelo1" value="Jorge Rivas, 85, Fallecido"></div>
+                    <div class="form-group"><label>Abuela Paterna</label><input type="text" id="g-abuela1" value="Elena Díaz, 84, Viva"></div>
+                    <div class="form-group"><label>Abuelo Materno</label><input type="text" id="g-abuelo2" value="Miguel Suárez, 76, Vivo"></div>
+                    <div class="form-group"><label>Abuela Materna</label><input type="text" id="g-abuela2" value="Carmen Vega, 72, Fallecida"></div>
+                </div>
+
+                <!-- GEN 2: PADRES -->
+                <h3>Gen 2: Padres</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Padre</label><input type="text" id="g-padre" value="Juan Rivas, 55, Vivo"></div>
+                    <div class="form-group"><label>Madre</label><input type="text" id="g-madre" value="Lucía Suárez, 53, Vivo"></div>
+                    <div class="form-group"><label>Año de Unión Padres</label><input type="text" id="g-union-padres" value="1995"></div>
+                </div>
+
+                <!-- GEN 3: PACIENTE Y HERMANOS -->
+                <h3>Gen 3: Paciente e Hermanos</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Hermano/a 1</label><input type="text" id="g-hermano1" value="Mateo Rivas, 32, Vivo"></div>
+                    <div class="form-group"><label>Hermana 2</label><input type="text" id="g-hermano2" value="Sofía Rivas, 30, Vivo"></div>
+                    <div class="form-group"><label>Pareja Actual del Paciente</label><input type="text" id="g-pareja" value="Ana Flores, 28, Vivo"></div>
+                    <div class="form-group"><label>Año de Unión Paciente</label><input type="text" id="g-union-paciente" value="2021"></div>
+                    <div class="form-group"><label>Hermano 3</label><input type="text" id="g-hermano3" value="Carlos Rivas, 26, Vivo"></div>
+                </div>
+
+                <!-- GEN 4: HIJOS -->
+                <h3>Gen 4: Hijos</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Hijo/a 1</label><input type="text" id="g-hijo1" value="Elena Rivas, 3, Vivo"></div>
+                    <div class="form-group"><label>Hijo/a 2</label><input type="text" id="g-hijo2" value="Lucas Rivas, 1, Vivo"></div>
+                </div>
+
+                <!-- Campo Solicitado: Hipótesis Sistémica Familiar -->
+                <div class="form-group" style="margin: 15px 0;">
+                    <label><i class="fa-solid fa-brain"></i> Hipótesis Sistémica Familiar</label>
+                    <textarea id="g-hipotesis" placeholder="Ingrese la lectura clínica sistémica de la dinámica multigeneracional..."></textarea>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <button type="button" class="btn btn-secondary" onclick="generarGenogramaGrafico()"><i class="fa-solid fa-project-diagram"></i> Obtener Gráfico</button>
+                </div>
+
+                <!-- Lienzo con Niveles en el Margen Izquierdo -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="margin-bottom: 8px; display: block;"><i class="fa-solid fa-eye"></i> Esquema Gráfico con Niveles Gen y Resaltado:</label>
+                    <div class="genogram-canvas-wrapper" id="canvas-wrapper">
+                        <svg id="genogram-svg-real"></svg>
+
+                        <!-- GEN 1 -->
+                        <div class="gen-row-container gen-row-gen1" id="row-gen1">
+                            <div class="gen-level-label">GEN 1:<br>Abuelos</div>
+                            <div class="gen-nodes-content">
+                                <div class="gen-symbol male" id="node-abuelo1"><div class="name" id="lbl-abuelo1">-</div><div class="details">Abuelo Pat.</div></div>
+                                <div class="gen-symbol female" id="node-abuela1"><div class="name" id="lbl-abuela1">-</div><div class="details">Abuela Pat.</div></div>
+                                <div style="width: 30px;"></div>
+                                <div class="gen-symbol male" id="node-abuelo2"><div class="name" id="lbl-abuelo2">-</div><div class="details">Abuelo Mat.</div></div>
+                                <div class="gen-symbol female" id="node-abuela2"><div class="name" id="lbl-abuela2">-</div><div class="details">Abuela Mat.</div></div>
+                            </div>
+                        </div>
+
+                        <!-- GEN 2 -->
+                        <div class="gen-row-container gen-row-gen2" id="row-gen2">
+                            <div class="gen-level-label">GEN 2:<br>Padres</div>
+                            <div class="gen-nodes-content">
+                                <div class="gen-symbol male" id="node-padre"><div class="name" id="lbl-padre">-</div><div class="details">Padre</div></div>
+                                <div class="gen-symbol female" id="node-madre"><div class="name" id="lbl-madre">-</div><div class="details">Madre</div></div>
+                            </div>
+                        </div>
+
+                        <!-- GEN 3 -->
+                        <div class="gen-row-container gen-row-gen3" id="row-gen3">
+                            <div class="gen-level-label">GEN 3:<br>Paciente y Hermanos</div>
+                            <div class="gen-nodes-content">
+                                <div class="gen-symbol male" id="node-h1"><div class="name" id="lbl-h1">-</div><div class="details">Hermano</div></div>
+                                <div class="gen-symbol female" id="node-h2"><div class="name" id="lbl-h2">-</div><div class="details">Hermana</div></div>
+                                <div class="gen-symbol patient" id="node-paciente"><div class="name" id="lbl-paciente-node">-</div><div class="details">PACIENTE (Índice)</div></div>
+                                <div class="gen-symbol female" id="node-pareja"><div class="name" id="lbl-pareja">-</div><div class="details">Pareja</div></div>
+                                <div class="gen-symbol male" id="node-h3"><div class="name" id="lbl-h3">-</div><div class="details">Hermano</div></div>
+                            </div>
+                        </div>
+
+                        <!-- GEN 4 -->
+                        <div class="gen-row-container gen-row-gen4" id="row-gen4">
+                            <div class="gen-level-label">GEN 4:<br>Hijos</div>
+                            <div class="gen-nodes-content">
+                                <div class="gen-symbol female" id="node-nieto1"><div class="name" id="lbl-nieto1">-</div><div class="details">Hija</div></div>
+                                <div class="gen-symbol male" id="node-nieto2"><div class="name" id="lbl-nieto2">-</div><div class="details">Hijo</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Guardar genograma en la nube con gráfico</button>
+            </form>
+        </div>
+
+        <!-- Historial -->
+        <div id="genogram-history-card" class="card" style="display: none;">
+            <h2><i class="fa-solid fa-folder-open"></i> Historial de Genogramas Guardados</h2>
+            <div id="genogram-history-container">
+                <p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 15px;">Seleccione un paciente para ver sus genogramas registrados.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+
+        async function initGenograma() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('gen-patient');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+        }
+
+        window.loadPatientData = async function() {
+            activePatientId = document.getElementById('gen-patient').value;
+            const formCard = document.getElementById('genogram-form-card');
+            const historyCard = document.getElementById('genogram-history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                    document.getElementById('lbl-paciente-node').textContent = activePatientName.toUpperCase();
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            document.getElementById('g-fecha').valueAsDate = new Date();
+            
+            setTimeout(generarGenogramaGrafico, 150);
+            renderHistory();
+        }
+
+        window.generarGenogramaGrafico = function() {
+            document.getElementById('lbl-abuelo1').textContent = document.getElementById('g-abuelo1').value;
+            document.getElementById('lbl-abuela1').textContent = document.getElementById('g-abuela1').value;
+            document.getElementById('lbl-abuelo2').textContent = document.getElementById('g-abuelo2').value;
+            document.getElementById('lbl-abuela2').textContent = document.getElementById('g-abuela2').value;
+
+            document.getElementById('lbl-padre').textContent = document.getElementById('g-padre').value;
+            document.getElementById('lbl-madre').textContent = document.getElementById('g-madre').value;
+
+            document.getElementById('lbl-h1').textContent = document.getElementById('g-hermano1').value;
+            document.getElementById('lbl-h2').textContent = document.getElementById('g-hermano2').value;
+            document.getElementById('lbl-pareja').textContent = document.getElementById('g-pareja').value;
+            document.getElementById('lbl-h3').textContent = document.getElementById('g-hermano3').value;
+
+            document.getElementById('lbl-nieto1').textContent = document.getElementById('g-hijo1').value;
+            document.getElementById('lbl-nieto2').textContent = document.getElementById('g-hijo2').value;
+
+            trazarConectoresSVG();
+            alert("¡Gráfico estructurado con Niveles Gen y colores generado con éxito!");
+        }
+
+        function trazarConectoresSVG() {
+            const svg = document.getElementById('genogram-svg-real');
+            const wrapper = document.getElementById('canvas-wrapper');
+            svg.innerHTML = '';
+
+            const wRect = wrapper.getBoundingClientRect();
+            const getCenter = (id) => {
+                const el = document.getElementById(id);
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left - wRect.left + rect.width / 2,
+                    y: rect.top - wRect.top + rect.height / 2,
+                    bottom: rect.top - wRect.top + rect.height,
+                    top: rect.top - wRect.top
+                };
+            };
+
+            const drawLine = (p1, p2, color = "#1e3a8a", width = "2") => {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", p1.x);
+                line.setAttribute("y1", p1.y);
+                line.setAttribute("x2", p2.x);
+                line.setAttribute("y2", p2.y);
+                line.setAttribute("stroke", color);
+                line.setAttribute("stroke-width", width);
+                svg.appendChild(line);
+            };
+
+            const ab1 = getCenter('node-abuelo1');
+            const ab2 = getCenter('node-abuela1');
+            drawLine({x: ab1.x, y: ab1.bottom}, {x: ab2.x, y: ab2.bottom}, "#512b58", "1.5");
+
+            const ab3 = getCenter('node-abuelo2');
+            const ab4 = getCenter('node-abuela2');
+            drawLine({x: ab3.x, y: ab3.bottom}, {x: ab4.x, y: ab4.bottom}, "#512b58", "1.5");
+
+            const padre = getCenter('node-padre');
+            const madre = getCenter('node-madre');
+            drawLine({x: padre.x, y: padre.top}, {x: padre.x, y: padre.top - 18}, "#1e3a8a", "2");
+            drawLine({x: madre.x, y: madre.top}, {x: madre.x, y: madre.top - 18}, "#1e3a8a", "2");
+            drawLine({x: padre.x, y: padre.top - 18}, {x: madre.x, y: padre.top - 18}, "#1e3a8a", "2");
+
+            const pac = getCenter('node-paciente');
+            const par = getCenter('node-pareja');
+            drawLine({x: pac.x, y: pac.top}, {x: pac.x, y: pac.top - 18}, "#0d9488", "2.5");
+            drawLine({x: par.x, y: par.top}, {x: par.x, y: par.top - 18}, "#0d9488", "2.5");
+            drawLine({x: pac.x, y: pac.top - 18}, {x: par.x, y: pac.top - 18}, "#0d9488", "2.5");
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('genogram-history-container');
+            container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem; text-align: center;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const genogramas = data.genogramas || [];
+                    container.innerHTML = '';
+                    if (genogramas.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem; text-align: center;">No hay genogramas registrados.</p>';
+                        return;
+                    }
+                    genogramas.forEach(g => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `<strong>${g.titulo} (${g.fecha})</strong><p><strong>Hipótesis:</strong> ${g.hipotesis || 'N/D'}</p>`;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        document.getElementById('genogram-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!activePatientId) return;
+
+            const payload = {
+                id: Date.now().toString(),
+                titulo: document.getElementById('g-titulo').value,
+                fecha: document.getElementById('g-fecha').value,
+                abuelo1: document.getElementById('g-abuelo1').value,
+                abuela1: document.getElementById('g-abuela1').value,
+                abuelo2: document.getElementById('g-abuelo2').value,
+                abuela2: document.getElementById('g-abuela2').value,
+                padre: document.getElementById('g-padre').value,
+                madre: document.getElementById('g-madre').value,
+                hipotesis: document.getElementById('g-hipotesis').value,
+                hijos: [document.getElementById('g-hijo1').value, document.getElementById('g-hijo2').value]
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().genogramas || [];
+                lista.push(payload);
+                await updateDoc(ref, { genogramas: lista });
+                alert("¡Genograma e Hipótesis Sistémica guardados con éxito en la nube!");
+                renderHistory();
+            } catch (err) {
+                console.error("Error al guardar:", err);
+                alert("Error al guardar en la base de datos.");
+            }
+        });
+
+        initGenograma();
+    </script>
+</body>
+</html>
