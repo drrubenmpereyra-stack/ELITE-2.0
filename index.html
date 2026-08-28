@@ -23,7 +23,7 @@
             background: white; padding: 40px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             text-align: center; width: 350px;
         }
-        .login-box img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--color-azul-2); }
+        .login-box img, .app-header img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-azul-2); }
         .login-box h2 { font-size: 18px; color: #333; margin: 5px 0; }
         .login-box h3 { font-size: 14px; color: #666; margin-bottom: 20px; font-weight: normal; }
         .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
@@ -33,6 +33,13 @@
         /* Aplicación Principal */
         #app-container { display: none; height: 100vh; flex-direction: column; }
         
+        /* Cabecera de la App con el Logotipo */
+        .app-header {
+            display: flex; align-items: center; padding: 10px 20px; background: #ffffff; border-bottom: 1px solid #ddd; gap: 15px;
+        }
+        .app-header-text h2 { font-size: 16px; color: #333; margin: 0; }
+        .app-header-text h3 { font-size: 12px; color: #666; margin: 2px 0 0 0; font-weight: normal; }
+
         /* Barras de Navegación */
         .nav-bar { display: flex; align-items: center; padding: 10px; min-height: 45px; gap: 10px; overflow-x: auto; }
         #barras-principales { background: #222; border-bottom: 2px solid #444; }
@@ -68,6 +75,15 @@
 
     <!-- APP PRINCIPAL -->
     <div id="app-container">
+        <!-- Logotipo arriba de los botones en la pantalla principal -->
+        <div class="app-header">
+            <img src="logotipo.jpg" alt="Logotipo Clínica">
+            <div class="app-header-text">
+                <h2>Clínica de la Convergencia</h2>
+                <h3>Dr. y Mgter. Rubén M. Pereyra</h3>
+            </div>
+        </div>
+
         <div id="barras-principales" class="nav-bar"></div>
         <div id="barras-secundarias" class="nav-bar"></div>
         <div id="barras-terciarias" class="nav-bar"></div>
