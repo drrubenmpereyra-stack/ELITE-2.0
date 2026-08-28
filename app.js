@@ -11,7 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Estructura Jerárquica Completa con Nombres Exactos Ordenados
+// Estructura Jerárquica Completa con Nombres Exactos Ordenados (Incluyendo Radar de Fiorini)
 const menuData = {
     "1": {
         nombre: "Administración",
@@ -33,7 +33,8 @@ const menuData = {
             "4 Ejes Proceso Terap": {
                 "4.1 Eje 1 Foco": {},
                 "4.2 Eje 2 Func yoicas": {},
-                "4.3 Eje 3 Relac TP": {}
+                "4.3 Eje 3 Relac TP": {},
+                "4.4 Radar de Fiorini": {}
             },
             "5 Genograma": {},
             "6 Herramientas usadas": {},
@@ -169,7 +170,6 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
             } else {
                 barTerciaria.innerHTML = '';
                 
-                // Enlaces de Administración y de Historia Clínica
                 if (secKey === "Pacientes") {
                     cargarVistaIframe("paciente.html");
                 } else if (secKey === "Agenda") {
@@ -198,7 +198,6 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
     barTerciaria.innerHTML = '';
 
     Object.keys(hijosTerciarios).forEach(terKey => {
-        const subSubHijos = hijosTerciarios[terKey];
         const btn = document.createElement('button');
         btn.className = 'nav-btn';
         btn.textContent = terKey;
@@ -208,13 +207,14 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
             document.querySelectorAll('#barras-terciarias .nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            // Enlaces de la barra terciaria para Ejes del Proceso Terapéutico
             if (terKey === "4.1 Eje 1 Foco") {
                 cargarVistaIframe("eje1.html");
             } else if (terKey === "4.2 Eje 2 Func yoicas") {
                 cargarVistaIframe("elite_func_yoicas.html");
             } else if (terKey === "4.3 Eje 3 Relac TP") {
                 cargarVistaIframe("eje3.html");
+            } else if (terKey === "4.4 Radar de Fiorini") {
+                mostrarContenido(terKey); // Listo para enlazar su archivo HTML correspondiente cuando lo indiques
             } else {
                 mostrarContenido(terKey);
             }
