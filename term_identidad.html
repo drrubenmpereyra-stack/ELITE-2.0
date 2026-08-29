@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termómetro de Identidad - ELITE 2.0</title>
+    <!-- html2pdf para la exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #27ae60;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(39, 174, 96, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: #fff; }
+
+        .idn-f { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr; gap: 10px; align-items: center; border-bottom: 1px solid var(--border-color); padding: 15px 0; }
+        .idn-h { cursor: help; font-weight: bold; border-bottom: 1px dotted var(--primary-color); color: #ddd; font-size: 13px; }
+        .idn-r { width: 22px; height: 22px; cursor: help; accent-color: var(--primary-color); margin: auto; }
+
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #IDN_ResTxt { background: #080808; border-left: 5px solid var(--primary-color); padding: 15px; margin-top: 20px; font-size: 14px; border-radius: 0 6px 6px 0; color: #ccc; }
+
+        @media (max-width: 768px) {
+            .idn-f { grid-template-columns: 1fr; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Contenedor principal que abarca la interfaz y el PDF -->
+        <div class="card" id="IDN_Container">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding-bottom:15px; margin-bottom:20px;">
+                <h2><i class="fa-solid fa-fingerprint"></i> TERMÓMETRO DE IDENTIDAD (Modelo Moujan) - ELITE 2.0</h2>
+            </div>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(39, 174, 96, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>SELECCIONAR PACIENTE (FIRESTORE / LOCAL):</label>
+                    <select id="IDN_PacSel"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaIdentidad">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:35px;">
+                <div id="IDN_Formulario" style="background:#0a0a0a; border:1px solid var(--border-color); padding:20px; border-radius:8px;">
+                    <div class="idn-f" style="background:#111; color:#fff; font-weight:bold; text-align:center; font-size:11px; border-radius:5px 5px 0 0; padding:10px 0;">
+                        <div>SENTIMIENTOS / INDICADORES</div><div>LOGRADO (3)</div><div>PROCESO (2)</div><div>NO LOGRADO (1)</div>
+                    </div>
+
+                    <div class="idn-f">
+                        <span class="idn-h" title="Continuidad: Capacidad de reconocerse a sí mismo a través del tiempo.">1. Continuidad ℹ️</span>
+                        <input type="radio" name="iv1" value="3" checked class="idn-r" title="LOGRADO: Relato fluido que integra pasado, presente y futuro coherente.">
+                        <input type="radio" name="iv1" value="2" class="idn-r" title="EN PROCESO: Relato con baches, dudas o contradicciones biográficas.">
+                        <input type="radio" name="iv1" value="1" class="idn-r" title="NO LOGRADO: Relato fragmentado; sin conexión temporal.">
+                    </div>
+
+                    <div class="idn-f">
+                        <span class="idn-h" title="Unidad: Percepción de ser una totalidad integrada.">2. Unidad ℹ️</span>
+                        <input type="radio" name="iv2" value="3" checked class="idn-r" title="LOGRADO: Mantiene su esencia estable en diversos roles sociales.">
+                        <input type="radio" name="iv2" value="2" class="idn-r" title="EN PROCESO: Siente que actúa o se disocia según el entorno.">
+                        <input type="radio" name="iv2" value="1" class="idn-r" title="NO LOGRADO: Fragmentación; los roles no pertenecen a un mismo Self.">
+                    </div>
+
+                    <div class="idn-f" style="border-bottom:none;">
+                        <span class="idn-h" title="Mismidad: Reconocimiento de lo propio frente a lo ajeno.">3. Mismidad ℹ️</span>
+                        <input type="radio" name="iv3" value="3" checked class="idn-r" title="LOGRADO: Límites claros Yo-Otro y autoría de acciones.">
+                        <input type="radio" name="iv3" value="2" class="idn-r" title="EN PROCESO: Límites porosos; alta influencia de mandatos externos.">
+                        <input type="radio" name="iv3" value="1" class="idn-r" title="NO LOGRADO: Sentimiento de vacío, alienación o mimetismo extremo.">
+                    </div>
+
+                    <button class="btn-elite" onclick="IDN_SISTEMA.graficar()" style="width:100%; margin-top:25px;"><i class="fa-solid fa-chart-bar"></i> Actualizar Termómetros</button>
+                </div>
+
+                <div style="background:#0a0a0a; padding:25px; border-radius:8px; text-align:center; border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                        <h4 style="margin:0 0 20px 0; color:var(--primary-color); font-size:14px; text-transform:uppercase;">Termómetros Dinámicos (ICI)</h4>
+                        <div style="display:flex; justify-content:space-around; align-items:flex-end; height:220px; background:#000; padding:20px; border-radius:8px; border:1px solid #222;">
+                            <div style="text-align:center;">
+                                <div style="width:30px; height:180px; background:#111; border-radius:15px; position:relative; border:1px solid #333;">
+                                    <div id="bar_idn_1" style="width:100%; height:0%; background:#27ae60; position:absolute; bottom:0; transition:1s; border-radius:0 0 15px 15px;"></div>
+                                </div>
+                                <small style="font-weight:bold; display:block; margin-top:10px; color:#aaa;">Cont.</small>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="width:30px; height:180px; background:#111; border-radius:15px; position:relative; border:1px solid #333;">
+                                    <div id="bar_idn_2" style="width:100%; height:0%; background:#27ae60; position:absolute; bottom:0; transition:1s; border-radius:0 0 15px 15px;"></div>
+                                </div>
+                                <small style="font-weight:bold; display:block; margin-top:10px; color:#aaa;">Unid.</small>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="width:30px; height:180px; background:#111; border-radius:15px; position:relative; border:1px solid #333;">
+                                    <div id="bar_idn_3" style="width:100%; height:0%; background:#27ae60; position:absolute; bottom:0; transition:1s; border-radius:0 0 15px 15px;"></div>
+                                </div>
+                                <small style="font-weight:bold; display:block; margin-top:10px; color:#aaa;">Mism.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="IDN_ResTxt">
+                        <i>Realice la evaluación para ver resultados...</i>
+                    </div>
+
+                    <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                        <button class="btn-elite" style="background:#8e44ad;" onclick="IDN_SISTEMA.ia()"><i class="fa-solid fa-robot"></i> Informe IA</button>
+                        <button class="btn-elite" style="background:#2c3e50;" onclick="IDN_SISTEMA.guardarBD()"><i class="fa-solid fa-floppy-disk"></i> Guardar BD</button>
+                        <button class="btn-elite" style="background:#27ae60;" onclick="IDN_SISTEMA.pdf()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        let ultimoCalculoIdentidad = { v1: 0, v2: 0, v3: 0, total: 0, estado: "", informeIA: "" };
+
+        async function initIdentidad() {
+            const sel = document.getElementById('IDN_PacSel');
+            sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+            
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const nombre = data.name || data.nombre || data.patientName || "Sin Nombre";
+                    listaPacientes.push({ id: docSnap.id, nombre: nombre });
+                });
+            } catch(e) {
+                console.warn("Firestore no accesible directamente, buscando respaldo local.", e);
+            }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => {
+                        if(i.p && !listaPacientes.some(p => p.nombre === i.p)) {
+                            listaPacientes.push({ id: "local_" + i.p, nombre: i.p });
+                        }
+                    });
+                });
+            }
+
+            sel.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            if(listaPacientes.length > 0) {
+                listaPacientes.forEach(p => {
+                    let opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.nombre;
+                    sel.appendChild(opt);
+                });
+            } else {
+                sel.innerHTML = '<option value="">No se encontraron pacientes</option>';
+            }
+
+            document.getElementById('fechaIdentidad').value = new Date().toISOString().split('T')[0];
+        }
+
+        window.IDN_SISTEMA = {
+            obtenerColor: function(v) {
+                if (v == 3) return "#27ae60"; 
+                if (v == 2) return "#f1c40f"; 
+                return "#e74c3c"; 
+            },
+
+            graficar: function() {
+                const v1 = parseInt(document.querySelector('input[name="iv1"]:checked').value);
+                const v2 = parseInt(document.querySelector('input[name="iv2"]:checked').value);
+                const v3 = parseInt(document.querySelector('input[name="iv3"]:checked').value);
+
+                const b1 = document.getElementById('bar_idn_1');
+                b1.style.height = (v1 * 33.3) + "%";
+                b1.style.backgroundColor = this.obtenerColor(v1);
+
+                const b2 = document.getElementById('bar_idn_2');
+                b2.style.height = (v2 * 33.3) + "%";
+                b2.style.backgroundColor = this.obtenerColor(v2);
+
+                const b3 = document.getElementById('bar_idn_3');
+                b3.style.height = (v3 * 33.3) + "%";
+                b3.style.backgroundColor = this.obtenerColor(v3);
+
+                const total = v1 + v2 + v3;
+                let estado = total >= 7 ? "Integrada" : (total >= 4 ? "En Conflicto" : "Difusa");
+                let colFinal = total >= 7 ? "#27ae60" : (total >= 4 ? "#f1c40f" : "#e74c3c");
+
+                ultimoCalculoIdentidad = {
+                    v1: v1,
+                    v2: v2,
+                    v3: v3,
+                    total: total,
+                    estado: estado,
+                    informeIA: ""
+                };
+
+                const res = document.getElementById('IDN_ResTxt');
+                res.innerHTML = `<b>Puntaje ICI: ${total}/9</b><br>Estado: <span style="color:${colFinal}; font-weight:bold;">${estado}</span>.`;
+                res.style.borderLeftColor = colFinal;
+            },
+
+            ia: function() {
+                const res = document.getElementById('IDN_ResTxt');
+                if (res.innerText.includes("resultados") || !ultimoCalculoIdentidad.estado) { 
+                    alert("Realice la medición primero.");
+                    return;
+                }
+                
+                let informeIA = "<hr style='margin:10px 0; border:0; border-top:1px solid #333;'><b>IA:</b> Perfil asociado a la Red Neuronal por Defecto (DMN). Se sugiere trabajo en memoria episódica.";
+                ultimoCalculoIdentidad.informeIA = informeIA;
+                res.innerHTML += informeIA;
+            },
+
+            guardarBD: async function() {
+                const sel = document.getElementById('IDN_PacSel');
+                const patientId = sel.value;
+                const fecha = document.getElementById('fechaIdentidad').value;
+
+                if (!patientId || patientId.startsWith("local_")) {
+                    alert("Por favor, seleccione un paciente válido registrado en la base de datos de Firestore.");
+                    return;
+                }
+
+                if (!ultimoCalculoIdentidad.estado) {
+                    alert("Debe actualizar los termómetros antes de guardar.");
+                    return;
+                }
+
+                try {
+                    const ref = doc(dbFirestore, "patients", patientId);
+                    const snap = await getDoc(ref);
+                    let lista = snap.exists() && snap.data().termometro_identidad ? snap.data().termometro_identidad : [];
+                    
+                    lista.push({
+                        id: Date.now().toString(),
+                        fecha: fecha,
+                        puntajeTotal: ultimoCalculoIdentidad.total,
+                        estado: ultimoCalculoIdentidad.estado,
+                        dimensiones: {
+                            continuidad: ultimoCalculoIdentidad.v1,
+                            unidad: ultimoCalculoIdentidad.v2,
+                            mismidad: ultimoCalculoIdentidad.v3
+                        },
+                        analisisIA: ultimoCalculoIdentidad.informeIA
+                    });
+
+                    await updateDoc(ref, { termometro_identidad: lista });
+                    alert("¡Termómetro de Identidad guardado exitosamente en la base de datos de Firestore!");
+                } catch (err) {
+                    console.error("Error al guardar en Firestore:", err);
+                    alert("Hubo un error al guardar los datos en la base de datos.");
+                }
+            },
+
+            pdf: function() {
+                const sel = document.getElementById('IDN_PacSel');
+                if (!sel.value) {
+                    alert("Por favor, selecciona un paciente primero.");
+                    return;
+                }
+                const pac = sel.options[sel.selectedIndex].text;
+                const elemento = document.getElementById('IDN_Container');
+
+                const opt = { 
+                    margin: 0.4, 
+                    filename: `Identidad_${pac.replace(/\s+/g, '_')}.pdf`, 
+                    image: { type: 'jpeg', quality: 0.98 }, 
+                    html2canvas: { scale: 2, backgroundColor: '#050505' }, 
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } 
+                };
+
+                html2pdf().set(opt).from(elemento).save();
+            }
+        };
+
+        initIdentidad();
+    </script>
+</body>
+</html>

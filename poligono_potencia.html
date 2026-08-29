@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polígono de Potencia - ELITE 2.0</title>
+    <!-- Chart.js para el gráfico de radar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf para la exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(52, 152, 219, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: #fff; }
+
+        .grid-eval { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .eval-card { background: #0a0a0a; border: 1px solid var(--border-color); padding: 15px; border-radius: 5px; }
+        .eval-card h4 { font-size: 13px; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        .chart-container { display: flex; justify-content: center; align-items: center; margin: 30px 0; background: #000; padding: 20px; border: 1px solid rgba(52,152,219,0.3); border-radius: 8px; }
+        .chart-wrapper { width: 400px; height: 400px; position: relative; }
+
+        #resultadoAnalisis { background: #080808; border-left: 5px solid var(--primary-color); padding: 15px; margin-top: 20px; font-size: 14px; border-radius: 0 6px 6px 0; }
+
+        @media (max-width: 768px) {
+            .grid-eval { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Contenedor principal que abarca el PDF y el formulario -->
+        <div class="card" id="modalPoligono">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding-bottom:15px; margin-bottom:20px;">
+                <h2><i class="fa-solid fa-chart-radar"></i> POLÍGONO DE POTENCIA CLÍNICA - ELITE 2.0</h2>
+            </div>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(52, 152, 219, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>PACIENTE:</label>
+                    <select id="selPacPoligono"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaPoligono">
+                </div>
+            </div>
+
+            <div class="grid-eval">
+                <!-- OMNIPOTENCIA -->
+                <div class="eval-card">
+                    <h4>OMNIPOTENCIA</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-omni"> Control absoluto del encuadre</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-omni"> Negación de límites teóricos</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-omni"> Expectativa de cura inmediata</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-omni"> Omnisciencia transferencial</label>
+                    </div>
+                </div>
+                <!-- IMPOTENCIA -->
+                <div class="eval-card">
+                    <h4>IMPOTENCIA</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-impo"> Parálisis ante el material clínico</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-impo"> Desvalimiento contratransferencial</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-impo"> Fractura de la función continente</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-impo"> Bloqueo asociativo sistemático</label>
+                    </div>
+                </div>
+                <!-- CAPACIDAD ALOSTÉRICA -->
+                <div class="eval-card">
+                    <h4>CAPACIDAD ALOSTÉRICA</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-alo"> Modulación flexible del encuadre</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-alo"> Metabolización de la afectividad</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-alo"> Utilización de recursos plásticos</label>
+                        <label style="font-size:11px; color:#aaa; font-weight:normal; cursor:pointer;"><input type="checkbox" class="ind-alo"> Integración sistémica del vínculo</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin:25px 0;">
+                <button class="btn-elite" onclick="generarPoligono()"><i class="fa-solid fa-bolt"></i> Calcular Polígono</button>
+                <button class="btn-outline-elite" onclick="analisisIA()"><i class="fa-solid fa-robot"></i> Análisis IA</button>
+                <button class="btn-elite" style="background:#2c3e50;" onclick="guardarBDPoligono()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                <button class="btn-elite" style="background:#27ae60;" onclick="guardarPDFPoligono()"><i class="fa-solid fa-file-pdf"></i> Generar PDF</button>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="canvasPoligono"></canvas>
+                </div>
+            </div>
+
+            <div id="resultadoAnalisis"><b>Análisis de Potencia:</b> Genere el cálculo y análisis para visualizar los resultados clínicos.</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        let chartPoligono = null;
+        let calculoActual = { omni: 0, impo: 0, alo: 0 };
+
+        async function initPoligono() {
+            const select = document.getElementById('selPacPoligono');
+            select.innerHTML = '<option value="">Cargando pacientes...</option>';
+            
+            let listaPacientes = [];
+
+            // 1. Cargar desde Firestore (Colección "patients" de ELITE 2.0)
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const nombre = data.name || data.nombre || data.patientName || "Sin Nombre";
+                    listaPacientes.push({ id: docSnap.id, nombre: nombre });
+                });
+            } catch(e) {
+                console.warn("Firestore no accesible directamente, buscando respaldo local.", e);
+            }
+
+            // 2. Respaldo o complemento con localStorage
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => {
+                        if(i.p && !listaPacientes.some(p => p.nombre === i.p)) {
+                            listaPacientes.push({ id: "local_" + i.p, nombre: i.p });
+                        }
+                    });
+                });
+            }
+
+            select.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            if(listaPacientes.length > 0) {
+                listaPacientes.forEach(p => {
+                    let opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.nombre;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">No se encontraron pacientes</option>';
+            }
+
+            document.getElementById('fechaPoligono').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Exponer funciones globales requeridas por los botones
+        window.generarPoligono = function() {
+            calculoActual.omni = document.querySelectorAll('.ind-omni:checked').length * 2.5;
+            calculoActual.impo = document.querySelectorAll('.ind-impo:checked').length * 2.5;
+            calculoActual.alo = document.querySelectorAll('.ind-alo:checked').length * 2.5;
+
+            const ctx = document.getElementById('canvasPoligono').getContext('2d');
+            if (chartPoligono) chartPoligono.destroy();
+
+            chartPoligono = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['OMNIPOTENCIA', 'IMPOTENCIA', 'CAP. ALOSTÉRICA'],
+                    datasets: [{
+                        label: 'Potencia Clínica',
+                        data: [calculoActual.omni, calculoActual.impo, calculoActual.alo],
+                        backgroundColor: 'rgba(52, 152, 219, 0.4)',
+                        borderColor: '#3498db',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        r: { 
+                            min: 0, 
+                            max: 10, 
+                            ticks: { stepSize: 2, color: '#aaa', backdropColor: 'transparent' },
+                            grid: { color: '#333' },
+                            angleLines: { color: '#333' },
+                            pointLabels: { color: '#fff', font: { weight: 'bold' } }
+                        } 
+                    },
+                    plugins: { legend: { labels: { color: '#fff' } } }
+                }
+            });
+        };
+
+        window.analisisIA = function() {
+            const o = document.querySelectorAll('.ind-omni:checked').length;
+            const i = document.querySelectorAll('.ind-impo:checked').length;
+            const a = document.querySelectorAll('.ind-alo:checked').length;
+            
+            let res = "<b>Análisis de Potencia Clínica:</b> ";
+            if (a > o && a > i) res += "Alta capacidad alostérica y de adaptación. El proceso terapéutico fluye con flexibilidad estructural óptima.";
+            else if (o > i && o >= a) res += "Predominio de defensas omnipotentes. Riesgo de estancamiento técnico y control excesivo del encuadre.";
+            else if (i > o && i >= a) res += "Nivel de impotencia clínica elevado. Se detecta parálisis parcial o desvalimiento contratransferencial que requiere soporte activo.";
+            else res += "Configuración mixta o equilibrada de tensiones defensivas. Se aconseja supervisión focalizada.";
+            
+            document.getElementById('resultadoAnalisis').innerHTML = res;
+        };
+
+        window.guardarBDPoligono = async function() {
+            const select = document.getElementById('selPacPoligono');
+            const patientId = select.value;
+            const fecha = document.getElementById('fechaPoligono').value;
+            const informeTexto = document.getElementById('resultadoAnalisis').innerText;
+
+            if (!patientId || patientId.startsWith("local_")) {
+                alert("Por favor, seleccione un paciente válido registrado en la base de datos de Firestore.");
+                return;
+            }
+
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().poligono_potencia ? snap.data().poligono_potencia : [];
+                
+                lista.push({
+                    id: Date.now().toString(),
+                    fecha: fecha,
+                    valores: calculoActual,
+                    analisis: informeTexto
+                });
+
+                await updateDoc(ref, { poligono_potencia: lista });
+                alert("¡Polígono de Potencia guardado exitosamente en la base de datos de Firestore!");
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Hubo un error al guardar los datos en la base de datos.");
+            }
+        };
+
+        window.guardarPDFPoligono = function() {
+            const select = document.getElementById('selPacPoligono');
+            if (!select.value) {
+                alert("Por favor, selecciona un paciente primero.");
+                return;
+            }
+            
+            const nombrePac = select.options[select.selectedIndex].text;
+            const elemento = document.getElementById('modalPoligono');
+
+            const opciones = {
+                margin:       [0.3, 0.3],
+                filename:     `Poligono_Potencia_${nombrePac.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 2, 
+                    logging: false, 
+                    useCORS: true,
+                    backgroundColor: '#050505'
+                },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opciones).from(elemento).save().then(() => {
+                console.log("PDF generado con éxito");
+            }).catch(err => {
+                console.error("Error al generar PDF: ", err);
+                alert("Error al generar el PDF. Revisa la consola (F12).");
+            });
+        };
+
+        // Inicializar al cargar la página
+        initPoligono();
+    </script>
+</body>
+</html>

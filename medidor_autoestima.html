@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación de Autoestima Integral - ELITE 2.0</title>
+    <!-- Chart.js para el gráfico de radar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf para la exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #673ab7;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(103, 58, 183, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: #fff; }
+
+        .row-autoestima { display: grid; grid-template-columns: 2fr 100px 100px 100px; gap: 10px; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+        .header-auto { font-weight: bold; text-align: center; font-size: 12px; color: var(--primary-color); }
+        .dim-label { cursor: help; display: flex; align-items: center; gap: 5px; font-size: 13px; color: #ddd; }
+
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        .chart-container { display: flex; justify-content: center; align-items: center; margin: 30px 0; background: #000; padding: 20px; border: 1px solid rgba(103,58,183,0.3); border-radius: 8px; }
+        .chart-wrapper { width: 400px; height: 400px; position: relative; }
+
+        #txtInfoAutoestima { background: #080808; border-left: 5px solid var(--primary-color); padding: 15px; margin-top: 20px; font-size: 14px; border-radius: 0 6px 6px 0; color: #ccc; }
+
+        @media (max-width: 768px) {
+            .row-autoestima { grid-template-columns: 1fr; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Contenedor principal que abarca el formulario y PDF -->
+        <div class="card" id="modalAutoestima">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding-bottom:15px; margin-bottom:20px;">
+                <h2><i class="fa-solid fa-brain"></i> EVALUACIÓN DE AUTOESTIMA (Neuro-Psicoanalítica) - ELITE 2.0</h2>
+            </div>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(103, 58, 183, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>PACIENTE:</label>
+                    <select id="selPacAutoestima"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaAutoestima">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:30px;">
+                <div id="contenedorRubrica" style="background:#0a0a0a; border:1px solid var(--border-color); padding:20px; border-radius:8px;">
+                    <h3 style="margin-top:0; color:var(--primary-color); font-size:14px; margin-bottom:15px; text-transform:uppercase;">Dimensiones Clínicas</h3>
+                    
+                    <div class="row-autoestima" style="background:#111; padding:8px; border-radius:4px; border:none;">
+                        <span style="font-weight:bold; font-size:12px; color:#aaa;">DIMENSIÓN (ℹ️)</span>
+                        <span class="header-auto">BAJO (1)</span>
+                        <span class="header-auto">MEDIO (2)</span>
+                        <span class="header-auto">ALTO (3)</span>
+                    </div>
+
+                    <div class="row-autoestima">
+                        <span class="dim-label" title="Integración de representaciones del yo. Capacidad de no fragmentarse ante la crítica o el error. Identidad sólida vs vacío.">
+                            <b>Cohesión del Self ℹ️</b>
+                        </span>
+                        <input type="radio" name="dim1" value="1" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim1" value="2" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim1" value="3" style="margin:auto; accent-color: var(--primary-color);">
+                    </div>
+
+                    <div class="row-autoestima">
+                        <span class="dim-label" title="Manejo del narcisismo herido. Capacidad de la Corteza Cingulada para calmar a la Amígdala tras un fracaso o rechazo.">
+                            <b>Regulación Afecto ℹ️</b>
+                        </span>
+                        <input type="radio" name="dim2" value="1" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim2" value="2" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim2" value="3" style="margin:auto; accent-color: var(--primary-color);">
+                    </div>
+
+                    <div class="row-autoestima">
+                        <span class="dim-label" title="Nivel de autocrítica interna. Evalúa si la voz interna actúa como un verdugo castigador o como un guía benevolente.">
+                            <b>Severidad Superyó ℹ️</b>
+                        </span>
+                        <input type="radio" name="dim3" value="1" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim3" value="2" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim3" value="3" style="margin:auto; accent-color: var(--primary-color);">
+                    </div>
+
+                    <div class="row-autoestima">
+                        <span class="dim-label" title="Sentido de autoría. Confianza en que las propias acciones generan resultados y metas (Sistema Dopaminérgico).">
+                            <b>Agencia/Eficacia ℹ️</b>
+                        </span>
+                        <input type="radio" name="dim4" value="1" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim4" value="2" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim4" value="3" style="margin:auto; accent-color: var(--primary-color);">
+                    </div>
+
+                    <div class="row-autoestima" style="border-bottom:none;">
+                        <span class="dim-label" title="Diferenciación psíquica. Capacidad de proteger el propio deseo y espacio frente a las demandas ajenas.">
+                            <b>Límites Yo-Otro ℹ️</b>
+                        </span>
+                        <input type="radio" name="dim5" value="1" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim5" value="2" style="margin:auto; accent-color: var(--primary-color);">
+                        <input type="radio" name="dim5" value="3" style="margin:auto; accent-color: var(--primary-color);">
+                    </div>
+
+                    <button class="btn-elite" onclick="medirAutoestima()" style="width:100%; margin-top:20px;"><i class="fa-solid fa-chart-pie"></i> Medir Perfil</button>
+                </div>
+
+                <div style="display:flex; flex-direction:column; justify-content:space-between;">
+                    <div class="chart-container" style="margin-top:0;">
+                        <div class="chart-wrapper">
+                            <canvas id="canvasAutoestima"></canvas>
+                        </div>
+                    </div>
+                    <div id="txtInfoAutoestima">
+                        <i>Seleccione los niveles en cada dimensión para generar el perfil de integración.</i>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" style="background:#6c5ce7;" onclick="analisisAutoestimaIA()"><i class="fa-solid fa-robot"></i> Informe con IA</button>
+                <button class="btn-elite" style="background:#2c3e50;" onclick="guardarBDAutoestima()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                <button class="btn-elite" style="background:#27ae60;" onclick="guardarPDFAutoestima()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        let chartAutoestima = null;
+        let ultimoCalculoAutoestima = { valores: [], puntajeTotal: 0, clasificacion: "", informeIA: "" };
+
+        async function initAutoestima() {
+            const select = document.getElementById('selPacAutoestima');
+            select.innerHTML = '<option value="">Cargando pacientes...</option>';
+            
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const nombre = data.name || data.nombre || data.patientName || "Sin Nombre";
+                    listaPacientes.push({ id: docSnap.id, nombre: nombre });
+                });
+            } catch(e) {
+                console.warn("Firestore no accesible directamente, buscando respaldo local.", e);
+            }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => {
+                        if(i.p && !listaPacientes.some(p => p.nombre === i.p)) {
+                            listaPacientes.push({ id: "local_" + i.p, nombre: i.p });
+                        }
+                    });
+                });
+            }
+
+            select.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            if(listaPacientes.length > 0) {
+                listaPacientes.forEach(p => {
+                    let opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.nombre;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">No se encontraron pacientes</option>';
+            }
+
+            document.getElementById('fechaAutoestima').value = new Date().toISOString().split('T')[0];
+        }
+
+        window.medirAutoestima = function() {
+            const v = [
+                parseInt(document.querySelector('input[name="dim1"]:checked')?.value || 0),
+                parseInt(document.querySelector('input[name="dim2"]:checked')?.value || 0),
+                parseInt(document.querySelector('input[name="dim3"]:checked')?.value || 0),
+                parseInt(document.querySelector('input[name="dim4"]:checked')?.value || 0),
+                parseInt(document.querySelector('input[name="dim5"]:checked')?.value || 0)
+            ];
+
+            if(v.includes(0)) { 
+                alert("Por favor, califique todas las dimensiones clínicas."); 
+                return; 
+            }
+
+            const ctx = document.getElementById('canvasAutoestima').getContext('2d');
+            if (chartAutoestima) chartAutoestima.destroy();
+
+            chartAutoestima = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Cohesión', 'Regulación', 'Superyó', 'Agencia', 'Límites'],
+                    datasets: [{
+                        label: 'Perfil de Autoestima',
+                        data: v.map(n => (n/3)*10), 
+                        backgroundColor: 'rgba(103, 58, 183, 0.4)',
+                        borderColor: '#673ab7',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fff'
+                    }]
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        r: { 
+                            min: 0, 
+                            max: 10, 
+                            ticks: { display: false, stepSize: 2 },
+                            grid: { color: '#333' },
+                            angleLines: { color: '#333' },
+                            pointLabels: { color: '#fff', font: { weight: 'bold' } }
+                        } 
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const totalPuntos = v.reduce((a, b) => a + b, 0) * 2; 
+            let clasificacion = "";
+            if(totalPuntos <= 12) clasificacion = "AUTOESTIMA FRÁGIL / DÉFICIT NARCISISTA";
+            else if(totalPuntos <= 21) clasificacion = "AUTOESTIMA VULNERABLE / FUNCIONAL";
+            else clasificacion = "AUTOESTIMA INTEGRADA / RESILIENTE";
+
+            ultimoCalculoAutoestima = {
+                valores: v,
+                puntajeTotal: totalPuntos,
+                clasificacion: clasificacion,
+                informeIA: ""
+            };
+
+            document.getElementById('txtInfoAutoestima').innerHTML = `<b>Puntaje Estimado: ${totalPuntos} pts.</b><br>Estado: ${clasificacion}`;
+        };
+
+        window.analisisAutoestimaIA = function() {
+            const info = document.getElementById('txtInfoAutoestima').innerText;
+            if(info.includes("Seleccione") || !ultimoCalculoAutoestima.clasificacion) { 
+                alert("Primero debe realizar la medición de las dimensiones."); 
+                return; 
+            }
+            
+            let interpretacionIA = "<br><br><b>Informe de Interpretación Clínica:</b><br>";
+            if(info.includes("FRÁGIL")) interpretacionIA += "Se detecta un riesgo de colapso ante la crítica. Neurobiológicamente hay hiperactividad de la amígdala.";
+            else if(info.includes("VULNERABLE")) interpretacionIA += "Mantiene cohesión pero bajo estrés (cortisol alto) recurre a mecanismos primitivos de desvalorización.";
+            else interpretacionIA += "Fuerte integración mPFC-Amígdala. 'Narcisismo Trófico' saludable que metaboliza el fracaso.";
+
+            ultimoCalculoAutoestima.informeIA = interpretacionIA;
+            document.getElementById('txtInfoAutoestima').innerHTML += interpretacionIA;
+        };
+
+        window.guardarBDAutoestima = async function() {
+            const select = document.getElementById('selPacAutoestima');
+            const patientId = select.value;
+            const fecha = document.getElementById('fechaAutoestima').value;
+
+            if (!patientId || patientId.startsWith("local_")) {
+                alert("Por favor, seleccione un paciente válido registrado en la base de datos de Firestore.");
+                return;
+            }
+
+            if (!ultimoCalculoAutoestima.clasificacion) {
+                alert("Debe realizar la medición del perfil antes de guardar.");
+                return;
+            }
+
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().medidor_autoestima ? snap.data().medidor_autoestima : [];
+                
+                lista.push({
+                    id: Date.now().toString(),
+                    fecha: fecha,
+                    puntajeTotal: ultimoCalculoAutoestima.puntajeTotal,
+                    clasificacion: ultimoCalculoAutoestima.clasificacion,
+                    dimensiones: ultimoCalculoAutoestima.valores,
+                    analisisIA: ultimoCalculoAutoestima.informeIA
+                });
+
+                await updateDoc(ref, { medidor_autoestima: lista });
+                alert("¡Evaluación de Autoestima guardada exitosamente en la base de datos de Firestore!");
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Hubo un error al guardar los datos en la base de datos.");
+            }
+        };
+
+        window.guardarPDFAutoestima = function() {
+            const select = document.getElementById('selPacAutoestima');
+            if (!select.value) {
+                alert("Por favor, seleccione un paciente primero.");
+                return;
+            }
+            
+            const p = select.options[select.selectedIndex].text;
+            const element = document.getElementById('modalAutoestima');
+            
+            const opt = { 
+                margin: 0.4, 
+                filename: `Autoestima_${p.replace(/\s+/g, '_')}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 }, 
+                html2canvas: { scale: 2, backgroundColor: '#050505' }, 
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } 
+            };
+            
+            html2pdf().set(opt).from(element).save();
+        };
+
+        // Inicializar al cargar
+        initAutoestima();
+    </script>
+</body>
+</html>

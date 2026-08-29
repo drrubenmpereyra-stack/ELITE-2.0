@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alivio Sintomático (Fiorini) - ELITE 2.0</title>
+    <!-- html2pdf para la exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(111, 66, 193, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: #fff; }
+
+        .fiorini-check-item { display: flex; align-items: center; gap: 12px; background: #0a0a0a; border: 1px solid var(--border-color); padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .fiorini-check-item:hover { border-color: var(--primary-color); }
+        .fiorini-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
+
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #fiorini_resultado { font-size: 2.5rem; font-weight: bold; color: var(--primary-color); text-align: center; margin: 15px 0; }
+        #fiorini_grafico { display: flex; align-items: flex-end; height: 180px; background: #000; border: 1px solid #222; border-radius: 6px; padding: 15px 10px 5px 10px; gap: 6px; margin-top: 15px; }
+        #fiorini_texto_ia { background: #080808; border-left: 5px solid var(--primary-color); padding: 15px; margin-top: 20px; font-size: 14px; border-radius: 0 6px 6px 0; color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Contenedor principal que abarca el formulario y PDF -->
+        <div class="card" id="fiorini_modal_as">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding-bottom:15px; margin-bottom:20px;">
+                <h2><i class="fa-solid fa-stethoscope"></i> ESCALA DE ALIVIO SINTOMÁTICO (Modelo Fiorini) - ELITE 2.0</h2>
+            </div>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(111, 66, 193, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>PACIENTE (FIRESTORE / LOCAL):</label>
+                    <select id="selPacFiorini"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaFiorini">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap:30px;">
+                <div style="background:#0a0a0a; border:1px solid var(--border-color); padding:20px; border-radius:8px;">
+                    <h3 style="margin-top:0; color:var(--primary-color); font-size:14px; margin-bottom:15px; text-transform:uppercase;">Indicadores de Alivio (Marque los logrados)</h3>
+                    
+                    <div id="fiorini_checks">
+                        <label class="fiorini-check-item">
+                            <input type="checkbox" onchange="fiorini_calcular()"> 
+                            <span>Disminución notable de la intensidad sintomática aguda.</span>
+                        </label>
+                        <label class="fiorini-check-item">
+                            <input type="checkbox" onchange="fiorini_calcular()"> 
+                            <span>Recuperación parcial o total de los ciclos de sueño estables.</span>
+                        </label>
+                        <label class="fiorini-check-item">
+                            <input type="checkbox" onchange="fiorini_calcular()"> 
+                            <span>Reducción de conductas impulsivas o pasajes al acto sintomáticos.</span>
+                        </label>
+                        <label class="fiorini-check-item">
+                            <input type="checkbox" onchange="fiorini_calcular()"> 
+                            <span>Aumento de la tolerancia a los estresores cotidianos habituales.</span>
+                        </label>
+                        <label class="fiorini-check-item">
+                            <input type="checkbox" onchange="fiorini_calcular()"> 
+                            <span>Flexibilización de los mecanismos defensivos rígidos.</span>
+                        </label>
+                        <label class="fiorini-check-item">
+                            <input type="checkbox" onchange="fiorini_calcular()"> 
+                            <span>Presencia de expectativas constructivas respecto al proceso terapéutico.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="background:#0a0a0a; padding:20px; border-radius:8px; border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                        <h3 style="margin-top:0; color:var(--primary-color); font-size:14px; text-transform:uppercase; text-align:center;">Índice de Alivio Sintomático</h3>
+                        <div id="fiorini_resultado">0%</div>
+                        
+                        <div style="font-size:12px; color:#aaa; margin-top:10px; font-weight:bold;">Evolución Reciente (Historial):</div>
+                        <div id="fiorini_grafico">
+                            <div style="width:100%; text-align:center; color:#555; align-self:center; font-style:italic; font-size:12px;">Sin datos históricos cargados</div>
+                        </div>
+                    </div>
+
+                    <div id="fiorini_texto_ia">
+                        <i>Realice el cálculo de indicadores para obtener la interpretación clínica...</i>
+                    </div>
+
+                    <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <button class="btn-elite" style="background:#6c5ce7;" onclick="fiorini_generarIA()"><i class="fa-solid fa-robot"></i> Informe IA</button>
+                        <button class="btn-elite" style="background:#2c3e50;" onclick="fiorini_guardarBD()"><i class="fa-solid fa-floppy-disk"></i> Guardar BD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:center; margin-top:25px;">
+                <button class="btn-elite" style="background:#27ae60;" onclick="fiorini_pdf()"><i class="fa-solid fa-file-pdf"></i> Guardar Ficha PDF</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        let ultimoPorcentaje = 0;
+        let ultimoInformeIA = "";
+
+        async function initFiorini() {
+            const sel = document.getElementById('selPacFiorini');
+            sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+            
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const nombre = data.name || data.nombre || data.patientName || "Sin Nombre";
+                    listaPacientes.push({ id: docSnap.id, nombre: nombre });
+                });
+            } catch(e) {
+                console.warn("Firestore no accesible directamente, buscando respaldo local.", e);
+            }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => {
+                        if(i.p && !listaPacientes.some(p => p.nombre === i.p)) {
+                            listaPacientes.push({ id: "local_" + i.p, nombre: i.p });
+                        }
+                    });
+                });
+            }
+
+            sel.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            if(listaPacientes.length > 0) {
+                listaPacientes.forEach(p => {
+                    let opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.nombre;
+                    sel.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">No se encontraron pacientes</option>';
+            }
+
+            document.getElementById('fechaFiorini').value = new Date().toISOString().split('T')[0];
+
+            sel.addEventListener('change', () => {
+                fiorini_cargarEvolucionLocal(sel.options[sel.selectedIndex].text);
+            });
+        }
+
+        window.fiorini_calcular = function() {
+            const checks = document.querySelectorAll('#fiorini_checks input:checked').length;
+            const porc = Math.round((checks / 6) * 100);
+            ultimoPorcentaje = porc;
+            document.getElementById('fiorini_resultado').innerText = porc + "%";
+            return porc;
+        }
+
+        window.fiorini_generarIA = function() {
+            const porc = ultimoPorcentaje;
+            let txt = "<b>Análisis Clínico de Alivio Sintomático:</b><br>";
+            if (porc >= 80) txt += "Excelente respuesta terapéutica. Los indicadores señalan una consolidación de los recursos yoicos y alta estabilidad sintomática.";
+            else if (porc >= 40) txt += "Alivio sintomático parcial. Se observa fluctuación en la contención de estresores, sugiriendo mantener foco en las intervenciones activas.";
+            else txt += "Bajo nivel de alivio sintomático registrado. Predominio de la urgencia subjetiva; se requiere revisión del encuadre y contención de apoyo.";
+
+            ultimoInformeIA = txt;
+            document.getElementById('fiorini_texto_ia').innerHTML = txt;
+        }
+
+        window.fiorini_guardarBD = async function() {
+            const sel = document.getElementById('selPacFiorini');
+            const patientId = sel.value;
+            const fecha = document.getElementById('fechaFiorini').value;
+            const nombrePac = sel.options[sel.selectedIndex]?.text || "";
+
+            if (!patientId || patientId.startsWith("local_")) {
+                alert("Por favor, seleccione un paciente válido registrado en la base de datos de Firestore.");
+                return;
+            }
+
+            const valor = ultimoPorcentaje;
+
+            // 1. Guardar también en localStorage legacy (as_fiorini_db_v2) para compatibilidad con la función visual
+            const dbLocal = JSON.parse(localStorage.getItem('as_fiorini_db_v2') || '{}');
+            if(!dbLocal[nombrePac]) dbLocal[nombrePac] = [];
+            dbLocal[nombrePac].push({
+                fecha: fecha,
+                valor: valor
+            });
+            localStorage.setItem('as_fiorini_db_v2', JSON.stringify(dbLocal));
+            fiorini_cargarEvolucionLocal(nombrePac);
+
+            // 2. Guardar en Firestore Oficial
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().alivio_sintomatico ? snap.data().alivio_sintomatico : [];
+                
+                lista.push({
+                    id: Date.now().toString(),
+                    fecha: fecha,
+                    porcentajeAlivio: valor,
+                    analisisIA: ultimoInformeIA
+                });
+
+                await updateDoc(ref, { alivio_sintomatico: lista });
+                alert("✅ Registro guardado exitosamente en Firestore y localStorage para: " + nombrePac);
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Se guardó localmente, pero hubo un error al sincronizar con Firestore.");
+            }
+        }
+
+        function fiorini_cargarEvolucionLocal(nombre) {
+            const dbLocal = JSON.parse(localStorage.getItem('as_fiorini_db_v2') || '{}');
+            const hist = dbLocal[nombre] || [];
+            const g = document.getElementById('fiorini_grafico');
+            
+            if(!hist.length) {
+                g.innerHTML = '<div style="width:100%; text-align:center; color:#555; align-self:center; font-style:italic; font-size:12px;">Sin registros previos para este paciente</div>';
+                return;
+            }
+            
+            g.innerHTML = '';
+            hist.slice(-10).forEach(h => {
+                const b = document.createElement('div');
+                b.style.cssText = `flex:1; background:#6f42c1; height:${Math.max(h.valor, 5)}%; position:relative; min-width:15px; border-radius: 2px 2px 0 0; margin: 0 2px;`;
+                b.title = `${h.fecha} - ${h.valor}%`;
+                b.innerHTML = `<span style="position:absolute; top:-18px; font-size:9px; width:100%; text-align:center; color: #aaa; font-weight:bold;">${h.valor}%</span>`;
+                g.appendChild(b);
+            });
+        }
+
+        window.fiorini_pdf = function() {
+            const sel = document.getElementById('selPacFiorini');
+            if (!sel.value) {
+                alert("Por favor, selecciona un paciente primero.");
+                return;
+            }
+            const pac = sel.options[sel.selectedIndex].text;
+            const elemento = document.getElementById('fiorini_modal_as');
+
+            const opt = { 
+                margin: 0.4, 
+                filename: `Alivio_Sintomatico_${pac.replace(/\s+/g, '_')}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 }, 
+                html2canvas: { scale: 2, backgroundColor: '#050505' }, 
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } 
+            };
+
+            html2pdf().set(opt).from(elemento).save();
+        };
+
+        initFiorini();
+    </script>
+</body>
+</html>
