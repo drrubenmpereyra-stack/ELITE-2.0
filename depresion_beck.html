@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala de Depresión de Beck (BDI-II) - ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff1493;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 20, 147, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        
+        #scroll-preguntas-test { max-height: 450px; overflow-y: auto; margin-top: 20px; background: #050505; padding: 20px; border: 1px solid var(--border-color); }
+        .test-pregunta { margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 20px; }
+        .test-pregunta span { display: block; margin-bottom: 12px; font-size: 14px; color: #adff2f; font-weight: bold; }
+        .opciones-grid { display: flex; flex-direction: column; gap: 8px; }
+        .opcion-bdi { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; }
+        .opcion-bdi:hover { background: #111; }
+        .opcion-bdi input { accent-color: var(--primary-color); margin-top: 3px; }
+        
+        .alerta-item9 { color: #ff0000 !important; border: 1px solid #ff0000; padding: 10px; border-radius: 4px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,0,0,0.4);} 70% {box-shadow: 0 0 0 10px rgba(255,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(255,0,0,0);} }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #visual-root { margin-top: 25px; background: #000; padding: 20px; border: 1px solid #333; border-radius: 6px; }
+        #ia-box { background: #050505; border: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="bdi-container">
+            <h2><i class="fa-solid fa-brain"></i> ESCALA DE DEPRESIÓN DE BECK (BDI-II) - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(255, 20, 147, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>PACIENTE (FIRESTORE / LOCAL):</label>
+                    <select id="selPacBDI"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaBDI">
+                </div>
+            </div>
+
+            <div id="scroll-preguntas-test"></div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="calcularBDI()"><i class="fa-solid fa-chart-pie"></i> Calcular y Graficar</button>
+                <button class="btn-outline-elite" onclick="informeIABDI()"><i class="fa-solid fa-robot"></i> Informe IA Literal</button>
+                <button class="btn-elite" style="background:#2c3e50; color:#fff;" onclick="guardarBDBDI()"><i class="fa-solid fa-floppy-disk"></i> Guardar en BD</button>
+                <button class="btn-elite" style="background:#27ae60; color:#fff;" onclick="guardarPDFBDI()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="visual-root" style="display:none;"></div>
+            <div id="ia-box" style="display:none;"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        const dataBDI = [
+            {t:"Tristeza", ops:["No me siento triste.","Me siento triste gran parte del tiempo.","Me siento triste todo el tiempo.","Me siento tan triste o infeliz que no puedo soportarlo."]},
+            {t:"Pesimismo", ops:["No me siento desanimado respecto al futuro.","Me siento más desanimado que lo habitual.","No espero que las cosas mejoren.","Siento que el futuro es desesperanzador."]},
+            {t:"Sentimiento de fracaso", ops:["No me siento un fracasado.","He fracasado más de lo que debería.","Cuando miro atrás, veo muchos fracasos.","Me siento un fracaso total como persona."]},
+            {t:"Pérdida de placer", ops:["Obtengo tanto placer como siempre.","No disfruto tanto como antes.","Obtengo muy poco placer de las cosas.","No puedo obtener ningún placer."]},
+            {t:"Sentimientos de culpa", ops:["No me siento particularmente culpable.","Me siento culpable por cosas que hice.","Me siento culpable la mayor parte del tiempo.","Me siento culpable todo el tiempo."]},
+            {t:"Sentimientos de castigo", ops:["No siento que esté siendo castigado.","Siento que podría ser castigado.","Espero ser castigado.","Siento que estoy siendo castigado."]},
+            {t:"Disconformidad con uno mismo", ops:["Me siento igual que siempre.","He perdido la confianza en mí mismo.","Estoy decepcionado conmigo mismo.","Me odio a mí mismo."]},
+            {t:"Autocrítica", ops:["No me critico ni me culpo más de lo habitual.","Estoy más crítico conmigo mismo de lo que solía.","Me critico por todos mis errores.","Me culpo por todo lo malo que sucede."]},
+            {t:"Pensamientos o deseos suicidas", ops:["No tengo ningún pensamiento de matarme.","Tengo pensamientos de matarme, pero no lo haría.","Me gustaría matarme.","Me mataría si tuviera la oportunidad."]},
+            {t:"Llanto", ops:["No lloro más de lo que solía.","Lloro más de lo que solía.","Lloro por cualquier pequeñez.","Tengo ganas de llorar pero no puedo."]},
+            {t:"Agitación", ops:["No estoy más inquieto de lo habitual.","Me siento más inquieto de lo habitual.","Estoy tan inquieto que me cuesta estar quieto.","Tengo que estar siempre moviéndome."]},
+            {t:"Pérdida de interés", ops:["No he perdido el interés en otras personas o actividades.","Estoy menos interesado en los demás que antes.","He perdido la mayor parte de mi interés.","Me cuesta mucho interesarme por algo."]},
+            {t:"Indecisión", ops:["Tomo decisiones tan bien como siempre.","Me resulta más difícil tomar decisiones.","Tengo mucha más dificultad que antes.","Tengo problemas para tomar cualquier decisión."]},
+            {t:"Inutilidad", ops:["No me siento inútil.","No me siento tan útil como solía.","Me siento más inútil que los demás.","Me siento completamente inútil."]},
+            {t:"Pérdida de energía", ops:["Tengo tanta energía como siempre.","Tengo menos energía que la que solía tener.","No tengo energía suficiente para hacer mucho.","No tengo energía para hacer nada."]},
+            {t:"Cambios en el patrón de sueño", ops:["No he experimentado cambios en mi sueño.","Duermo un poco más o un poco menos.","Duermo mucho más o mucho menos.","Duermo casi todo el día o me despierto muy temprano."]},
+            {t:"Irritabilidad", ops:["No estoy más irritable de lo habitual.","Estoy más irritable que lo habitual.","Estoy mucho más irritable que lo habitual.","Estoy irritable todo el tiempo."]},
+            {t:"Cambios en el apetito", ops:["No he experimentado cambios en mi apetito.","Mi apetito es un poco menor o mayor.","Mi apetito es mucho menor o mayor.","No tengo nada de apetito o como todo el tiempo."]},
+            {t:"Dificultad de concentración", ops:["Puedo concentrarme tan bien como siempre.","No puedo concentrarse tan bien como antes.","Me cuesta mucho mantener la mente en algo.","No puedo concentrarme en nada."]},
+            {t:"Cansancio o fatiga", ops:["No estoy más cansado o fatigado que lo habitual.","Me canso más fácilmente que antes.","Estoy demasiado cansado para hacer muchas de las cosas que solía.","Estoy demasiado cansado para hacer cualquier cosa."]},
+            {t:"Pérdida de interés en el sexo", ops:["No he notado ningún cambio reciente en mi interés sexual.","Estoy menos interesado en el sexo que antes.","Estoy mucho menos interesado en el sexo.","He perdido el interés en el sexo completamente."]}
+        ];
+
+        let ultimoResultadoBDI = { total: 0, categoria: "", item9: 0, informeIA: "" };
+
+        async function initBDI() {
+            const sel = document.getElementById('selPacBDI');
+            sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listaPacientes.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                });
+            } catch(e) { console.warn("Firestore inaccesible, usando respaldo local.", e); }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => { if(i.p && !listaPacientes.some(p => p.nombre === i.p)) listaPacientes.push({ id: "local_" + i.p, nombre: i.p }); });
+                });
+            }
+
+            sel.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            listaPacientes.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`; });
+            document.getElementById('fechaBDI').value = new Date().toISOString().split('T')[0];
+
+            const contPreg = document.getElementById('scroll-preguntas-test');
+            dataBDI.forEach((q, i) => {
+                contPreg.innerHTML += `<div class="test-pregunta" id="preg-bdi-${i}"><span>${i+1}. ${q.t.toUpperCase()}</span><div class="opciones-grid">` + 
+                    q.ops.map((op, v) => `<label class="opcion-bdi"><input type="radio" name="q-${i}" value="${v}" onchange="window.checkItem9(${i}, ${v})"> <b>${v}</b> - ${op}</label>`).join('') + `</div></div>`;
+            });
+        }
+
+        window.checkItem9 = (idx, val) => {
+            const el = document.getElementById(`preg-bdi-${idx}`);
+            if(idx === 8 && val > 0) el.classList.add('alerta-item9');
+            else if(idx === 8) el.classList.remove('alerta-item9');
+        };
+
+        window.calcularBDI = () => {
+            const root = document.getElementById('visual-root'); 
+            root.style.display = 'flex'; root.style.flexDirection = 'column'; root.style.alignItems = 'center'; root.style.gap = '20px';
+            
+            let t = 0; document.querySelectorAll('#scroll-preguntas-test input:checked').forEach(i => t += parseInt(i.value));
+            const i9Val = parseInt(document.querySelector('input[name="q-8"]:checked')?.value || 0);
+
+            const getL_BDI = (v) => v >= 29 ? {t:"Depresión Grave", c:"#ff0000"} : v >= 20 ? {t:"Depresión Moderada", c:"#ffa500"} : v >= 14 ? {t:"Depresión Leve", c:"#ffff00"} : {t:"Mínima (Normalidad)", c:"#00ff00"};
+            const resBDI = getL_BDI(t);
+
+            ultimoResultadoBDI = { total: t, categoria: resBDI.t, item9: i9Val, informeIA: "" };
+
+            const percent = Math.min((t / 63) * 100, 100); const rot = (percent / 100) * 180 - 90;
+            const svgGauge = `<div style="text-align:center; width:150px;"><svg width="120" height="80" viewBox="0 0 100 60"><path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#222" stroke-width="8"/><path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="${resBDI.c}" stroke-width="8" stroke-dasharray="${(percent/100)*126}, 126"/><line x1="50" y1="50" x2="${50 + 35 * Math.sin(rot * Math.PI / 180)}" y2="${50 - 35 * Math.cos(rot * Math.PI / 180)}" stroke="#fff" stroke-width="2"/><circle cx="50" cy="50" r="3" fill="#fff"/></svg><div style="font-size:10px; color:#fff; font-weight:bold; margin-top:5px;">DEPRESIÓN TOTAL</div></div>`;
+
+            root.innerHTML = svgGauge + `<div style="text-align:center; font-size:12px; color:#fff;">PUNTUACIÓN: <b>${t} pts</b> - <b style="color:${resBDI.c}">${resBDI.t.toUpperCase()}</b><br><small style="color:#666; font-size:10px;">0-13: Mínima / 14-19: Leve / 20-28: Moderada / 29-63: Grave</small>${i9Val > 0 ? '<div style="background:red; color:white; padding:5px; margin-top:10px; font-weight:bold;">ALERTA: IDEACIÓN SUICIDA DETECTADA (Ítem 9 > 0)</div>' : ''}</div>`;
+            root.scrollIntoView({behavior:'smooth'});
+        };
+
+        window.informeIABDI = () => {
+            const box = document.getElementById('ia-box'); box.style.display = 'block';
+            const { total, categoria, item9 } = ultimoResultadoBDI;
+            
+            const getProsBDI = (v) => {
+                if(v >= 29) return "DEPRESIÓN GRAVE. Se requiere derivación a psiquiatría y abordaje psicoterapéutico intensivo para contención de síntomas somáticos y cognitivos severos.";
+                if(v >= 20) return "DEPRESIÓN MODERADA. Se recomienda fortalecimiento de la red de apoyo y terapia focalizada en la reestructuración cognitiva y activación conductual.";
+                if(v >= 14) return "DEPRESIÓN LEVE. Orientación a la monitorización clínica y abordaje de esquemas desadaptativos tempranos.";
+                return "MÍNIMA (NORMALIDAD). Los niveles reportados sugieren estabilidad afectiva en el periodo evaluado.";
+            };
+
+            let txt = `
+                <h3 style="color:#ff1493; border-bottom:1px solid #ff1493; padding-bottom:5px;">INFORME TÉCNICO LITERAL - BDI-II (DEPRESIÓN)</h3>
+                <p><b>PUNTUACIÓN TOTAL: ${total} puntos.</b><br><b>CATEGORÍA CLÍNICA:</b> ${categoria.toUpperCase()}</p>
+                ${item9 > 0 ? '<p style="color:red; font-weight:bold; border:1px solid red; padding:10px; margin-top:10px;">ATENCIÓN: Se ha detectado puntaje positivo en el ÍTEM 9 (Deseos Suicidas). Se requiere intervención profesional inmediata conforme a protocolos de seguridad.</p>' : ''}
+                <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+                <p><b>ORIENTACIONES PROSPECTIVAS TERAPÉUTICAS:</b><br>${getProsBDI(total)}<br><br>• Evaluación de la tríada cognitiva detectada.<br>• Descarte de factores orgánicos que puedan influir en los síntomas somáticos reportados.</p>`;
+            
+            ultimoResultadoBDI.informeIA = txt;
+            box.innerHTML = txt;
+        };
+
+        window.guardarBDBDI = async function() {
+            const sel = document.getElementById('selPacBDI');
+            const patientId = sel.value;
+            const fecha = document.getElementById('fechaBDI').value;
+
+            if (!patientId || patientId.startsWith("local_")) {
+                alert("Por favor, seleccione un paciente válido registrado en Firestore.");
+                return;
+            }
+
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().test_depresion ? snap.data().test_depresion : [];
+                
+                lista.push({
+                    id: Date.now().toString(),
+                    fecha: fecha,
+                    resultados: ultimoResultadoBDI
+                });
+
+                await updateDoc(ref, { test_depresion: lista });
+                alert("¡Escala de Depresión de Beck (BDI-II) guardada exitosamente en Firestore!");
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Error al sincronizar con la base de datos.");
+            }
+        };
+
+        window.guardarPDFBDI = function() {
+            const sel = document.getElementById('selPacBDI');
+            if (!sel.value) { alert("Seleccione un paciente primero."); return; }
+            const pac = sel.options[sel.selectedIndex].text;
+            const element = document.getElementById('bdi-container');
+            
+            const opt = { margin: 0.4, filename: `DepresionBDI_${pac.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initBDI();
+    </script>
+</body>
+</html>

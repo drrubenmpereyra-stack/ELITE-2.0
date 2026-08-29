@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Ansiedad de Beck (BAI) - ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff1493;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 20, 147, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        
+        .test-referencia-escala { background: #111; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; text-align: center; }
+        #scroll-preguntas-test { max-height: 450px; overflow-y: auto; margin-top: 20px; background: #050505; padding: 20px; border: 1px solid var(--border-color); }
+        .test-pregunta { margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 20px; }
+        .test-pregunta span { display: block; margin-bottom: 12px; font-size: 14px; color: #adff2f; font-weight: bold; }
+        .opciones-grid { display: flex; flex-direction: row; justify-content: space-between; }
+        .opcion-unit { text-align: center; }
+        .opcion-unit input { accent-color: var(--primary-color); cursor: pointer; }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #visual-root { margin-top: 25px; background: #000; padding: 20px; border: 1px solid #333; border-radius: 6px; }
+        #ia-box { background: #050505; border: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="bai-container">
+            <h2><i class="fa-solid fa-heart-pulse"></i> INVENTARIO DE ANSIEDAD DE BECK (BAI) - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(255, 20, 147, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>PACIENTE (FIRESTORE / LOCAL):</label>
+                    <select id="selPacBAI"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaBAI">
+                </div>
+            </div>
+
+            <!-- Escala de Referencia BAI -->
+            <div class="test-referencia-escala" id="ref-bai"></div>
+
+            <div id="scroll-preguntas-test"></div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="calcularBAI()"><i class="fa-solid fa-chart-pie"></i> Calcular y Graficar</button>
+                <button class="btn-outline-elite" onclick="informeIABAI()"><i class="fa-solid fa-robot"></i> Informe IA Literal</button>
+                <button class="btn-elite" style="background:#2c3e50; color:#fff;" onclick="guardarBDBAI()"><i class="fa-solid fa-floppy-disk"></i> Guardar en BD</button>
+                <button class="btn-elite" style="background:#27ae60; color:#fff;" onclick="guardarPDFBAI()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="visual-root" style="display:none;"></div>
+            <div id="ia-box" style="display:none;"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        const dataBAI = [
+            "Hormigueo o entumecimiento.", "Sensación de calor.", "Temblor de piernas.", "Incapacidad para relajarse.", "Temor a que ocurra lo peor.", "Mareo o aturdimiento.", "Palpitaciones o taquicardia.", "Inestabilidad.", "Terrores o miedos.", "Nerviosismo.", "Sensación de asfixia.", "Temblores de manos.", "Temblor generalizado o inestabilidad física.", "Miedo a perder el control.", "Dificultad para respirar.", "Miedo a morir.", "Sobresaltos.", "Molestias digestivas o abdominales.", "Palidez o desmayos.", "Rubor facial.", "Sudoración (no debida al calor)."
+        ];
+
+        let ultimoResultadoBAI = { total: 0, categoria: "", informeIA: "" };
+
+        async function initBAI() {
+            const sel = document.getElementById('selPacBAI');
+            sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listaPacientes.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                });
+            } catch(e) { console.warn("Firestore inaccesible, usando respaldo local.", e); }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => { if(i.p && !listaPacientes.some(p => p.nombre === i.p)) listaPacientes.push({ id: "local_" + i.p, nombre: i.p }); });
+                });
+            }
+
+            sel.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            listaPacientes.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`; });
+            document.getElementById('fechaBAI').value = new Date().toISOString().split('T')[0];
+
+            const refBAI = ["En absoluto", "Levemente", "Moderadamente", "Severamente"];
+            document.getElementById('ref-bai').innerHTML = refBAI.map((text, i) => `<div style="display:flex;flex-direction:column;"><span style="color:#ff1493;font-weight:bold;">${i}</span><span style="font-size:9px;color:#888;">${text}</span></div>`).join('');
+            
+            const contPreg = document.getElementById('scroll-preguntas-test');
+            dataBAI.forEach((q, i) => {
+                contPreg.innerHTML += `<div class="test-pregunta"><span>${i+1}. ${q}</span><div class="opciones-grid">${[0,1,2,3].map(v => `<div class="opcion-unit"><span style="color:#ff1493;font-weight:bold;font-size:10px;">${v}</span><input type="radio" name="q-${i}" value="${v}"></div>`).join('')}</div></div>`;
+            });
+        }
+
+        window.calcularBAI = () => {
+            const root = document.getElementById('visual-root'); 
+            root.style.display = 'flex'; root.style.flexDirection = 'column'; root.style.alignItems = 'center'; root.style.gap = '20px';
+            
+            let t = 0; document.querySelectorAll('#scroll-preguntas-test input:checked').forEach(i => t += parseInt(i.value));
+
+            const getL_BAI = (v) => v >= 26 ? {t:"Ansiedad grave", c:"#ff0000"} : v >= 16 ? {t:"Ansiedad moderada", c:"#ffa500"} : v >= 8 ? {t:"Ansiedad leve", c:"#ffff00"} : {t:"Ansiedad mínima", c:"#00ff00"};
+            const resBAI = getL_BAI(t);
+
+            ultimoResultadoBAI = { total: t, categoria: resBAI.t, informeIA: "" };
+
+            const percent = Math.min((t / 63) * 100, 100); const rot = (percent / 100) * 180 - 90;
+            const svgGauge = `<div style="text-align:center; width:150px;"><svg width="120" height="80" viewBox="0 0 100 60"><path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#222" stroke-width="8"/><path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="${resBAI.c}" stroke-width="8" stroke-dasharray="${(percent/100)*126}, 126"/><line x1="50" y1="50" x2="${50 + 35 * Math.sin(rot * Math.PI / 180)}" y2="${50 - 35 * Math.cos(rot * Math.PI / 180)}" stroke="#fff" stroke-width="2"/><circle cx="50" cy="50" r="3" fill="#fff"/></svg><div style="font-size:10px; color:#fff; font-weight:bold; margin-top:5px;">ANSIEDAD TOTAL</div></div>`;
+
+            root.innerHTML = svgGauge + `<div style="text-align:center; font-size:12px; color:#fff;">PUNTUACIÓN: <b>${t} pts</b> - <b style="color:${resBAI.c}">${resBAI.t.toUpperCase()}</b><br><small style="color:#666;">(0-7 Mín / 8-15 Leve / 16-25 Mod / 26-63 Grave)</small></div>`;
+            root.scrollIntoView({behavior:'smooth'});
+        };
+
+        window.informeIABAI = () => {
+            const box = document.getElementById('ia-box'); box.style.display = 'block';
+            const { total, categoria } = ultimoResultadoBAI;
+            
+            let txt = `
+                <h3 style="color:#ff1493; border-bottom:1px solid #ff1493; padding-bottom:5px;">INFORME TÉCNICO LITERAL - BAI (ANSIEDAD)</h3>
+                <p><b>PUNTUACIÓN TOTAL: ${total} puntos.</b><br><b>CATEGORÍA CLÍNICA:</b> ${categoria.toUpperCase()}</p><br>
+                <p><b>Orientación Terapéutica:</b> El nivel de hiperactivación autonómica y somática reportado requiere un abordaje focalizado en la regulación neurovegetativa y contención de crisis. Se sugiere monitorear factores desencadenantes y disparadores cognitivos.</p>`;
+            
+            ultimoResultadoBAI.informeIA = txt;
+            box.innerHTML = txt;
+        };
+
+        window.guardarBDBAI = async function() {
+            const sel = document.getElementById('selPacBAI');
+            const patientId = sel.value;
+            const fecha = document.getElementById('fechaBAI').value;
+
+            if (!patientId || patientId.startsWith("local_")) {
+                alert("Por favor, seleccione un paciente válido registrado en Firestore.");
+                return;
+            }
+
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().test_ansiedad ? snap.data().test_ansiedad : [];
+                
+                lista.push({
+                    id: Date.now().toString(),
+                    fecha: fecha,
+                    resultados: ultimoResultadoBAI
+                });
+
+                await updateDoc(ref, { test_ansiedad: lista });
+                alert("¡Test de Ansiedad (BAI) guardado exitosamente en Firestore!");
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Error al sincronizar con la base de datos.");
+            }
+        };
+
+        window.guardarPDFBAI = function() {
+            const sel = document.getElementById('selPacBAI');
+            if (!sel.value) { alert("Seleccione un paciente primero."); return; }
+            const pac = sel.options[sel.selectedIndex].text;
+            const element = document.getElementById('bai-container');
+            
+            const opt = { margin: 0.4, filename: `AnsiedadBAI_${pac.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initBAI();
+    </script>
+</body>
+</html>
