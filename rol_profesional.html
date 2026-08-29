@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoevaluación: Rol Profesional - ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #16a34a;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(22, 163, 74, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        input[type="text"], input[type="datetime-local"], input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #000; }
+        th { background: #111; color: var(--primary-color); padding: 10px; font-size: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #res-ia-rol-box { background: #050505; border: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; display: none; }
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+        .tooltip-ae { position: relative; cursor: help; }
+        .tooltip-ae .tooltiptext-ae { visibility: hidden; width: 220px; background-color: #111; color: #fff; text-align: center; border-radius: 6px; padding: 6px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 11px; border: 1px solid var(--primary-color); }
+        .tooltip-ae:hover .tooltiptext-ae { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="rol-container">
+            <h2><i class="fa-solid fa-user-tie"></i> AUTOEVALUACIÓN DEL ROL PROFESIONAL - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(22, 163, 74, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>APELLIDO Y NOMBRE COMPLETO (TERAPEUTA):</label>
+                    <input type="text" id="rol-prof-nombre" placeholder="Ingrese nombre del terapeuta">
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA Y HORA:</label>
+                    <input type="datetime-local" id="rol-prof-fecha">
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>DIMENSIÓN CLÍNICA</th>
+                        <th style="text-align:center; width:80px;">Def. (1)</th>
+                        <th style="text-align:center; width:80px;">Des. (2)</th>
+                        <th style="text-align:center; width:80px;">Comp. (3)</th>
+                        <th style="text-align:center; width:80px;">Exp. (4)</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-rol-master-body"></tbody>
+            </table>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="analizarRolIA()"><i class="fa-solid fa-robot"></i> Devolución IA</button>
+                <button class="btn-elite" style="background:#1e40af;" onclick="guardarRolRegistro()"><i class="fa-solid fa-floppy-disk"></i> Guardar Registro</button>
+                <button class="btn-outline-elite" onclick="guardarPDFRol()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="res-ia-rol-box"></div>
+
+            <div class="historial-box">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL DE REGISTROS</h4>
+                <div id="lista-rol-hist">Sin registros aún.</div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        const d_Rol = [
+            {id:'act', n:'Actitud Activa', h:'Intervenir sin esperar asociación pasiva.'},
+            {id:'foc', n:'Focalización', h:'Delimitar conflicto central.'},
+            {id:'flex', n:'Flexibilidad Plástica', h:'Adaptar técnica al paciente.'},
+            {id:'ali', n:'Alianza Terapéutica', h:'Vínculo de colaboración.'},
+            {id:'emp', n:'Comunicación Empática', h:'Lenguaje accesible y validante.'},
+            {id:'cont', n:'Contratransferencia', h:'Uso de resonancia interna.'}
+        ];
+
+        let db_R = JSON.parse(localStorage.getItem('DB_AE_ROL_ELITE')) || [];
+
+        function initRol() {
+            const now = new Date();
+            document.getElementById('rol-prof-fecha').value = now.toISOString().slice(0,16);
+            
+            const tbody = document.getElementById('tabla-rol-master-body');
+            tbody.innerHTML = d_Rol.map(d => `
+                <tr>
+                    <td class="tooltip-ae"><b>${d.n}</b> ⓘ <span class="tooltiptext-ae">${d.h}</span></td>
+                    <td style="text-align:center;"><input type="radio" name="${d.id}" value="1" style="accent-color:#16a34a; transform:scale(1.2);"></td>
+                    <td style="text-align:center;"><input type="radio" name="${d.id}" value="2" style="accent-color:#16a34a; transform:scale(1.2);"></td>
+                    <td style="text-align:center;"><input type="radio" name="${d.id}" value="3" style="accent-color:#16a34a; transform:scale(1.2);"></td>
+                    <td style="text-align:center;"><input type="radio" name="${d.id}" value="4" style="accent-color:#16a34a; transform:scale(1.2);"></td>
+                </tr>
+            `).join('');
+            updHistList();
+        }
+
+        window.analizarRolIA = function() {
+            const sel = document.querySelectorAll('#rol-container input:checked'); 
+            if(sel.length < d_Rol.length) { alert('Complete todas las dimensiones antes de analizar.'); return; }
+            let s = 0; sel.forEach(r => s += parseInt(r.value));
+            const box = document.getElementById('res-ia-rol-box');
+            box.style.display = 'block';
+            box.innerHTML = `<strong>Devolución IA: Puntaje Total ${s}/24</strong><br>${s > 18 ? 'Nivel de excelencia clínica demostrado. Sólida integración técnica y vincular.' : 'Nivel funcional con áreas operativas pasibles de optimización en supervisión.'}`;
+        };
+
+        window.guardarRolRegistro = async function() {
+            const n = document.getElementById('rol-prof-nombre').value.trim();
+            const f = document.getElementById('rol-prof-fecha').value;
+            const sel = document.querySelectorAll('#rol-container input:checked');
+            
+            if(!n || !f || sel.length < d_Rol.length) { alert('Faltan datos o dimensiones por seleccionar.'); return; }
+            let s = 0; sel.forEach(r => s += parseInt(r.value));
+            
+            const nuevoReg = { id: Date.now().toString(), n, f, s };
+            db_R.push(nuevoReg);
+            localStorage.setItem('DB_AE_ROL_ELITE', JSON.stringify(db_R));
+            updHistList();
+            alert('¡Registro de Rol Profesional guardado correctamente!');
+        };
+
+        function updHistList() {
+            const l = document.getElementById('lista-rol-hist');
+            if(db_R.length === 0) { l.innerHTML = 'Sin registros aún.'; return; }
+            l.innerHTML = db_R.slice().reverse().map(r => `
+                <div style="padding:8px; border-bottom:1px solid #222; color:#ccc; display:flex; justify-content:space-between;">
+                    <span>📅 <b>${r.f}</b> | Terapeuta: <b>${r.n}</b></span>
+                    <span style="color:var(--primary-color); font-weight:bold;">Puntaje: ${r.s}/24</span>
+                </div>
+            `).join('');
+        }
+
+        window.guardarPDFRol = function() {
+            const n = document.getElementById('rol-prof-nombre').value;
+            if(!n) { alert("Ingrese el nombre del terapeuta primero."); return; }
+            const element = document.getElementById('rol-container');
+            const opt = { margin: 0.4, filename: `Rol_Profesional_${n.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initRol();
+    </script>
+</body>
+</html>
