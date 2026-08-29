@@ -196,6 +196,22 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
                     cargarVistaIframe("interconsulta.html");
+                } else if (secKey === "3.1 Potencial acting out") {
+                    cargarVistaIframe("acting_out.html");
+                } else if (secKey === "3.2 Exp emocional creativa") {
+                    cargarVistaIframe("exp_em_creativa.html");
+                } else if (secKey === "3.6 Riesgos en PB") {
+                    cargarVistaIframe("riesgos_PB.html");
+                } else if (secKey === "3.7 Memorias traumáticas") {
+                    cargarVistaIframe("memorias_trauma.html");
+                } else if (secKey === "3.8 Ritmos circadianos") {
+                    cargarVistaIframe("ritmos_circadianos.html");
+                } else if (secKey === "3.9 Mapeos visuales") {
+                    cargarVistaIframe("mapeos_visuales.html");
+                } else if (secKey === "3.10 Adherencia al tratamiento") {
+                    cargarVistaIframe("ad_tratamiento.html");
+                } else if (secKey === "3.11 Resonancia CT") {
+                    cargarVistaIframe("resonancia_CT.html");
                 } else {
                     mostrarContenido(secKey);
                 }
