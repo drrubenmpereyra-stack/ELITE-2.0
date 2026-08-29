@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inteligencia Elite 7.0 - Analítica Transversal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"], input[type="text"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; }
+        select:focus, input:focus { outline: none; border-color: #fff; }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 6px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+
+        .tags-grid { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .tag-box { flex: 1; min-width: 120px; padding: 15px; border-radius: 6px; font-weight: bold; text-align: center; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+
+        .visor-container { display: flex; flex-direction: column; align-items: center; margin-top: 25px; background: #080808; padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); }
+        
+        #v89_texto { width: 100%; margin-top: 25px; padding: 20px; background: #000; border-left: 6px solid var(--primary-color); font-size: 14px; line-height: 1.6; color: #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        .c-mem { background: #4CAF50; color: #fff; }
+        .c-epn { background: #2196F3; color: #fff; }
+        .c-ccrt { background: #9C27B0; color: #fff; }
+        .c-icc { background: #FF5722; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-brain"></i> INTELIGENCIA ELITE 7.0 - ANALÍTICA TRANSVERSAL</h2>
+            <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 20px;">
+                Módulo unificado de convergencia clínica para el cálculo métrico y visualización poligonal cruzada (MEM, EPN, CCRT, ICC).
+            </p>
+
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:15px; margin-bottom:20px; background:#0a0a0a; padding:20px; border:1px solid rgba(255,215,0,0.2); border-radius:6px;">
+                <div class="form-group" style="position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label>BUSCAR PACIENTE (FIRESTORE / LOCAL):</label>
+                        <button onclick="window.intel89.cargarBD()" style="background:transparent; color:#FFD700; border:none; font-size:10px; cursor:pointer; text-decoration:underline;">[ Recargar Base de Datos ]</button>
+                    </div>
+                    <input type="text" id="v89_paciente" onclick="window.intel89.mostrarTodos()" oninput="window.intel89.buscar(this.value)" placeholder="Haga clic o escriba el nombre...">
+                    <div id="v89_res" style="display:none; position:absolute; top: 100%; left: 0; background:#111; border:1px solid var(--primary-color); width:100%; z-index:100; border-radius: 4px; box-shadow:0 5px 15px rgba(0,0,0,0.8); max-height: 220px; overflow-y: auto;"></div>
+                </div>
+                <div class="form-group">
+                    <label>DESDE:</label>
+                    <input type="date" id="v89_desde">
+                </div>
+                <div class="form-group">
+                    <label>HASTA:</label>
+                    <input type="date" id="v89_hasta">
+                </div>
+            </div>
+
+            <div class="tags-grid">
+                <div id="v89_t_mem" class="tag-box c-mem" title="Memoria Procedimental">MEM: 0%</div>
+                <div id="v89_t_epn" class="tag-box c-epn" title="Matriz EPN">EPN: 0%</div>
+                <div id="v89_t_ccrt" class="tag-box c-ccrt" title="Dinámica CCRT">CCRT: 0%</div>
+                <div id="v89_t_icc" class="tag-box c-icc" title="El Inconsciente Creador">ICC: 0%</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin:25px 0;">
+                <button class="btn-elite" onclick="window.intel89.medir()"><i class="fa-solid fa-chart-pie"></i> 1. Medir Polígono</button>
+                <button class="btn-elite" style="background:#B8860B; color:#fff;" onclick="window.intel89.informe()"><i class="fa-solid fa-file-lines"></i> 2. Informe IA</button>
+                <button class="btn-elite" style="background:#2c3e50; color:#fff;" onclick="window.intel89.guardar()"><i class="fa-solid fa-floppy-disk"></i> 3. Guardar / Imprimir</button>
+            </div>
+
+            <div id="v89_visor" class="visor-container" style="display:none;">
+                <canvas id="v89_canvas" width="450" height="450" style="background:#000; border:2px solid var(--primary-color); border-radius:12px; box-shadow:0 0 20px rgba(255,215,0,0.2);"></canvas>
+                <div id="v89_texto">
+                    <p style="color:#666; font-style:italic;">Presione "Informe IA" para generar la interpretación clínica transversal...</p>
+                </div>
+            </div>
+
+            <div id="intel-etiqueta-final" style="margin-top:30px; display:flex; justify-content:center;"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.intel89 = {
+            data: { mem: 0, epn: 0, ccrt: 0, icc: 0 },
+            pacSel: "",
+            patientFirestoreId: "",
+            pacientesDB: [],
+
+            cargarBD: async function() {
+                let unicos = new Set();
+                this.pacientesDB = [];
+
+                // 1. Intentar cargar desde Firestore (Colección "patients")
+                try {
+                    const snap = await getDocs(collection(db, "patients"));
+                    snap.forEach(docSnap => {
+                        const pData = docSnap.data();
+                        const nombreReal = pData.name || pData.nombre || pData.patientName || pData.fullName || "";
+                        if(nombreReal.trim() !== "") {
+                            unicos.add(nombreReal.trim());
+                            this.pacientesDB.push({ id: docSnap.id, name: nombreReal.trim() });
+                        }
+                    });
+                } catch(e) {
+                    console.warn("Aviso: No se pudo conectar a Firestore, usando respaldo local.", e);
+                }
+
+                // 2. Respaldo o complemento con localStorage de los módulos de Elite
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => {
+                        if(i.p && i.p.trim() !== "" && !unicos.has(i.p.trim())) {
+                            unicos.add(i.p.trim());
+                            this.pacientesDB.push({ id: "local_" + i.p, name: i.p.trim() });
+                        }
+                    });
+                });
+
+                console.log("Total de pacientes cargados en Inteligencia Elite:", this.pacientesDB.length);
+                alert(`Se han sincronizado ${this.pacientesDB.length} pacientes correctamente.`);
+            },
+
+            renderizarLista: function(lista) {
+                const r = document.getElementById('v89_res');
+                r.innerHTML = "";
+                if(lista.length === 0) {
+                    r.style.display = 'none';
+                    return;
+                }
+                r.style.display = "block";
+                lista.forEach(pObj => {
+                    const d = document.createElement('div');
+                    d.style.cssText = "padding:12px; cursor:pointer; border-bottom:1px solid #333; font-weight:bold; color:#fff;";
+                    d.innerText = pObj.name;
+                    d.onmouseover = () => d.style.background = '#222';
+                    d.onmouseout = () => d.style.background = '#111';
+                    d.onclick = () => {
+                        document.getElementById('v89_paciente').value = pObj.name;
+                        this.pacSel = pObj.name;
+                        this.patientFirestoreId = pObj.id.startsWith("local_") ? "" : pObj.id;
+                        r.style.display = "none";
+                        this.calcular(pObj.name);
+                    };
+                    r.appendChild(d);
+                });
+            },
+
+            mostrarTodos: function() {
+                if(this.pacientesDB.length === 0) {
+                    this.cargarBD().then(() => this.renderizarLista(this.pacientesDB));
+                } else {
+                    this.renderizarLista(this.pacientesDB);
+                }
+            },
+
+            buscar: function(v) {
+                if(!v) {
+                    this.mostrarTodos();
+                    return;
+                }
+                const fil = this.pacientesDB.filter(p => p.name.toLowerCase().includes(v.toLowerCase()));
+                this.renderizarLista(fil);
+            },
+
+            calcular: function(p) {
+                const dde = new Date(document.getElementById('v89_desde').value || '1900-01-01');
+                const hta = new Date(document.getElementById('v89_hasta').value || '2100-01-01');
+                
+                const fn = (k, m) => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    let f = d.filter(x => x.p && x.p.toLowerCase() === p.toLowerCase() && new Date(x.f) >= dde && new Date(x.f) <= hta);
+                    if(f.length === 0) return 0;
+                    return Math.round(((f.reduce((a,b)=>a+(b.pts||0),0)/f.length)/m)*100);
+                };
+
+                this.data = { mem: fn('mem',12), epn: fn('EPN',15), ccrt: fn('CCRT',12), icc: fn('icc',12) };
+                
+                document.getElementById('v89_t_mem').innerText = `MEM: ${this.data.mem}%`;
+                document.getElementById('v89_t_epn').innerText = `EPN: ${this.data.epn}%`;
+                document.getElementById('v89_t_ccrt').innerText = `CCRT: ${this.data.ccrt}%`;
+                document.getElementById('v89_t_icc').innerText = `ICC: ${this.data.icc}%`;
+            },
+
+            medir: function() {
+                if(!this.pacSel) return alert("Por favor seleccione un paciente primero.");
+                document.getElementById('v89_visor').style.display = 'flex';
+                
+                const canvas = document.getElementById('v89_canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0,0,450,450);
+                
+                const cx=225, cy=225, rd=160;
+                const vals = [this.data.mem, this.data.epn, this.data.ccrt, this.data.icc];
+                const labs = ["MEM", "EPN", "CCRT", "ICC"];
+                
+                ctx.strokeStyle = "#222"; ctx.lineWidth = 1;
+                [0.25, 0.5, 0.75, 1].forEach(rFactor => {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, rd * rFactor, 0, 2 * Math.PI);
+                    ctx.stroke();
+                });
+
+                ctx.beginPath(); ctx.strokeStyle = "#555"; ctx.lineWidth = 1.5;
+                for(let i=0; i<4; i++){
+                    let a = (i*2*Math.PI/4)-Math.PI/2;
+                    ctx.moveTo(cx, cy); 
+                    ctx.lineTo(cx+rd*Math.cos(a), cy+rd*Math.sin(a));
+                    
+                    ctx.fillStyle = "#FFD700"; ctx.font = "bold 12px Arial";
+                    ctx.fillText(labs[i], cx+(rd+25)*Math.cos(a)-12, cy+(rd+25)*Math.sin(a)+5);
+                } 
+                ctx.stroke();
+
+                ctx.beginPath(); 
+                ctx.fillStyle = "rgba(255,215,0,0.3)"; 
+                ctx.strokeStyle = "#FFD700"; 
+                ctx.lineWidth = 3;
+                
+                vals.forEach((v,i)=>{
+                    let a = (i*2*Math.PI/4)-Math.PI/2;
+                    let rVal = (v/100)*rd;
+                    if(i===0) ctx.moveTo(cx+rVal*Math.cos(a), cy+rVal*Math.sin(a));
+                    else ctx.lineTo(cx+rVal*Math.cos(a), cy+rVal*Math.sin(a));
+                });
+                ctx.closePath(); 
+                ctx.fill(); 
+                ctx.stroke();
+
+                vals.forEach((v,i)=>{
+                    let a = (i*2*Math.PI/4)-Math.PI/2;
+                    let rVal = (v/100)*rd;
+                    ctx.beginPath();
+                    ctx.fillStyle = "#fff";
+                    ctx.arc(cx+rVal*Math.cos(a), cy+rVal*Math.sin(a), 5, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                });
+            },
+
+            informe: function() {
+                if(!this.pacSel) return alert("Por favor seleccione un paciente primero.");
+                document.getElementById('v89_visor').style.display = 'flex';
+                this.medir();
+
+                const promedioGeneral = Math.round((this.data.mem + this.data.epn + this.data.ccrt + this.data.icc) / 4);
+
+                document.getElementById('v89_texto').innerHTML = `
+                    <h3 style="margin-top:0; color:#FFD700; border-bottom:1px solid #333; padding-bottom:8px;">INFORME DE CONVERGENCIA TRANSVERSAL IA</h3>
+                    <p>Paciente: <b>${this.pacSel}</b> | Índice Transversal Promedio: <b>${promedioGeneral}%</b></p>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0; font-size:13px;">
+                        <div style="background:#0a0a0a; padding:12px; border:1px solid #222; border-radius:6px;"><b style="color:#4CAF50;">MEM (${this.data.mem}%):</b> Automatismos e implicancia procedimental.</div>
+                        <div style="background:#0a0a0a; padding:12px; border:1px solid #222; border-radius:6px;"><b style="color:#2196F3;">EPN (${this.data.epn}%):</b> Balance estructural del eje pulsional.</div>
+                        <div style="background:#0a0a0a; padding:12px; border:1px solid #222; border-radius:6px;"><b style="color:#9C27B0;">CCRT (${this.data.ccrt}%):</b> Tema relacional conflictivo central.</div>
+                        <div style="background:#0a0a0a; padding:12px; border:1px solid #222; border-radius:6px;"><b style="color:#FF5722;">ICC (${this.data.icc}%):</b> Simbolización y inconsciente creador.</div>
+                    </div>
+                    
+                    <p style="margin-top:15px; border-top:1px solid #222; padding-top:12px; color:#ddd;"><b>Interpretación Clínica Integrada:</b> La configuración geométrica del polígono transversal sobre los cuatro dominios muestra una modulación ${promedioGeneral > 60 ? 'marcada por plasticidad estructural y convergencia simbólica favorable' : 'con restricciones defensivas y predominio de núcleos conflictivos fijos'}. Se aconseja correlacionar estos vectores con las intervenciones focales vigentes.</p>
+                `;
+            },
+
+            guardar: async function() {
+                if(!this.pacSel) return alert("Seleccione un paciente antes de guardar.");
+                const fechaHoy = new Date().toISOString().split('T')[0];
+                const promedioGeneral = Math.round((this.data.mem + this.data.epn + this.data.ccrt + this.data.icc) / 4);
+
+                document.getElementById('intel-etiqueta-final').innerHTML = `
+                    <div style="border:3px solid #FFD700; background:#000; padding:25px; width:480px; border-radius:12px; box-shadow:0 0 25px rgba(255,215,0,0.3); font-family:sans-serif; color:white; text-align:center;">
+                        <h4 style="color:#FFD700; border-bottom:1px solid #333; margin-top:0; text-transform:uppercase; letter-spacing:1px;">FICHA TRANSVERSAL INTELIGENCIA ELITE 7.0</h4>
+                        <p style="margin-bottom:15px;"><b>PACIENTE:</b> ${this.pacSel} | <b>FECHA:</b> ${fechaHoy}</p>
+                        <div style="font-size:12px; border:1px solid #222; padding:12px; background:#050505; border-radius:6px; text-align:left;">
+                            • MEM: ${this.data.mem}% | EPN: ${this.data.epn}%<br>
+                            • CCRT: ${this.data.ccrt}% | ICC: ${this.data.icc}%
+                        </div>
+                        <div style="background:#111; padding:15px; border-radius:8px; border:1px solid rgba(255,215,0,0.4); margin-top:15px;">
+                            <h2 style="color:#FFD700; margin:0;">ÍNDICE GENERAL: ${promedioGeneral}%</h2>
+                        </div>
+                    </div>`;
+
+                if(this.patientFirestoreId) {
+                    try {
+                        const ref = doc(db, "patients", this.patientFirestoreId);
+                        const snap = await getDoc(ref);
+                        let lista = snap.exists() && snap.data().inteligencia_elite ? snap.data().inteligencia_elite : [];
+                        lista.push({
+                            id: Date.now().toString(),
+                            fecha: fechaHoy,
+                            valores: this.data,
+                            promedio: promedioGeneral,
+                            informe: document.getElementById('v89_texto').innerText
+                        });
+                        await updateDoc(ref, { inteligencia_elite: lista });
+                        alert("¡Analítica Transversal guardada exitosamente en Firestore y lista para impresión!");
+                    } catch(e) {
+                        console.error("Error al guardar en Firestore:", e);
+                    }
+                }
+
+                window.print();
+            }
+        };
+
+        // Inicializar al cargar
+        document.getElementById('v89_desde').value = '2026-01-01';
+        document.getElementById('v89_hasta').value = new Date().toISOString().split('T')[0];
+        window.intel89.cargarBD();
+
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('#v89_paciente') && !e.target.closest('#v89_res')) {
+                document.getElementById('v89_res').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
