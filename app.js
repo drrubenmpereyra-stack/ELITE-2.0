@@ -70,7 +70,11 @@ const menuData = {
                 "Alivio sintomático": {}
             },
             "3.4 Psicodiagnóstico": {},
-            "3.5 Test": {},
+            "3.5 Test": {
+                "Burnout": {},
+                "Ansiedad de Beck": {},
+                "Depresión de Beck": {}
+            },
             "3.6 Riesgos en PB": {},
             "3.7 Memorias traumáticas": {},
             "3.8 Ritmos circadianos": {},
@@ -278,6 +282,12 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("medidor_ansiedad.html");
             } else if (terKey === "Alivio sintomático") {
                 cargarVistaIframe("alivio_sintomatico.html");
+            } else if (terKey === "Burnout") {
+                cargarVistaIframe("burnout.html");
+            } else if (terKey === "Ansiedad de Beck") {
+                cargarVistaIframe("ansiedad_beck.html");
+            } else if (terKey === "Depresión de Beck") {
+                cargarVistaIframe("depresion_beck.html");
             } else {
                 mostrarContenido(terKey);
             }
