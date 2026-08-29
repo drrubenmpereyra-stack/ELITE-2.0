@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuidado del Self y Estado Psicofisiológico - ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0ea5e9;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(14, 165, 233, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        input[type="text"], input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #000; }
+        th { background: #111; color: var(--primary-color); padding: 10px; font-size: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #res-ia-self-box { background: #050505; border-left: 10px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; display: none; }
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+        .tooltip-ae { position: relative; cursor: help; }
+        .tooltip-ae .tooltiptext-ae { visibility: hidden; width: 220px; background-color: #111; color: #fff; text-align: center; border-radius: 6px; padding: 6px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 11px; border: 1px solid var(--primary-color); }
+        .tooltip-ae:hover .tooltiptext-ae { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="self-container">
+            <h2><i class="fa-solid fa-heart-pulse"></i> CUIDADO DEL SELF: ESTADO PSICOFISIOLÓGICO - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(14, 165, 233, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>NOMBRE DEL TERAPEUTA:</label>
+                    <input type="text" id="self-nombre" placeholder="Ingrese nombre del terapeuta">
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="self-fecha">
+                </div>
+            </div>
+
+            <div style="background:#050505; border:2px solid var(--primary-color); padding:20px; border-radius:12px; margin-bottom:25px; text-align:center; position:relative;">
+                <label class="tooltip-ae" style="font-weight:bold; color:var(--primary-color); display:block; margin-bottom:10px; cursor:help;">
+                    VELOCÍMETRO DE ENERGÍA CLÍNICA (Carga Alostática) ⓘ
+                    <span class="tooltiptext-ae" style="bottom: 120%;">Mide el remanente de energía psicofisiológica disponible. Evalúa si el terapeuta cuenta con recursos biológicos (Vagal Ventral) para actuar como regulador externo o si presenta fatiga por empatía.</span>
+                </label>
+                <input type="range" id="self-energy-slider" min="0" max="100" value="70" oninput="document.getElementById('energy-val-txt').innerText = this.value + '%'" style="width:100%; accent-color:var(--primary-color); cursor:pointer;">
+                <div id="energy-val-txt" style="font-size:35px; font-weight:900; color:var(--primary-color); margin-top:10px;">70%</div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>INDICADOR DE AUTORREGULACIÓN</th>
+                        <th style="text-align:center; width:250px;">PUNTUACIÓN (1-4)</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-self-master-body"></tbody>
+            </table>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="analizarSelfIA()"><i class="fa-solid fa-robot"></i> Analizar Estado</button>
+                <button class="btn-elite" style="background:#16a34a;" onclick="guardarSelfRegistro()"><i class="fa-solid fa-floppy-disk"></i> Guardar Registro</button>
+                <button class="btn-outline-elite" onclick="guardarPDFSelf()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="res-ia-self-box"></div>
+
+            <div class="historial-box">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL DE ESTADO PROPIO</h4>
+                <div id="lista-self-hist">Sin registros aún.</div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        const d_Self = [
+            {id:'s1', n:'Presencia Atencional', h:'Atención plena clínica.'},
+            {id:'s2', n:'Resonancia Somática', h:'Detección de info corporal.'},
+            {id:'s3', n:'Carga Alostática', h:'Estrés acumulado.'},
+            {id:'s4', n:'Cierre Operativo', h:'Cierre de sesión mental.'},
+            {id:'s5', n:'Ventana Tolerancia', h:'Sostén de intensidad.'}
+        ];
+
+        let db_S = JSON.parse(localStorage.getItem('DB_AE_SELF_ELITE')) || [];
+
+        function initSelf() {
+            document.getElementById('self-fecha').value = new Date().toISOString().split('T')[0];
+            const tbody = document.getElementById('tabla-self-master-body');
+            tbody.innerHTML = d_Self.map(d => `
+                <tr>
+                    <td class="tooltip-ae"><b>${d.n}</b> ⓘ <span class="tooltiptext-ae">${d.h}</span></td>
+                    <td style="text-align:center;">
+                        <input type="radio" name="${d.id}" value="1" style="accent-color:var(--primary-color); margin: 0 5px;"> 1
+                        <input type="radio" name="${d.id}" value="2" style="accent-color:var(--primary-color); margin: 0 5px;"> 2
+                        <input type="radio" name="${d.id}" value="3" style="accent-color:var(--primary-color); margin: 0 5px;"> 3
+                        <input type="radio" name="${d.id}" value="4" style="accent-color:var(--primary-color); margin: 0 5px;"> 4
+                    </td>
+                </tr>
+            `).join('');
+            updHistList();
+        }
+
+        window.analizarSelfIA = function() {
+            let enrg = document.getElementById('self-energy-slider').value;
+            const sel = document.querySelectorAll('#self-container input[type="radio"]:checked');
+            if(sel.length < d_Self.length) { alert('Complete todas las puntuaciones de autorregulación.'); return; }
+            let s = 0; sel.forEach(r => s += parseInt(r.value));
+            
+            const box = document.getElementById('res-ia-self-box');
+            box.style.display = 'block';
+            box.innerHTML = `<strong>Análisis de Carga y Autogestión:</strong><br>Energía Disponible: <b>${enrg}%</b> | Índice de Resiliencia Somática: <b>${s}/20</b>.<br>${enrg < 50 ? '⚠️ Alerta de fatiga o riesgo incipiente de Burnout. Se aconseja pausa operativa o supervisión.' : '✔️ Estado regulado y apto para sostener la función de contención clínica.'}`;
+        };
+
+        window.guardarSelfRegistro = async function() {
+            const n = document.getElementById('self-nombre').value.trim();
+            const f = document.getElementById('self-fecha').value;
+            const en = document.getElementById('self-energy-slider').value;
+            const sel = document.querySelectorAll('#self-container input[type="radio"]:checked');
+
+            if(!n || !f || sel.length < d_Self.length) { alert('Complete el nombre, la fecha y todas las valoraciones.'); return; }
+            let s = 0; sel.forEach(r => s += parseInt(r.value));
+
+            const nuevoReg = { id: Date.now().toString(), n, f, en, s };
+            db_S.push(nuevoReg);
+            localStorage.setItem('DB_AE_SELF_ELITE', JSON.stringify(db_S));
+            updHistList();
+            alert('¡Registro de Cuidado del Self guardado correctamente!');
+        };
+
+        function updHistList() {
+            const l = document.getElementById('lista-self-hist');
+            if(db_S.length === 0) { l.innerHTML = 'Sin registros aún.'; return; }
+            l.innerHTML = db_S.slice().reverse().map(r => `
+                <div style="padding:8px; border-bottom:1px solid #222; color:#ccc; display:flex; justify-content:space-between;">
+                    <span>📅 <b>${r.f}</b> | Terapeuta: <b>${r.n}</b> | ⚡ ${r.en}%</span>
+                    <span style="color:var(--primary-color); font-weight:bold;">Puntaje: ${r.s}/20</span>
+                </div>
+            `).join('');
+        }
+
+        window.guardarPDFSelf = function() {
+            const n = document.getElementById('self-nombre').value;
+            if(!n) { alert("Ingrese el nombre del terapeuta primero."); return; }
+            const element = document.getElementById('self-container');
+            const opt = { margin: 0.4, filename: `Cuidado_Self_${n.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initSelf();
+    </script>
+</body>
+</html>
