@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riesgos en Psicoterapia Breve - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --cyan-color: #00ffff;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', monospace; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 15px; line-height: 1.4; }
+
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--bg-dark); border: 1px solid var(--cyan-color); border-radius: 6px; padding: 20px; box-shadow: 0 0 15px rgba(0,255,255,0.1); margin-bottom: 20px; }
+        
+        h2 { font-size: 14px; color: var(--cyan-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: var(--cyan-color); }
+        select, input[type="date"] { background: #0a0a0a; color: #fff; border: 1px solid #333; padding: 10px; font-size: 12px; border-radius: 4px; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: var(--cyan-color); }
+
+        .rpb-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; background: #0a0a0a; padding: 15px; border: 1px solid #1a1a1a; border-radius: 4px; }
+        
+        .btn { padding: 10px; font-size: 10px; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-calc { background: #fff; color: #000; }
+        .btn-ia { background: #00ffff; color: #000; }
+        .btn-pdf { background: #3498db; color: #fff; width: 100%; margin-top: 15px; }
+
+        .history-item { background: #080808; border-left: 3px solid var(--cyan-color); padding: 12px; margin-bottom: 10px; font-size: 11px; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div style="display: flex; gap: 15px; max-width: 600px;">
+                <div class="form-group" style="flex: 2;">
+                    <label for="patient-select">Paciente</label>
+                    <select id="patient-select" onchange="cargarHistorialRiesgos()">
+                        <option value="">-- Seleccione un paciente --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="rpb-date-sel">Fecha de Evaluación</label>
+                    <input type="date" id="rpb-date-sel">
+                </div>
+            </div>
+        </div>
+
+        <!-- Interfaz Principal Riesgos en PB -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-shield-halved"></i> Riesgos en Psicoterapia Breve</h2>
+            
+            <div class="rpb-grid">
+                <!-- Columna Izquierda: Indicadores (Escala 0 a 4) -->
+                <div id="indicadores-cont" style="overflow-y:auto; max-height:550px; padding-right:15px; border-right:1px solid #111;">
+                    <!-- Se inyectan dinámicamente los indicadores -->
+                </div>
+
+                <!-- Columna Derecha: Panel de Globo, Cálculos e Informes -->
+                <div style="display: flex; flex-direction: column; background: #020202; border: 1px solid #111; padding: 15px; border-radius: 4px;">
+                    <!-- Globo interactivo -->
+                    <div id="scene-globo" style="width:100%; height:180px; position:relative; display:flex; justify-content:center; align-items:flex-end; padding-bottom:20px; border-bottom: 1px solid #111; margin-bottom: 15px;">
+                        <div style="position:absolute; bottom:20px; width:160px; height:160px; border:1px dashed #003333; border-radius:50%;"></div>
+                        <div id="ball-rpb" style="width:30px; height:34px; background:radial-gradient(circle at 35% 35%, #00ffff, #003333); border-radius:50% 50% 50% 50% / 40% 40% 60% 60%; transition:all 1s; border:1px solid rgba(0,255,255,0.4);"></div>
+                        <div style="position:absolute; bottom:5px; text-align:center;">
+                            <span id="score-rpb" style="font-size:24px; color:#00ffff; font-weight:bold;">0</span>
+                            <div id="label-rpb" style="font-size:9px; color:#2ecc71; font-weight:bold; text-transform:uppercase;">Estable</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de Acción -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 15px;">
+                        <button class="btn btn-calc" onclick="calcularRiesgosPB()"><i class="fa-solid fa-calculator"></i> Graficar</button>
+                        <button class="btn btn-ia" onclick="verInformeRiesgosPB()"><i class="fa-solid fa-file-lines"></i> Ver Informe</button>
+                    </div>
+
+                    <!-- Visor de Texto / Análisis -->
+                    <div id="ia-screen-viewer" style="flex:1; padding:15px; overflow-y:auto; font-size:11px; line-height:1.5; color:#aaa; background:#050505; border:1px solid #111; border-radius:4px; min-height: 180px;">
+                        <p style="text-align:center; color:#555; margin-top:40px;">Consigne puntajes (0 a 4) para evaluar los riesgos en psicoterapia breve.</p>
+                    </div>
+
+                    <button class="btn btn-pdf" onclick="guardarYGenerarPDF()"><i class="fa-solid fa-file-pdf"></i> Guardar y Generar PDF Final</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Evaluaciones de Riesgos en PB</h2>
+            <div id="history-container">
+                <p style="color: #666; font-size: 11px;">Seleccione un paciente para ver su historial.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+        let activePatientName = "";
+
+        const TEXTOS_LITERALES = {
+            estable: `<b>Niveles de Intervención: 0-12 puntos: Proceso Estable.</b> El foco es plástico y el paciente tolera la limitación temporal.<br><br><h3>Orientaciones Prospectivas</h3><h4>Perspectiva Psicoanalítica (Técnica de Foco)</h4><p>1. Flexibilidad del Foco: Ante la limitación esquemática, el foco debe ser una "brújula", no una "jaula". Si la dinámica se estanca, es necesario abrir el abanico asociativo antes de re-focalizar.</p><p>2. Manejo de la Transferencia: No se debe prescindir del análisis de la transferencia bajo la excusa del tiempo. La transferencia en terapia breve es el motor de la interpretación; ignorarla es invitar al acting out.</p><p>3. Contra-transferencia: El "fervor terapéutico" es a menudo una defensa del analista ante la urgencia. Detectar la "fuga a la salud" requiere que el terapeuta tolere la falta de completud del tratamiento.</p><h4>Perspectiva Neurocientífica (Regulación y Alostasis)</h4><p>1. Modulación del Eje HPA: La reactivación traumática de duelos y la regresión intensa disparan niveles de cortisol que inhiben la función de la corteza prefrontal (CPF). Si el paciente está inundado emocionalmente, la interpretación intelectual no será metabolizada; se requiere primero una regulación autonómica para restaurar la "ventana de tolerancia".</p><p>2. Intelectualización vs. Integración: Desde la neurociencia cognitiva, la intelectualización excesiva representa una disociación entre el procesamiento semántico (izquierdo) y el episódico/afectivo (derecho). El objetivo debe ser la integración hemisférica: que el paciente "sienta" lo que "sabe".</p><p>3. Prevención del Acting Out: La tendencia al acting correlaciona con fallas en el control inhibitorio (CPF dorsolateral). La terapia breve debe fortalecer las funciones ejecutivas del yo, ayudando al paciente a mentalizar el afecto antes de que este se traduzca en descarga motora.</p>________________________________________<br>Nota Técnica: Esta grilla sirve como herramienta de supervisión. La detección temprana de una puntuación elevada en "Déficit de Información" sugiere que el terapeuta debe pausar la interpretación y retornar a la fase exploratoria, evitando "cerrar" un diagnóstico de manera prematura por la presión del reloj.`,
+            riesgo: `<b>Niveles de Intervención: 13-25 puntos: Proceso de Riesgo.</b> El terapeuta debe revisar su contra-transferencia y la "distancia" con el paciente.<br><br><h3>Orientaciones Prospectivas</h3><h4>Perspectiva Psicoanalítica (Técnica de Foco)</h4><p>1. Flexibilidad del Foco: Ante la limitación esquemática, el foco debe ser una "brújula", no una "jaula". Si la dinámica se estanca, es necesario abrir el abanico asociativo antes de re-focalizar.</p><p>2. Manejo de la Transferencia: No se debe prescindir del análisis de la transferencia bajo la excusa del tiempo. La transferencia en terapia breve es el motor de la interpretación; ignorarla es invitar al acting out.</p><p>3. Contra-transferencia: El "fervor terapéutico" es a menudo una defensa del analista ante la urgencia. Detectar la "fuga a la salud" requiere que el terapeuta tolere la falta de completud del tratamiento.</p><h4>Perspectiva Neurocientífica (Regulación y Alostasis)</h4><p>1. Modulación del Eje HPA: La reactivación traumática de duelos y la regresión intensa disparan niveles de cortisol que inhiben la función de la corteza prefrontal (CPF). Si el paciente está inundado emocionalmente, la interpretación intelectual no será metabolizada; se requiere primero una regulación autonómica para restaurar la "ventana de tolerancia".</p><p>2. Intelectualización vs. Integración: Desde la neurociencia cognitiva, la intelectualización excesiva representa una disociación entre el procesamiento semántico (izquierdo) y el episódico/afectivo (derecho). El objetivo debe ser la integración hemisférica: que el paciente "sienta" lo que "sabe".</p><p>3. Prevención del Acting Out: La tendencia al acting correlaciona con fallas en el control inhibitorio (CPF dorsolateral). La terapia breve debe fortalecer las funciones ejecutivas del yo, ayudando al paciente a mentalizar el afecto antes de que este se traduzca en descarga motora.</p>________________________________________<br>Nota Técnica: Esta grilla sirve como herramienta de supervisión. La detección temprana de una puntuación elevada en "Déficit de Información" sugiere que el terapeuta debe pausar la interpretación y retornar a la fase exploratoria, evitando "cerrar" un diagnóstico de manera prematura por la presión del reloj.`,
+            comprometido: `<b>Niveles de Intervención: +26 puntos: Proceso Comprometido.</b> El encuadre breve puede estar siendo iatrogénico.<br><br><h3>Orientaciones Prospectivas</h3><h4>Perspectiva Psicoanalítica (Técnica de Foco)</h4><p>1. Flexibilidad del Foco: Ante la limitación esquemática, el foco debe ser una "brújula", no una "jaula". Si la dinámica se estanca, es necesario abrir el abanico asociativo antes de re-focalizar.</p><p>2. Manejo de la Transferencia: No se debe prescindir del análisis de la transferencia bajo la excusa del tiempo. La transferencia en terapia breve es el motor de la interpretación; ignorarla es invitar al acting out.</p><p>3. Contra-transferencia: El "fervor terapéutico" es a menudo una defensa del analista ante la urgencia. Detectar la "fuga a la salud" requiere que el terapeuta tolere la falta de completud del tratamiento.</p><h4>Perspectiva Neurocientífica (Regulación y Alostasis)</h4><p>1. Modulación del Eje HPA: La reactivación traumática de duelos y la regresión intensa disparan niveles de cortisol que inhiben la función de la corteza prefrontal (CPF). Si el paciente está inundado emocionalmente, la interpretación intelectual no será metabolizada; se requiere primero una regulación autonómica para restaurar la "ventana de tolerancia".</p><p>2. Intelectualización vs. Integración: Desde la neurociencia cognitiva, la intelectualización excesiva representa una disociación entre el procesamiento semántico (izquierdo) y el episódico/afectivo (derecho). El objetivo debe ser la integración hemisférica: que el paciente "sienta" lo que "sabe".</p><p>3. Prevención del Acting Out: La tendencia al acting correlaciona con fallas en el control inhibitorio (CPF dorsolateral). La terapia breve debe fortalecer las funciones ejecutivas del yo, ayudando al paciente a mentalizar el afecto antes de que este se traduzca en descarga motora.</p>________________________________________<br>Nota Técnica: Esta grilla sirve como herramienta de supervisión. La detección temprana de una puntuación elevada en "Déficit de Información" sugiere que el terapeuta debe pausar la interpretación y retornar a la fase exploratoria, evitando "cerrar" un diagnóstico de manera prematura por la presión del reloj.`
+        };
+
+        const INDICADORES_HINTS = {
+            "Intelectualización": "Uso excesivo de abstracciones para evitar la vivencia emocional del foco.",
+            "Esquematismo": "Adherencia rígida a pautas que vacía de contenido la sesión.",
+            "Regresión iatrogénica": "Fomento inconsciente de la dependencia por parte del analista.",
+            "Intensidad regresiva": "El paciente abandona la posición adulta/colaborativa por una infantilizada.",
+            "Difusión del foco": "Dispersión del material clínico hacia temas periféricos sin retorno.",
+            "Reactivación de duelos": "Emergencia de pérdidas no resueltas que sepultan el objetivo actual.",
+            "Déficit de información": "Falta de datos clave sobre la realidad del paciente que impide la focalización.",
+            "Tendencia al acting out": "Descarga impulsiva de la tensión fuera del encuadre terapéutico.",
+            "Negligencia transferencial": "No interpretar movimientos transferenciales que bloquean el avance.",
+            "Pseudocuración": "Mejoría sintomática súbita para evitar el trabajo profundo o la separación."
+        };
+
+        const escalas = [
+            {t: "0 - Ausente: El riesgo no se observa; la alianza es sólida y el foco está operativo", c: "#2ecc71"},
+            {t: "1 - Leve: Aparecen rasgos aislados (ej. intelectualización ocasional) que se resuelven con señalamientos.", c: "#f1c40f"},
+            {t: "2 - Moderado: El riesgo compromete la fluidez. Requiere un ajuste técnico inmediato para evitar el estancamiento.", c: "#e67e22"},
+            {t: "3 - Grave: El proceso está distorsionado. Existe riesgo de acting out o descompensación.", c: "#ff00ff"},
+            {t: "4 - Crítico: Iatrogenia inminente o ruptura del encuadre. Se debe considerar la derivación a terapia de tiempo ilimitado", c: "#e74c3c"}
+        ];
+
+        async function init() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                const selectEl = document.getElementById('patient-select');
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectEl.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes:", error);
+            }
+            document.getElementById('rpb-date-sel').value = new Date().toISOString().split('T')[0];
+            construirFormularioIndicadores();
+        }
+
+        function construirFormularioIndicadores() {
+            const cont = document.getElementById('indicadores-cont');
+            cont.innerHTML = '';
+            Object.entries(INDICADORES_HINTS).forEach(([n, h]) => {
+                cont.innerHTML += `
+                    <div style="margin-bottom:20px; border-bottom:1px solid #111; padding-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label title="${h}" style="font-size:11px; color:#00ffff; font-weight:bold; cursor:help;">${n} ⓘ</label>
+                            <input type="number" min="0" max="4" value="0" class="in-val" style="width:45px; background:#000; color:#fff; border:1px solid #00ffff; padding:6px; text-align:center; font-size:13px;">
+                        </div>
+                        <div class="in-msg" style="font-size:10px; color:#2ecc71; margin-top:6px;">${escalas[0].t}</div>
+                    </div>`;
+            });
+
+            const inputs = cont.querySelectorAll('.in-val');
+            const msgs = cont.querySelectorAll('.in-msg');
+
+            inputs.forEach((inp, i) => {
+                inp.oninput = () => {
+                    let v = parseInt(inp.value) || 0; if(v>4) v=4; if(v<0) v=0; inp.value = v;
+                    msgs[i].innerText = escalas[v].t; msgs[i].style.color = escalas[v].c;
+                };
+            });
+        }
+
+        window.cargarHistorialRiesgos = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if (!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    activePatientName = snap.data().name;
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        window.calcularRiesgosPB = function() {
+            const inputs = document.querySelectorAll('.in-val');
+            let t = 0; inputs.forEach(i => t += parseInt(i.value) || 0);
+            document.getElementById('score-rpb').innerText = t;
+            
+            const size = 30 + (t * 4); 
+            const ball = document.getElementById('ball-rpb');
+            ball.style.width = size + 'px'; ball.style.height = (size * 1.15) + 'px';
+            const lbl = document.getElementById('label-rpb');
+            
+            if(t<=12) { 
+                lbl.innerText="Estable"; lbl.style.color="#2ecc71"; ball.style.background="radial-gradient(circle at 35% 35%, #00ffff, #003333)";
+            } else if(t<=25) { 
+                lbl.innerText="Riesgo"; lbl.style.color="#f1c40f"; ball.style.background="radial-gradient(circle at 35% 35%, #f1c40f, #5e4b00)";
+            } else { 
+                lbl.innerText="Comprometido"; lbl.style.color="#e74c3c"; ball.style.background="radial-gradient(circle at 35% 35%, #e74c3c, #5a0b04)";
+            }
+            return t;
+        }
+
+        window.verInformeRiesgosPB = function() {
+            const t = calcularRiesgosPB();
+            let texto = (t<=12) ? TEXTOS_LITERALES.estable : (t<=25) ? TEXTOS_LITERALES.riesgo : TEXTOS_LITERALES.comprometido;
+            const viewer = document.getElementById('ia-screen-viewer');
+            viewer.innerHTML = `<div style="color:#00ffff; border-bottom:1px solid #111; margin-bottom:10px; padding-bottom:5px; font-weight:bold;">ANÁLISIS TÉCNICO:</div>${texto}`;
+            viewer.scrollTop = 0;
+        }
+
+        window.guardarYGenerarPDF = async function() {
+            const t = calcularRiesgosPB();
+            const fec = document.getElementById('rpb-date-sel').value;
+            let texto = (t<=12) ? TEXTOS_LITERALES.estable : (t<=25) ? TEXTOS_LITERALES.riesgo : TEXTOS_LITERALES.comprometido;
+            const categoria = document.getElementById('label-rpb').innerText;
+
+            const payload = {
+                id: Date.now().toString(),
+                fecha: fec,
+                puntaje: t,
+                categoria: categoria,
+                informe: texto
+            };
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().riesgos_pb || [];
+                lista.push(payload);
+                await updateDoc(ref, { riesgos_pb: lista });
+                alert("¡Evaluación de Riesgos en PB guardada en la base de datos!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar en Firestore:", e);
+            }
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Informe Riesgos en PB - Dr. Pereyra</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+                        .header { border-bottom: 2px solid #00ffff; padding-bottom: 15px; margin-bottom: 30px; }
+                        .no-print { background: #eee; padding: 20px; text-align: center; margin-bottom: 30px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print">
+                        <button style="padding:15px 30px; background:#00ffff; color:#000; border:none; font-weight:bold; cursor:pointer;" onclick="window.print()">IMPRIMIR / GUARDAR</button>
+                        <button style="padding:15px 30px; background:#333; color:#fff; border:none; margin-left:10px; cursor:pointer;" onclick="window.close()">VOLVER</button>
+                    </div>
+                    <div class="header">
+                        <h2 style="margin:0; font-size:18px;">DR. Y MGTER. RUBÉN M. PEREYRA</h2>
+                        <p style="margin:2px 0; font-size:10px; color:#555;">Psicólogo Especialista en Psicoanálisis Focalizado | Dr. en Neurociencias</p>
+                    </div>
+                    <p><strong>PACIENTE:</strong> ${activePatientName} | <strong>FECHA:</strong> ${fec}</p>
+                    <div style="text-align:center; padding:30px; background:#f0f0f0; border:1px solid #ddd; margin:30px 0;">
+                        <h1 style="margin:0; font-size:42px; color:#00ffff;">${t} PUNTOS</h1>
+                        <p style="font-weight:bold; text-transform:uppercase;">${categoria}</p>
+                    </div>
+                    <div style="font-size:12px; line-height:1.6;">${texto}</div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #666; font-size: 11px;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.riesgos_pb || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #666; font-size: 11px;">No hay registros de riesgos en PB para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Evaluación #${index + 1} (${item.fecha})</strong> | <strong>Puntaje:</strong> ${item.puntaje} (${item.categoria})
+                            <div style="margin-top: 5px; color: #00ffff; font-size: 10px;">${item.informe.substring(0, 120)}...</div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

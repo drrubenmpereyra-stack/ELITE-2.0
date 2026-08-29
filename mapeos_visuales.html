@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapeos Visuales (Cartografía y Cuantificación) - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --accent-color: #ffff00;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 255, 0, 0.1); margin-bottom: 20px; border-top: 4px solid var(--accent-color); }
+        h2 { font-size: 1.2rem; color: var(--accent-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #fff; margin: 15px 0 10px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--accent-color); }
+        select, input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--accent-color); border-radius: 4px; font-size: 0.9rem; }
+        select:focus, input[type="date"]:focus { outline: none; border-color: #fff; }
+
+        .btn { background-color: #000; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: var(--accent-color); color: #000; }
+        .btn-secondary { background-color: #2ecc71; color: #fff; border-color: #2ecc71; }
+        .btn-secondary:hover { background-color: #27ae60; }
+
+        .ind-group { background: #080808; border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+        
+        /* Contenedor adaptativo unificado para evitar duplicidad y desajustes */
+        .render-box { position: relative; width: 100%; max-width: 450px; height: 500px; background: #000; border: 1px solid var(--border-color); border-radius: 8px; margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .render-box img { position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: contain !important; }
+        .render-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+        .render-layer img { position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: contain !important; }
+
+        #repo-ia-m1, #repo-ia-u { background: #050505; border: 1px solid var(--accent-color); padding: 25px; color: #fff; font-family: 'Courier New', monospace; font-size: 0.9rem; white-space: pre-wrap; margin-top: 20px; border-radius: 6px; display: none; }
+        .history-item { background: #080808; border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; border: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Menú de Selección Principal -->
+        <div class="card">
+            <h2><i class="fa-solid fa-brain"></i> Módulo de Mapeos Visuales (ELITE 2.0)</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+                <button class="btn" onclick="cambiarSeccion('Cartografía')"><i class="fa-solid fa-map"></i> Cartografía de la Intersubjetividad Somática</button>
+                <button class="btn" onclick="cambiarSeccion('Cuantificación')"><i class="fa-solid fa-chart-radar"></i> Cuantificación del Desborde Pulsional</button>
+            </div>
+        </div>
+
+        <!-- Sección Cartografía -->
+        <div class="card" id="seccion-cartografia">
+            <h2><i class="fa-solid fa-user-injured"></i> Cartografía: Selección y Evaluación</h2>
+            <div style="display: flex; gap: 15px; max-width: 700px; margin-bottom: 20px;">
+                <div class="form-group" style="flex: 2;">
+                    <label for="p-select-carto">Paciente</label>
+                    <select id="p-select-carto"></select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="f-select-carto">Fecha</label>
+                    <input type="date" id="f-select-carto">
+                </div>
+            </div>
+
+            <div id="form-indicadores" style="display: flex; flex-direction: column; gap: 20px;">
+                <section class="ind-group" data-ind="Capacidad de Simbolización">
+                    <h4 style="color:#ffff00; font-size:0.95rem; margin-bottom:10px; border-left:3px solid #ffff00; padding-left:8px;">CAPACIDAD DE SIMBOLIZACIÓN:</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="color:#4ade80; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 1: El paciente pone en palabras el afecto (metáforas) <input type="number" min="1" max="5" class="val-input" data-nivel="1" style="width:60px; background:#000; color:#fff; border:1px solid #4ade80; text-align:center; padding:4px;"></label>
+                        <label style="color:#fbbf24; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 2: Registro del malestar, lenguaje pobre o concreto <input type="number" min="1" max="5" class="val-input" data-nivel="2" style="width:60px; background:#000; color:#fff; border:1px solid #fbbf24; text-align:center; padding:4px;"></label>
+                        <label style="color:#ff1a1a; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 3: Alexitimia funcional <input type="number" min="1" max="5" class="val-input" data-nivel="3" style="width:60px; background:#000; color:#fff; border:1px solid #ff1a1a; text-align:center; padding:4px;"></label>
+                    </div>
+                </section>
+
+                <section class="ind-group" data-ind="Localización Síntomas">
+                    <h4 style="color:#ffff00; font-size:0.95rem; margin-bottom:10px; border-left:3px solid #ffff00; padding-left:8px;">LOCALIZACIÓN SÍNTOMAS:</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+                        <label style="color:#4ade80; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 1: Zonas erógenas <input type="number" min="1" max="5" class="val-input" data-nivel="1" style="width:60px; background:#000; color:#fff; border:1px solid #4ade80; text-align:center; padding:4px;"></label>
+                        <label style="color:#fbbf24; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 2: Tensiones erráticas <input type="number" min="1" max="5" class="val-input" data-nivel="2" style="width:60px; background:#000; color:#fff; border:1px solid #fbbf24; text-align:center; padding:4px;"></label>
+                        <label style="color:#ff1a1a; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 3: Zonas de silencio clínico <input type="number" min="1" max="5" class="val-input" data-nivel="3" style="width:60px; background:#000; color:#fff; border:1px solid #ff1a1a; text-align:center; padding:4px;"></label>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; background:#000; padding:15px; border-radius:6px; border:1px solid #222;">
+                        <div style="display:flex; flex-direction:column; gap:6px; color:#4ade80; font-size:0.8rem;">
+                            <strong>Zonas Erógenas:</strong>
+                            <label><input type="checkbox" class="c-loc" data-img="./humanboca.jpg"> Oral</label>
+                            <label><input type="checkbox" class="c-loc" data-img="./humananal.jpg"> Anal</label>
+                            <label><input type="checkbox" class="c-loc" data-img="./humangenital.jpg"> Genital</label>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px; color:#fbbf24; font-size:0.8rem;">
+                            <strong>Tensiones:</strong>
+                            <label><input type="checkbox" class="c-loc" data-img="./humanansiedaddifusa.jpg"> Cuerpo (Ansiedad)</label>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px; color:#ff1a1a; font-size:0.8rem;">
+                            <strong>Silencio / Orgánico:</strong>
+                            <label><input type="checkbox" class="c-loc" data-img="./humancardiovascular.jpg"> Cardio</label>
+                            <label><input type="checkbox" class="c-loc" data-img="./humanosteomuscular.jpg"> Osteo</label>
+                            <label><input type="checkbox" class="c-loc" data-img="./humangastrointestinal.jpg"> Gastro</label>
+                            <label><input type="checkbox" class="c-loc" data-img="./humanpiel.jpg"> Piel</label>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="ind-group" data-ind="Respuesta al Encuentro">
+                    <h4 style="color:#ffff00; font-size:0.95rem; margin-bottom:10px; border-left:3px solid #ffff00; padding-left:8px;">RESPUESTA AL ENCUENTRO:</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="color:#4ade80; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 1: El síntoma cede <input type="number" min="1" max="5" class="val-input" data-nivel="1" style="width:60px; background:#000; color:#fff; border:1px solid #4ade80; text-align:center; padding:4px;"></label>
+                        <label style="color:#fbbf24; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 2: Persiste (Vínculo) <input type="number" min="1" max="5" class="val-input" data-nivel="2" style="width:60px; background:#000; color:#fff; border:1px solid #fbbf24; text-align:center; padding:4px;"></label>
+                        <label style="color:#ff1a1a; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">Nivel 3: Encapsulamiento <input type="number" min="1" max="5" class="val-input" data-nivel="3" style="width:60px; background:#000; color:#fff; border:1px solid #ff1a1a; text-align:center; padding:4px;"></label>
+                    </div>
+                </section>
+
+                <section class="ind-group" data-ind="Vía de Descarga">
+                    <h4 style="color:#ffff00; font-size:0.95rem; margin-bottom:10px; border-left:3px solid #ffff00; padding-left:8px;">VÍA DE DESCARGA:</h4>
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+                        <label style="color:#4ade80; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">N1: Predominio SNC <input type="number" min="1" max="5" class="val-input" data-nivel="1" style="width:60px; background:#000; color:#fff; border:1px solid #4ade80; text-align:center; padding:4px;"></label>
+                        <label style="color:#fbbf24; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">N2: Reversible <input type="number" min="1" max="5" class="val-input" data-nivel="2" style="width:60px; background:#000; color:#fff; border:1px solid #fbbf24; text-align:center; padding:4px;"></label>
+                        <label style="color:#ff1a1a; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">N3: Desregulación HPA <input type="number" min="1" max="5" class="val-input" data-nivel="3" style="width:60px; background:#000; color:#fff; border:1px solid #ff1a1a; text-align:center; padding:4px;"></label>
+                    </div>
+                    <div style="display:flex; gap:20px; background:#000; padding:12px; border-radius:6px; border:1px solid #222;">
+                        <label style="color:#4ade80; font-size:0.85rem;"><input type="checkbox" class="c-loc" data-img="./humanSNC.jpg"> SNC</label>
+                        <label style="color:#fbbf24; font-size:0.85rem;"><input type="checkbox" class="c-loc" data-img="./humanSNS.jpg"> SNS</label>
+                        <label style="color:#ff1a1a; font-size:0.85rem;"><input type="checkbox" class="c-loc" data-img="./humanHPA.jpg"> Eje HPA</label>
+                    </div>
+                </section>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn" onclick="grafM1()"><i class="fa-solid fa-eye"></i> Generar Mapeo Visual</button>
+                <button class="btn" onclick="generarInformeM1()"><i class="fa-solid fa-file-lines"></i> Informe IA</button>
+                <button class="btn" onclick="saveM1_Label()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cartografía</button>
+                <button class="btn btn-secondary" onclick="imprimirM1_Final()"><i class="fa-solid fa-print"></i> Imprimir Informe PDF</button>
+            </div>
+
+            <!-- Contenedor del Mapeo Visual Armonizado -->
+            <div id="area-mapeo-render" class="render-box" style="margin-top: 30px;">
+                <img src="./human.jpg" alt="Base Humana" style="opacity:0.3;">
+                <div id="render-ws1" class="render-layer"></div>
+            </div>
+
+            <div id="repo-ia-m1"></div>
+            <div id="labels-ws1" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; justify-content:center;"></div>
+        </div>
+
+        <!-- Sección Cuantificación (Radar) -->
+        <div class="card" id="seccion-cuantificacion" style="display: none;">
+            <h2><i class="fa-solid fa-chart-pie"></i> Cuantificación del Desborde Pulsional</h2>
+            <p style="font-size:0.85rem; color:#aaa; margin-bottom:20px;">Visualización gráfica de radar basada en los datos de cartografía guardados en caché.</p>
+            
+            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:25px;">
+                <button class="btn" onclick="graficarRadar()"><i class="fa-solid fa-chart-radar"></i> Graficar Radar</button>
+                <button class="btn" onclick="generarInformeCuantificacion()"><i class="fa-solid fa-file-lines"></i> Informe IA Cuantificación</button>
+                <button class="btn btn-secondary" onclick="imprimirCuantificacionPDF()"><i class="fa-solid fa-print"></i> Imprimir PDF Radar</button>
+            </div>
+
+            <div style="background:#fff; border-radius:8px; padding:20px; max-width:600px; margin:0 auto; display:flex; justify-content:center;">
+                <canvas id="radarCanvasU" width="400" height="400"></canvas>
+            </div>
+
+            <div id="repo-ia-u"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.EliteCache = window.EliteCache || {};
+        let radarChartInstance = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('p-select-carto');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.data().name.toUpperCase();
+                    opt.textContent = d.data().name.toUpperCase();
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error al cargar pacientes:", e);
+            }
+            document.getElementById('f-select-carto').value = new Date().toISOString().split('T')[0];
+        }
+
+        window.cambiarSeccion = function(tipo) {
+            if (tipo === 'Cartografía') {
+                document.getElementById('seccion-cartografia').style.display = 'block';
+                document.getElementById('seccion-cuantificacion').style.display = 'none';
+            } else {
+                const p = document.getElementById('p-select-carto').value;
+                if (!window.EliteCache[p]) {
+                    alert("❌ No hay datos guardados en Cartografía para este paciente en esta sesión.");
+                    return;
+                }
+                document.getElementById('seccion-cartografia').style.display = 'none';
+                document.getElementById('seccion-cuantificacion').style.display = 'block';
+            }
+        };
+
+        document.querySelectorAll('.val-input').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+                const group = e.target.closest('.ind-group');
+                const others = group.querySelectorAll('.val-input');
+                if (e.target.value !== "") {
+                    others.forEach(ot => { if(ot !== e.target) { ot.value = ""; ot.disabled = true; } });
+                } else {
+                    others.forEach(ot => ot.disabled = false);
+                }
+            });
+        });
+
+        window.grafM1 = function() {
+            const b = document.getElementById('render-ws1'); 
+            b.innerHTML = '';
+            document.querySelectorAll('.c-loc:checked').forEach(c => {
+                const i = new Image(); 
+                i.src = c.dataset.img;
+                Object.assign(i.style, { position:'absolute', top:'0', left:'0', width:'100%', height:'100%', mixBlendMode:'screen', objectFit:'contain' });
+                b.appendChild(i);
+            });
+        };
+
+        const getCriteriosIA = (niveles, puntajes, nombres) => {
+            const labelNivel = { 1: "Procesamiento óptimo", 2: "Fragilidad de Ligadura", 3: "Descarga somática crítica" };
+            const descPuntaje = {
+                1: { 1: "Máximo", 2: "Intenso", 3: "Medio", 4: "Escaso", 5: "Limitrofe casi nivel 2" },
+                2: { 1: "Máximo", 2: "Intenso", 3: "Medio", 4: "Escaso", 5: "Limitrofe casi nivel 3" },
+                3: { 1: "Máximo", 2: "Intenso", 3: "Medio", 4: "Escaso", 5: "Limitrofe o nulo" }
+            };
+
+            let lineas = nombres.map((nom, i) => {
+                let n = niveles[i]; let p = puntajes[i];
+                return `Indicador ${nom} Nivel ${n} ${labelNivel[n]}: ${p} ${descPuntaje[n][p] || 'Valor'}`;
+            });
+
+            const predominio = niveles.reduce((a, b, i, arr) => (arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b), null);
+            
+            let conclusion = "";
+            if (predominio === 1) conclusion = "- Si predomina Nivel 1: Procesamiento óptimo";
+            if (predominio === 2) conclusion = "- Si predomina Nivel 2: Fragilidad de la ligadura, conversión simbólica (pronóstico favorable)";
+            if (predominio === 3) conclusion = "- Si predomina Nivel 3: Descarga somática crítica, falla del escudo protector. Falla en regulación top-down (corteza prefrontal sobre amígdala).";
+
+            return `INFORME EXHAUSTIVO SISTEMA ELITE 2.0\n------------------------------------\n${lineas.join('\n')}\n\nRESULTADO DE PREDOMINIO:\n${conclusion}`;
+        };
+
+        window.generarInformeM1 = function() {
+            let niveles = []; let puntajes = []; let nombres = [];
+            document.querySelectorAll('.ind-group').forEach(g => {
+                const inp = g.querySelector('.val-input:not(:disabled)');
+                if (inp && inp.value !== "") {
+                    niveles.push(parseInt(inp.dataset.nivel));
+                    puntajes.push(parseInt(inp.value));
+                    nombres.push(g.dataset.ind);
+                }
+            });
+            if(niveles.length === 0) {
+                alert("Por favor complete al menos un indicador.");
+                return;
+            }
+            const box = document.getElementById('repo-ia-m1');
+            box.innerText = getCriteriosIA(niveles, puntajes, nombres);
+            box.style.display = 'block';
+        };
+
+        window.saveM1_Label = function() {
+            const n = document.getElementById('p-select-carto').value;
+            const fecha = document.getElementById('f-select-carto').value;
+            let niveles = []; let puntajes = []; let nombres = [];
+            document.querySelectorAll('.ind-group').forEach(g => {
+                const inp = g.querySelector('.val-input:not(:disabled)');
+                if (inp && inp.value !== "") {
+                    niveles.push(parseInt(inp.dataset.nivel));
+                    puntajes.push(parseInt(inp.value));
+                    nombres.push(g.dataset.ind);
+                }
+            });
+            if(niveles.length === 0) return alert("Seleccione valores antes de guardar.");
+            const prom = (niveles.reduce((a, b) => a + b, 0) / niveles.length).toFixed(1);
+            
+            const et = document.createElement('div');
+            et.style = "width:220px; background:#000; border:2px solid #ffff00; color:#ffff00; padding:15px; font-size:10px; border-radius:4px; text-align:center;";
+            et.innerHTML = `ELITE 2.0 VALIDADO<br>PACIENTE: ${n}<br>FECHA: ${fecha}<br>PROMEDIO NIVEL: ${prom}`;
+            document.getElementById('labels-ws1').appendChild(et);
+            
+            window.EliteCache[n] = { niveles, puntajes, nombres, fecha };
+            alert("¡Cartografía guardada en caché con éxito!");
+        };
+
+        window.imprimirM1_Final = function() {
+            const pac = document.getElementById('p-select-carto').value;
+            const fecha = document.getElementById('f-select-carto').value;
+            const ia = document.getElementById('repo-ia-m1').innerText;
+            const render = document.getElementById('area-mapeo-render').innerHTML;
+            
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html><head><title>Informe Cartografía - ${pac}</title>
+                <style>
+                    body{font-family:sans-serif;padding:40px;}
+                    .header{text-align:right;border-bottom:3px solid #ffff00;padding-bottom:10px;margin-bottom:20px;}
+                    .ia-box{background:#f9f9f9;padding:20px;border:1px solid #ddd;font-family:monospace;white-space:pre-wrap;}
+                    .render-print { position: relative; width: 400px; height: 400px; background: #000; border: 1px solid #ffff00; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+                    .render-print img { position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: contain !important; }
+                </style></head>
+                <body onload="window.print();">
+                    <div class="header"><h2>Dr. y Mgter. Rubén M. Pereyra</h2><p>Especialista en Neurociencias Clínicas</p></div>
+                    <p><b>PACIENTE:</b> ${pac} | <b>FECHA:</b> ${fecha}</p>
+                    <h2 style="text-align:center;">CARTOGRAFÍA DE LA INTERSUBJETIVIDAD SOMÁTICA</h2>
+                    <div class="ia-box">${ia || "Sin informe generado"}</div>
+                    <div class="render-print" style="margin-top:20px;">${render}</div>
+                </body></html>`);
+            win.document.close();
+        };
+
+        window.graficarRadar = function() {
+            const p = document.getElementById('p-select-carto').value;
+            const d = window.EliteCache[p];
+            if (!d) return alert("No hay datos en caché para este paciente.");
+
+            const ctx = document.getElementById('radarCanvasU').getContext('2d');
+            if (radarChartInstance) radarChartInstance.destroy();
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: d.nombres,
+                    datasets: [{
+                        label: 'Pulsional',
+                        data: d.puntajes,
+                        borderColor: '#ffff00',
+                        backgroundColor: 'rgba(255, 255, 0, 0.2)',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    scales: { r: { min: 0, max: 5, pointLabels: { color: '#000', font: { weight: 'bold' } } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        };
+
+        window.generarInformeCuantificacion = function() {
+            const p = document.getElementById('p-select-carto').value;
+            const d = window.EliteCache[p];
+            if (!d) return alert("No hay datos en caché para este paciente.");
+            const box = document.getElementById('repo-ia-u');
+            box.innerText = getCriteriosIA(d.niveles, d.puntajes, d.nombres);
+            box.style.display = 'block';
+        };
+
+        window.imprimirCuantificacionPDF = function() {
+            const p = document.getElementById('p-select-carto').value;
+            const f = document.getElementById('f-select-carto').value;
+            const ia = document.getElementById('repo-ia-u').innerText;
+            const canvasEl = document.getElementById('radarCanvasU');
+            const radar = canvasEl ? canvasEl.toDataURL() : '';
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html><head><title>Informe Cuantificación - ${p}</title>
+                <style>body{font-family:sans-serif;padding:40px;}.header{text-align:right;border-bottom:3px solid #00ffff;padding-bottom:10px;margin-bottom:30px;}</style></head>
+                <body onload="window.print();">
+                    <div class="header"><h2>Dr. y Mgter. Rubén M. Pereyra</h2><p>Especialista en Neurociencias Clínicas</p></div>
+                    <p><b>PACIENTE:</b> ${p} | <b>FECHA:</b> ${f}</p>
+                    <h2 style="text-align:center;">CUANTIFICACIÓN DEL DESBORDE PULSIONAL</h2>
+                    <div style="text-align:center;"><img src="${radar}" style="max-width:400px;"></div>
+                    <div style="background:#f9f9f9;padding:20px;font-family:monospace;white-space:pre-wrap;margin-top:20px;">${ia || "Sin informe"}</div>
+                </body></html>`);
+            win.document.close();
+        };
+
+        init();
+    </script>
+</body>
+</html>

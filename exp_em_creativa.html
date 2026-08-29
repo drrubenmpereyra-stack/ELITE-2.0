@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rúbrica de Experiencia Emocional Creativa (REEC - Fiorini) - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #f39c12;
+            --secondary-color: #d35400;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #1e3a8a; margin: 15px 0 10px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
+
+        .criterion-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        .criterion-title { font-weight: 700; font-size: 0.95rem; color: #1e3a8a; margin-bottom: 4px; }
+        .criterion-desc { font-size: 0.8rem; color: #64748b; margin-bottom: 12px; font-style: italic; }
+
+        .slider-container { display: flex; flex-direction: column; gap: 8px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            background: #cbd5e1;
+        }
+
+        /* Barra de estado con gradación de tres colores (rojo, amarillo, verde) */
+        input.status-slider {
+            background: linear-gradient(to right, #ef4444 0%, #ef4444 20%, #eab308 20%, #eab308 60%, #22c55e 60%, #22c55e 100%);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1e293b;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .scale-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; padding: 0 2px; }
+
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn:hover { background-color: #d35400; }
+        .btn-secondary { background-color: #2563eb; margin-left: 10px; }
+        .btn-secondary:hover { background-color: #1d4ed8; }
+
+        .report-box { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 20px; border-radius: 6px; margin-top: 20px; white-space: pre-line; font-size: 0.9rem; }
+        .history-item { background: #f8fafc; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Selección de Paciente -->
+        <div class="card">
+            <h2><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente Activo</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="patient-select">Paciente</label>
+                <select id="patient-select" onchange="cargarHistorialEEC()">
+                    <option value="">-- Seleccione un paciente --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Formulario REEC -->
+        <div class="card" id="form-card" style="display: none;">
+            <h2><i class="fa-solid fa-lightbulb"></i> Rúbrica de Experiencia Emocional Creativa (REEC - Fiorini)</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
+                Evalúe cada criterio según los postulados de Héctor Fiorini sobre el psiquismo creador, asignando un valor de 1 (Bloqueo/Inercia) a 5 (Fluidez Terciaria / Plena Apertura).
+            </p>
+
+            <form id="eec-form">
+                <!-- Criterio 1 -->
+                <div class="criterion-card">
+                    <div class="criterion-title">1. Apertura a la Experiencia</div>
+                    <div class="criterion-desc">Disponibilidad psíquica para salir de los clichés defensivos, tolerar la sorpresa y acoger lo inédito sin recurrir al cierre estereotipado o la repetición rígida.</div>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Puntuación:</span>
+                            <span id="val-crit1" style="color: var(--secondary-color);">1</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="1" class="status-slider" id="crit1" oninput="actualizarSlider(1)">
+                        <div class="scale-labels">
+                            <span>1 (Rigidez / Cliché)</span>
+                            <span>2 (Baja apertura)</span>
+                            <span>3 (Transición)</span>
+                            <span>4 (Buena flexibilidad)</span>
+                            <span>5 (Plena apertura creadora)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Criterio 2 -->
+                <div class="criterion-card">
+                    <div class="criterion-title">2. Regulación Afectiva</div>
+                    <div class="criterion-desc">Capacidad de modular la intensidad de las mociones afectivas, sosteniendo estados de alta tensión sin desbordarse hacia la descarga impulsiva ni encapsularse en la anestesia emocional.</div>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Puntuación:</span>
+                            <span id="val-crit2" style="color: var(--secondary-color);">1</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="1" class="status-slider" id="crit2" oninput="actualizarSlider(2)">
+                        <div class="scale-labels">
+                            <span>1 (Desborde o anestesia)</span>
+                            <span>2 (Inestable)</span>
+                            <span>3 (Moderada)</span>
+                            <span>4 (Estable)</span>
+                            <span>5 (Modulación óptima)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Criterio 3 -->
+                <div class="criterion-card">
+                    <div class="criterion-title">3. Simbolización de lo Pre-verbal</div>
+                    <div class="criterion-desc">Habilidad para transformar vivencias somáticas, marcas cenestésicas o afectos sin palabra en formas representacionales, metáforas o nexos de sentido inéditos.</div>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Puntuación:</span>
+                            <span id="val-crit3" style="color: var(--secondary-color);">1</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="1" class="status-slider" id="crit3" oninput="actualizarSlider(3)">
+                        <div class="scale-labels">
+                            <span>1 (Pensamiento concreto / Somatización)</span>
+                            <span>2 (Escasa elaboración)</span>
+                            <span>3 (Simbolización incipiente)</span>
+                            <span>4 (Buena metáfora)</span>
+                            <span>5 (Síntesis terciaria / Poética)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Criterio 4 -->
+                <div class="criterion-card">
+                    <div class="criterion-title">4. Respuesta a la Prosodia / Presencia</div>
+                    <div class="criterion-desc">Receptividad y resonancia ante los matices expresivos, la entonación y la presencia viva del analista dentro del campo intersubjetivo de la sesión.</div>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Puntuación:</span>
+                            <span id="val-crit4" style="color: var(--secondary-color);">1</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="1" class="status-slider" id="crit4" oninput="actualizarSlider(4)">
+                        <div class="scale-labels">
+                            <span>1 (Desconexión / Autismo vincular)</span>
+                            <span>2 (Resistencia vincular)</span>
+                            <span>3 (Resonancia parcial)</span>
+                            <span>4 (Buena sintonía)</span>
+                            <span>5 (Resonancia intersubjetiva profunda)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Botón Puntuación</button>
+                    <button type="button" class="btn btn-secondary" onclick="generarInformeEEC()"><i class="fa-solid fa-file-lines"></i> Informe de EEC</button>
+                </div>
+            </form>
+
+            <div id="report-output" style="display: none;">
+                <h3 style="margin-top: 20px;">Resultado e Informe Clínico REEC</h3>
+                <div class="report-box" id="report-text"></div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="card" id="history-card" style="display: none;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Experiencia Emocional Creativa</h2>
+            <div id="history-container">
+                <p style="color: #64748b; font-size: 0.9rem;">Seleccione un paciente para ver su historial de valoraciones.</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let activePatientId = null;
+
+        async function init() {
+            try {
+                const snap = await getDocs(collection(db, "patients"));
+                const select = document.getElementById('patient-select');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error al cargar pacientes:", e);
+            }
+        }
+
+        window.actualizarSlider = function(num) {
+            const val = document.getElementById(`crit${num}`).value;
+            document.getElementById(`val-crit${num}`).textContent = val;
+        }
+
+        window.cargarHistorialEEC = async function() {
+            activePatientId = document.getElementById('patient-select').value;
+            const formCard = document.getElementById('form-card');
+            const historyCard = document.getElementById('history-card');
+
+            if(!activePatientId) {
+                formCard.style.display = 'none';
+                historyCard.style.display = 'none';
+                return;
+            }
+
+            formCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            renderHistory();
+        }
+
+        function obtenerDatosFormulario() {
+            const c1 = parseInt(document.getElementById('crit1').value);
+            const c2 = parseInt(document.getElementById('crit2').value);
+            const c3 = parseInt(document.getElementById('crit3').value);
+            const c4 = parseInt(document.getElementById('crit4').value);
+
+            const total = c1 + c2 + c3 + c4;
+            return {
+                crit1: c1,
+                crit2: c2,
+                crit3: c3,
+                crit4: c4,
+                total: total,
+                fecha: new Date().toISOString()
+            };
+        }
+
+        function interpretarPuntaje(total) {
+            if(total >= 4 && total <= 8) {
+                return {
+                    rango: "Inercia Repetitiva / Bloqueo Simbólico (4-8 puntos)",
+                    clinica: "Predominio de la repetición neurótica rígida o defensas operatorias. La experiencia emocional carece de plasticidad; el psiquismo opera atrapado en clichés sin acceso a la novedad ni a la simbolización de lo pre-verbal."
+                };
+            } else if(total >= 9 && total <= 14) {
+                return {
+                    rango: "Experiencia Emocional en Transición / Desarrollo (9-14 puntos)",
+                    clinica: "Aparecen atisbos de apertura y nexos metafóricos incipientes. El paciente tolera ciertos grados de afecto y responde a la prosodia, aunque persisten zonas de resistencia y apego a marcos estereotipados."
+                };
+            } else {
+                return {
+                    rango: "Sujeto Creador / Fluidez Terciaria Lograda (15-20 puntos)",
+                    clinica: "Plena vigencia de procesos terciarios y autoría del relato. Alta plasticidad defensiva, excelente simbolización de vivencias complejas y resonancia intersubjetiva profunda con el analista."
+                };
+            }
+        }
+
+        window.calcularPuntuacion = async function() {
+            const data = obtenerDatosFormulario();
+            const interp = interpretarPuntaje(data.total);
+
+            let texto = `PUNTUACIÓN GLOBAL REEC: ${data.total} / 20 Puntos\n` +
+                `Desglose por Criterio (Teoría de Héctor Fiorini):\n` +
+                `- Apertura a la Experiencia: ${data.crit1}/5\n` +
+                `- Regulación Afectiva: ${data.crit2}/5\n` +
+                `- Simbolización de lo Pre-verbal: ${data.crit3}/5\n` +
+                `- Respuesta a la Prosodia/Presencia: ${data.crit4}/5\n\n` +
+                `Clasificación: ${interp.rango}`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = texto;
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().exp_em_creativa || [];
+                lista.push(data);
+                await updateDoc(ref, { exp_em_creativa: lista });
+                alert("¡Puntaje de Experiencia Emocional Creativa calculado y enviado a la base de datos con éxito!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar puntuación:", e);
+            }
+        }
+
+        window.generarInformeEEC = async function() {
+            const data = obtenerDatosFormulario();
+            const interp = interpretarPuntaje(data.total);
+
+            let informeTexto = `INFORME CLÍNICO - EXPERIENCIA EMOCIONAL CREATIVA (REEC - FIORINI)\n` +
+                `Fecha de emisión: ${new Date().toLocaleDateString()}\n\n` +
+                `Puntaje Total Global: ${data.total} / 20\n` +
+                `Categoría Teórica: ${interp.rango}\n\n` +
+                `EVALUACIÓN PSICODINÁMICA Y DEL PSIQUISMO CREADOR:\n${interp.clinica}\n\n` +
+                `SÍNTESIS CLÍNICA:\n` +
+                `Basado en los aportes de Héctor Fiorini sobre el psiquismo creador, este puntaje refleja la capacidad actual del paciente para transformar la repetición en producción de nuevos sentidos, transitar zonas de vaciamiento simbólico y habitar el espacio intersubjetivo con plasticidad y autoría.`;
+
+            document.getElementById('report-output').style.display = 'block';
+            document.getElementById('report-text').textContent = informeTexto;
+
+            data.informe = informeTexto;
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                let lista = snap.data().exp_em_creativa || [];
+                lista.push(data);
+                await updateDoc(ref, { exp_em_creativa: lista });
+                alert("¡Informe de EEC generado y enviado a la base de datos con éxito!");
+                renderHistory();
+            } catch(e) {
+                console.error("Error al guardar informe:", e);
+            }
+        }
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">Cargando historial...</p>';
+
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const historial = data.exp_em_creativa || [];
+                    container.innerHTML = '';
+                    
+                    if (historial.length === 0) {
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay evaluaciones de experiencia emocional creativa registradas para este paciente.</p>';
+                        return;
+                    }
+
+                    historial.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <strong>Evaluación #${index + 1} (${new Date(item.fecha).toLocaleDateString()})</strong> | <strong>Puntaje Total:</strong> ${item.total} / 20
+                            <p style="margin-top: 6px;"><strong>Detalle criterios:</strong> Apertura(${item.crit1}), Regulación(${item.crit2}), Simbolización(${item.crit3}), Prosodia(${item.crit4})</p>
+                            ${item.informe ? `<pre style="margin-top: 8px; font-size: 0.82rem; white-space: pre-line; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">${item.informe}</pre>` : ''}
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al cargar historial:", e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
