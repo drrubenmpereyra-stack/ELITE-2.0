@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiencia Emocional Creativa (Competencia Terapeuta) - ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff1493;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 20, 147, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        input[type="text"], input[type="date"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #000; }
+        th { background: #111; color: var(--primary-color); padding: 10px; font-size: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #visual-root { margin-top: 25px; background: #000; padding: 20px; border: 1px solid #333; border-radius: 6px; display: flex; justify-content: center; align-items: flex-end; gap: 15px; height: 160px; }
+        #res-ia-competencia { background: #050505; border: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; display: none; }
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="eec-t-container">
+            <h2><i class="fa-solid fa-user-doctor"></i> EXPERIENCIA EMOCIONAL CREATIVA - COMPETENCIA TERAPEUTA (ELITE 2.0)</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(255, 20, 147, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>NOMBRE DEL TERAPEUTA:</label>
+                    <input type="text" id="eec-t-nombre" placeholder="Ingrese nombre del terapeuta">
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="eec-t-fecha">
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Indicador de Competencia</th>
+                        <th style="text-align:center; width:80px;">Nivel 1</th>
+                        <th style="text-align:center; width:80px;">Nivel 2</th>
+                        <th style="text-align:center; width:80px;">Nivel 3</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-eec-competencia"></tbody>
+            </table>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="calcularYGraficarCompetencia()"><i class="fa-solid fa-chart-pie"></i> Calcular y Graficar</button>
+                <button class="btn-outline-elite" onclick="iaEecCompetencia()"><i class="fa-solid fa-robot"></i> Informe IA Literal</button>
+                <button class="btn-elite" style="background:#2c3e50; color:#fff;" onclick="guardarEecCompetencia()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                <button class="btn-elite" style="background:#27ae60; color:#fff;" onclick="guardarPDFCompetencia()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="visual-root" style="display:none;"></div>
+            <div id="res-ia-competencia"></div>
+
+            <div class="historial-box">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL RECIENTE</h4>
+                <div id="hist-eec-competencia">Sin registros aún.</div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        let DB_EEC = JSON.parse(localStorage.getItem('DB_EEC_DATA')) || { proceso: [], competencia: [] };
+
+        const dataEecCompetencia = [
+            { n: "1. Sintonía y Modulación Prosódica", h1: "Intervención rígida/intelectualizada", h2: "Contención estándar", h3: "Uso maestro de prosodia y cuerpo" },
+            { n: "2. Gestión del Vínculo Terapéutico", h1: "Distancia técnica excesiva", h2: "Empatía funcional", h3: "Cerebro auxiliar activo y continente" },
+            { n: "3. Regulación Alostérica del Paciente", h1: "Riesgo de re-traumatización", h2: "Estabilización básica", h3: "Modulación efectiva de amígdala" },
+            { n: "4. Plasticidad Relacional y Co-creación", h1: "Terapeuta como mero observador", h2: "Guía estructurada", h3: "Alta neuroplasticidad vincular" }
+        ];
+
+        function initCompetencia() {
+            document.getElementById('eec-t-fecha').value = new Date().toISOString().split('T')[0];
+            const container = document.getElementById('tbody-eec-competencia');
+            container.innerHTML = dataEecCompetencia.map((item, i) => `
+                <tr>
+                    <td style="font-weight:bold; color:#adff2f;">${item.n}</td>
+                    <td style="text-align:center;"><input type="radio" name="eec-competencia-${i}" value="1" title="${item.h1}" style="accent-color:red; transform:scale(1.2); cursor:pointer;"></td>
+                    <td style="text-align:center;"><input type="radio" name="eec-competencia-${i}" value="2" title="${item.h2}" style="accent-color:blue; transform:scale(1.2); cursor:pointer;"></td>
+                    <td style="text-align:center;"><input type="radio" name="eec-competencia-${i}" value="3" title="${item.h3}" style="accent-color:green; transform:scale(1.2); cursor:pointer;"></td>
+                </tr>
+            `).join('');
+            cargarHistorialEecLocal();
+        }
+
+        function getPuntajeCompetencia() {
+            let total = 0;
+            for(let i=0; i<4; i++) {
+                const radios = document.getElementsByName(`eec-competencia-${i}`);
+                radios.forEach(r => { if(r.checked) total += parseInt(r.value); });
+            }
+            return total;
+        }
+
+        window.iaEecCompetencia = () => {
+            const p = getPuntajeCompetencia();
+            const box = document.getElementById('res-ia-competencia'); 
+            box.style.display = 'block';
+            if(p < 4) {
+                box.innerHTML = "Seleccione todos los indicadores.";
+                return;
+            }
+
+            if(p <= 6) box.innerHTML = `<b>Puntaje: ${p} (Intervención Intelectualizada)</b><br>Riesgo de re-traumatización por frialdad. El terapeuta opera primordialmente como "observador".`;
+            else if(p <= 9) box.innerHTML = `<b>Puntaje: ${p} (Gestión Empática Eficaz)</b><br>Buen contenedor clínico. Capacidad operativa para profundizar en el uso del cuerpo y la prosodia.`;
+            else box.innerHTML = `<b>Puntaje: ${p} (Maestría en EEC)</b><br>Alta capacidad de neuroplasticidad relacional. Funciona plenamente como "cerebro auxiliar" activo.`;
+        };
+
+        window.calcularYGraficarCompetencia = () => {
+            const p = getPuntajeCompetencia();
+            if(p < 4) { alert("Complete todos los campos de evaluación."); return; }
+            
+            const root = document.getElementById('visual-root');
+            root.style.display = 'flex';
+            const perc = (p / 12) * 100;
+            
+            root.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <span style="font-size:12px; color:#adff2f; font-weight:bold; margin-bottom:5px;">${p}/12 pts (${Math.round(perc)}%)</span>
+                    <div style="height:${Math.max(perc * 1.2, 20)}px; width:45px; background:linear-gradient(to top, #0ea5e9, #ff1493); border-radius:4px 4px 0 0;" title="Puntaje Total: ${p}"></div>
+                    <span style="font-size:10px; margin-top:8px; color:#888;">Competencia Actual</span>
+                </div>`;
+            root.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.guardarEecCompetencia = async function() {
+            const tNom = document.getElementById('eec-t-nombre').value.trim();
+            const f = document.getElementById('eec-t-fecha').value;
+            const p = getPuntajeCompetencia();
+
+            if(!tNom || !f) { alert("Complete nombre del terapeuta y fecha."); return; }
+            if(p < 4) { alert("Realice la evaluación completa antes de guardar."); return; }
+
+            const nuevoRegistro = { id: Date.now().toString(), tNom, f, p };
+            DB_EEC.competencia.push(nuevoRegistro);
+            localStorage.setItem('DB_EEC_DATA', JSON.stringify(DB_EEC));
+            
+            cargarHistorialEecLocal();
+            alert("Competencia guardada exitosamente en almacenamiento local y estructurada para Elite 2.0.");
+        };
+
+        function cargarHistorialEecLocal() {
+            const hist = DB_EEC.competencia.slice(-5).reverse();
+            const contenedor = document.getElementById('hist-eec-competencia');
+            if(hist.length === 0) {
+                contenedor.innerHTML = "Sin registros aún.";
+                return;
+            }
+            contenedor.innerHTML = hist.map(r => `
+                <div style="border-bottom:1px solid #222; padding:6px 0; display:flex; justify-content:space-between;">
+                    <span>📅 <b>${r.f}</b> | Terapeuta: <b>${r.tNom}</b></span>
+                    <span style="color:var(--primary-color); font-weight:bold;">Puntaje: ${r.p}/12</span>
+                </div>
+            `).join('');
+        }
+
+        window.guardarPDFCompetencia = function() {
+            const tNom = document.getElementById('eec-t-nombre').value;
+            if(!tNom) { alert("Ingrese el nombre del terapeuta primero."); return; }
+            const element = document.getElementById('eec-t-container');
+            
+            const opt = { margin: 0.4, filename: `EEC_Competencia_${tNom.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initCompetencia();
+    </script>
+</body>
+</html>
