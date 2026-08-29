@@ -233,6 +233,16 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("terminacion_separacion.html");
                 } else if (secKey === "4.5 Farmacología") {
                     cargarVistaIframe("farmacologia.html");
+                } else if (secKey === "5.1 Esquemas Neurodinámicos") {
+                    cargarVistaIframe("esquemas_neurodinamicos.html");
+                } else if (secKey === "5.2 Esquemas Psicodinámicos") {
+                    cargarVistaIframe("esquemas_psicodinamicos.html");
+                } else if (secKey === "5.3 Esquemas PNIE") {
+                    cargarVistaIframe("esquemas_PNIE.html");
+                } else if (secKey === "5.4 Psicotrópicos") {
+                    cargarVistaIframe("psicotropicos.html");
+                } else if (secKey === "5.5 Rúbricas") {
+                    cargarVistaIframe("rubricas.html");
                 } else {
                     mostrarContenido(secKey);
                 }
