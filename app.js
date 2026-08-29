@@ -61,7 +61,14 @@ const menuData = {
         hijos: {
             "3.1 Potencial acting out": {},
             "3.2 Exp emocional creativa": {},
-            "3.3 Med neuropsicológicos": {},
+            "3.3 Med neuropsicológicos": {
+                "Poligono de potencia": {},
+                "Medidor de reserva neural": {},
+                "Medidor autoestima": {},
+                "Termómetro de identidad": {},
+                "Medidor de ansiedad": {},
+                "Alivio sintomático": {}
+            },
             "3.4 Psicodiagnóstico": {},
             "3.5 Test": {},
             "3.6 Riesgos en PB": {},
@@ -196,22 +203,6 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
                     cargarVistaIframe("interconsulta.html");
-                } else if (secKey === "3.1 Potencial acting out") {
-                    cargarVistaIframe("acting_out.html");
-                } else if (secKey === "3.2 Exp emocional creativa") {
-                    cargarVistaIframe("exp_em_creativa.html");
-                } else if (secKey === "3.6 Riesgos en PB") {
-                    cargarVistaIframe("riesgos_PB.html");
-                } else if (secKey === "3.7 Memorias traumáticas") {
-                    cargarVistaIframe("memorias_trauma.html");
-                } else if (secKey === "3.8 Ritmos circadianos") {
-                    cargarVistaIframe("ritmos_circadianos.html");
-                } else if (secKey === "3.9 Mapeos visuales") {
-                    cargarVistaIframe("mapeos_visuales.html");
-                } else if (secKey === "3.10 Adherencia al tratamiento") {
-                    cargarVistaIframe("ad_tratamiento.html");
-                } else if (secKey === "3.11 Resonancia CT") {
-                    cargarVistaIframe("resonancia_CT.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -273,6 +264,18 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("icc.html");
             } else if (terKey === "IE Calculo") {
                 cargarVistaIframe("inteligencia_elite.html");
+            } else if (terKey === "Poligono de potencia") {
+                cargarVistaIframe("poligono_potencia.html");
+            } else if (terKey === "Medidor de reserva neural") {
+                cargarVistaIframe("reserva_neural.html");
+            } else if (terKey === "Medidor autoestima") {
+                cargarVistaIframe("medidor_autoestma.html");
+            } else if (terKey === "Termómetro de identidad") {
+                cargarVistaIframe("term_identidad.html");
+            } else if (terKey === "Medidor de ansiedad") {
+                cargarVistaIframe("madidor_ansiedad.html");
+            } else if (terKey === "Alivio sintomático") {
+                cargarVistaIframe("alivio_sintomatico.html");
             } else {
                 mostrarContenido(terKey);
             }
