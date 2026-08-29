@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Farmacología - ELITE 2.0</title>
+    <!-- jsPDF para exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e74c3c;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(231, 76, 60, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h4 { font-size: 1rem; color: #adff2f; margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+
+        .btn-elite { background: var(--primary-color); color: #fff; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; background: #0a0a0a; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; font-size: 0.85rem; color: #ccc; }
+        .checkbox-item:hover { border-color: var(--primary-color); color: #fff; }
+        .checkbox-item input { accent-color: var(--primary-color); transform: scale(1.1); cursor: pointer; }
+
+        #farm-ia-output { background: #050505; border-left: 5px solid #8e44ad; border-top: 1px solid var(--primary-color); border-right: 1px solid var(--primary-color); border-bottom: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; display: none; }
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="farmaco-container">
+            <h2><i class="fas fa-prescription-bottle-alt"></i> MÓDULO DE FARMACOLOGÍA - ELITE 2.0</h2>
+
+            <div style="background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(231, 76, 60, 0.2);">
+                <div class="form-group">
+                    <label>SELECCIONAR PACIENTE:</label>
+                    <select id="farm-paciente-select" onchange="MODULO_FARMACO.seleccionarPaciente(this.value)"></select>
+                </div>
+            </div>
+
+            <div id="form-farmacos-cuerpo" style="display:none;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                    <div style="background:#0a0a0a; padding:15px; border-radius:8px; border:1px solid var(--border-color);">
+                        <label><b>1. Clase de Medicamento:</b></label>
+                        <select id="farm-clase-select" onchange="MODULO_FARMACO.cargarFarmacos(this.value)" style="width:100%; margin-top:5px;">
+                            <option value="">-- Seleccione Clase --</option>
+                            <option value="Antidepresivos (ISRS / IRSN)">Antidepresivos (ISRS / IRSN)</option>
+                            <option value="Ansiolíticos / Benzodiacepinas">Ansiolíticos / Benzodiacepinas</option>
+                            <option value="Estabilizadores del Ánimo">Estabilizadores del Ánimo</option>
+                            <option value="Antipsicóticos Atípicos">Antipsicóticos Atípicos</option>
+                        </select>
+                    </div>
+                    <div style="background:#0a0a0a; padding:15px; border-radius:8px; border:1px solid var(--border-color);">
+                        <label><b>2. Fármaco Específico:</b></label>
+                        <select id="farm-nombre-select" onchange="MODULO_FARMACO.cargarRAM(this.value)" style="width:100%; margin-top:5px;">
+                            <option value="">-- Seleccione Fármaco --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="panel-ram" style="background:#0a0a0a; padding:20px; border-radius:8px; border:1px solid var(--border-color); display:none; margin-bottom:20px;">
+                    <h4 style="color:var(--primary-color); margin-top:0;">Reacciones Adversas Medicamentosas (RAM) frecuentes:</h4>
+                    <div id="lista-ram-checks" class="checkbox-grid"></div>
+                </div>
+
+                <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                    <button class="btn-elite" onclick="MODULO_FARMACO.informeIA()" style="background:#8e44ad;"><i class="fas fa-robot"></i> Informe RAM (IA)</button>
+                    <button class="btn-elite" onclick="MODULO_FARMACO.informePDF()" style="background:#27ae60;"><i class="fas fa-file-medical"></i> Informe Psiquiatra (PDF)</button>
+                    <button class="btn-elite" onclick="MODULO_FARMACO.guardarBD()" style="background:#2c3e50;"><i class="fas fa-floppy-disk"></i> Guardar en BD</button>
+                </div>
+
+                <div id="farm-ia-output"></div>
+
+                <div class="historial-box">
+                    <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL FARMACOLÓGICO</h4>
+                    <div id="historial-farmaco-list">Sin registros aún.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        window.MODULO_FARMACO = {
+            pacienteSeleccionado: null,
+            db_farmacos: {
+                "Antidepresivos (ISRS / IRSN)": {
+                    "Sertralina": ["Náuseas", "Insomnio", "Disfunción sexual", "Cefalea", "Diarrea"],
+                    "Fluoxetina": ["Ansiedad inicial", "Insomnio", "Pérdida de peso", "Bruxismo", "Temblor"],
+                    "Escitalopram": ["Somnolencia", "Fatiga", "Náuseas", "Sequedad bucal", "Sudoración"],
+                    "Venlafaxina": ["Hipertensión arterial", "Mareos", "Sudoración profusa", "Náuseas", "Boca seca"]
+                },
+                "Ansiolíticos / Benzodiacepinas": {
+                    "Alprazolam": ["Somnolencia diurna", "Dependencia", "Ataxia", "Mareos", "Déficit de memoria a corto plazo"],
+                    "Clonazepam": ["Sedación profunda", "Hipotonía muscular", "Confusión", "Fatiga", "Visión borrosa"],
+                    "Lorazepam": ["Astenia", "Somnolencia", "Inestabilidad marcha", "Reacción paradójica"]
+                },
+                "Estabilizadores del Ánimo": {
+                    "Litio": ["Temblor fino", "Poliuria", "Polidipsia", "Ganancia de peso", "Hipotiroidismo subclínico"],
+                    "Valproato de Sodio": ["Alopecia", "Aumento de peso", "Somnolencia", "Náuseas", "Trombocitopenia"],
+                    "Lamotrigina": ["Erupción cutánea (Rash)", "Cefalea", "Mareos", "Visión doble"]
+                },
+                "Antipsicóticos Atípicos": {
+                    "Quetiapina": ["Sedación importante", "Ganancia de peso", "Hipotensión ortostática", "Boca seca"],
+                    "Olanzapina": ["Aumento de apetito y peso", "Hiperglucemia", "Somnolencia", "Constipación"],
+                    "Aripiprazol": ["Acatisia", "Insomnio", "Ansiedad leve", "Náuseas"]
+                }
+            },
+
+            init: async function() {
+                const sel = document.getElementById('farm-paciente-select');
+                sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+                let listaPacientes = [];
+
+                try {
+                    const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                    querySnapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        listaPacientes.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                    });
+                } catch(e) { console.warn("Firestore inaccesible, usando respaldo local.", e); }
+
+                if(listaPacientes.length === 0) {
+                    ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                        let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                        d.forEach(i => { if(i.p && !listaPacientes.some(p => p.nombre === i.p)) listaPacientes.push({ id: "local_" + i.p, nombre: i.p }); });
+                    });
+                }
+
+                sel.innerHTML = '<option value="">-- Seleccione un paciente registrado --</option>';
+                listaPacientes.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`; });
+                
+                window.dbPacientesGlobal = listaPacientes;
+            },
+
+            seleccionarPaciente: function(id) {
+                if (!id) {
+                    document.getElementById('form-farmacos-cuerpo').style.display = 'none';
+                    return;
+                }
+                const lista = window.dbPacientesGlobal || [];
+                this.pacienteSeleccionado = lista.find(p => p.id == id) || { id, nombre: "Paciente" };
+                document.getElementById('form-farmacos-cuerpo').style.display = 'block';
+                this.cargarHistorialLocal();
+            },
+
+            cargarFarmacos: function(clase) {
+                const sel = document.getElementById('farm-nombre-select');
+                sel.innerHTML = '<option value="">-- Seleccione Fármaco --</option>';
+                document.getElementById('panel-ram').style.display = 'none';
+                
+                if (clase && this.db_farmacos[clase]) {
+                    Object.keys(this.db_farmacos[clase]).forEach(f => {
+                        let opt = document.createElement('option');
+                        opt.value = f; opt.innerText = f;
+                        sel.appendChild(opt);
+                    });
+                }
+            },
+
+            cargarRAM: function(farmaco) {
+                const clase = document.getElementById('farm-clase-select').value;
+                const container = document.getElementById('lista-ram-checks');
+                const panel = document.getElementById('panel-ram');
+                
+                container.innerHTML = "";
+                if (farmaco && this.db_farmacos[clase][farmaco]) {
+                    panel.style.display = 'block';
+                    this.db_farmacos[clase][farmaco].forEach(ram => {
+                        container.innerHTML += `
+                            <label class="checkbox-item">
+                                <input type="checkbox" class="ram-check" value="${ram}"> ${ram}
+                            </label>`;
+                    });
+                }
+            },
+
+            informeIA: function() {
+                const seleccionadas = Array.from(document.querySelectorAll('.ram-check:checked')).map(c => c.value);
+                const output = document.getElementById('farm-ia-output');
+                output.style.display = 'block';
+                
+                if (seleccionadas.length === 0) {
+                    output.innerHTML = "<b>Análisis IA:</b> No se han reportado efectos adversos significativos. Continuar con el esquema actual y monitoreo clínico periódico.";
+                } else {
+                    output.innerHTML = `<b>Análisis IA:</b> Se identificaron los siguientes efectos adversos: ${seleccionadas.join(', ')}. 
+                    <br><b>Recomendación Clínica:</b> Evaluar ajuste de dosis, momento de toma o rotación farmacológica si la interferencia en la calidad de vida es significativa. Controlar signos vitales.`;
+                }
+                output.scrollIntoView({ behavior: 'smooth' });
+            },
+
+            guardarBD: async function() {
+                const pac = this.pacienteSeleccionado;
+                const clase = document.getElementById('farm-clase-select').value;
+                const farmaco = document.getElementById('farm-nombre-select').value;
+                const seleccionadas = Array.from(document.querySelectorAll('.ram-check:checked')).map(c => c.value);
+
+                if(!pac || !farmaco) { alert("Seleccione paciente y fármaco."); return; }
+
+                const nuevoRegistro = {
+                    id: Date.now().toString(),
+                    fecha: new Date().toLocaleDateString(),
+                    clase,
+                    farmaco,
+                    rams: seleccionadas
+                };
+
+                if (pac.id.startsWith("local_") || !dbFirestore) {
+                    let localData = JSON.parse(localStorage.getItem('db_farmaco_local') || '{}');
+                    if(!localData[pac.id]) localData[pac.id] = [];
+                    localData[pac.id].push(nuevoRegistro);
+                    localStorage.setItem('db_farmaco_local', JSON.stringify(localData));
+                    alert("¡Registro farmacológico guardado localmente!");
+                    this.cargarHistorialLocal();
+                    return;
+                }
+
+                try {
+                    const ref = doc(dbFirestore, "patients", pac.id);
+                    const snap = await getDoc(ref);
+                    let lista = snap.exists() && snap.data().test_farmacologia ? snap.data().test_farmacologia : [];
+                    lista.push(nuevoRegistro);
+                    await updateDoc(ref, { test_farmacologia: lista });
+                    alert("¡Registro farmacológico guardado exitosamente en Firestore!");
+                    this.cargarHistorialLocal();
+                } catch (err) {
+                    console.error("Error al guardar en Firestore:", err);
+                    alert("Error al sincronizar con la base de datos.");
+                }
+            },
+
+            cargarHistorialLocal: function() {
+                const pac = this.pacienteSeleccionado;
+                if(!pac) return;
+                let localData = JSON.parse(localStorage.getItem('db_farmaco_local') || '{}');
+                let registros = localData[pac.id] || [];
+
+                const container = document.getElementById('historial-farmaco-list');
+                if(registros.length === 0) {
+                    container.innerHTML = "Sin registros almacenados para este paciente.";
+                    return;
+                }
+
+                container.innerHTML = registros.slice(-5).reverse().map(r => `
+                    <div style="border-bottom:1px solid #222; padding:6px 0; display:flex; justify-content:space-between;">
+                        <span>📅 <b>${r.fecha}</b> | Fármaco: <b>${r.farmaco} (${r.clase})</b><br><small style="color:#888;">RAMs: ${r.rams.join(', ') || 'Ninguna'}</small></span>
+                    </div>
+                `).join('');
+            },
+
+            informePDF: function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pac = this.pacienteSeleccionado?.nombre || "Sin nombre";
+                const clase = document.getElementById('farm-clase-select').value;
+                const farmaco = document.getElementById('farm-nombre-select').value;
+                const seleccionadas = Array.from(document.querySelectorAll('.ram-check:checked')).map(c => c.value);
+
+                doc.setFillColor(231, 76, 60);
+                doc.rect(0, 0, 210, 15, 'F');
+                doc.setFontSize(18); doc.setTextColor(255, 255, 255);
+                doc.text("INFORME FARMACOLÓGICO - ELITE 2.0", 105, 10, {align: 'center'});
+
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0);
+                doc.text(`Paciente: ${pac}`, 20, 30);
+                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
+                doc.text("------------------------------------------------------------------------------------", 20, 35);
+
+                doc.setFont("helvetica", "bold");
+                doc.text(`Tratamiento: ${farmaco} (${clase})`, 20, 45);
+                
+                doc.setFont("helvetica", "normal");
+                doc.text("Efectos Adversos (RAM) detectados:", 20, 55);
+                
+                let y = 65;
+                if (seleccionadas.length > 0) {
+                    seleccionadas.forEach(ram => {
+                        doc.text(`[X] ${ram}`, 25, y);
+                        y += 8;
+                    });
+                } else {
+                    doc.text("No se reportan reacciones adversas al momento del examen.", 25, y);
+                    y += 8;
+                }
+
+                y += 10;
+                doc.setFont("helvetica", "bold");
+                doc.text("Observaciones Médicas:", 20, y);
+                doc.rect(20, y + 2, 170, 40);
+
+                doc.save(`Farmaco_${pac.replace(/\s+/g, '_')}.pdf`);
+            }
+        };
+
+        MODULO_FARMACO.init();
+    </script>
+</body>
+</html>
