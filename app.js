@@ -70,7 +70,13 @@ const menuData = {
             "3.9 Mapeos visuales": {},
             "3.10 Adherencia al tratamiento": {},
             "3.11 Resonancia CT": {},
-            "3.12 Inteligencia Elite": {}
+            "3.12 Inteligencia Elite": {
+                "MEM": {},
+                "EPN": {},
+                "CCRT": {},
+                "ICC": {},
+                "IE Calculo": {}
+            }
         }
     },
     "4": {
@@ -241,6 +247,16 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("temporalidad.html");
             } else if (terKey === "8.6 Convergencia clínica") {
                 cargarVistaIframe("convergencia_clinica.html");
+            } else if (terKey === "MEM") {
+                cargarVistaIframe("mem.html");
+            } else if (terKey === "EPN") {
+                cargarVistaIframe("epn.html");
+            } else if (terKey === "CCRT") {
+                cargarVistaIframe("ccrt.html");
+            } else if (terKey === "ICC") {
+                cargarVistaIframe("icc.html");
+            } else if (terKey === "IE Calculo") {
+                cargarVistaIframe("inteligencia_elite.html");
             } else {
                 mostrarContenido(terKey);
             }
