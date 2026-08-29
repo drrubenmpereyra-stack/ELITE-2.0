@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Terminación y Separación - ELITE 2.0</title>
+    <!-- html2pdf para exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff1493;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 20, 147, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #adff2f; margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"], input[type="text"], input[type="number"] { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        @keyframes rise { 0% { bottom: 0%; transform: scale(0.3); opacity: 1; } 100% { bottom: 100%; transform: scale(1); opacity: 0; } }
+        .bubble { position: absolute; background: rgba(255,255,255,0.4); border-radius: 50%; pointer-events: none; border: 1px solid rgba(255,255,255,0.2); }
+
+        #visual-root { margin-top: 25px; background: #000; padding: 20px; border: 1px solid #333; border-radius: 6px; display: flex; justify-content: center; align-items: center; gap: 30px; }
+        #ia-box { background: #050505; border: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; display: none; }
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="ts-container">
+            <h2><i class="fa-solid fa-hourglass-end"></i> MÓDULO DE TERMINACIÓN Y SEPARACIÓN - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:15px; margin-bottom:25px;">
+                <button class="btn-elite" id="btn-modo-p" onclick="cambiarModo('paciente')" style="flex:1;">Rúbrica Paciente</button>
+                <button class="btn-outline-elite" id="btn-modo-t" onclick="cambiarModo('terapeuta')" style="flex:1;">Rúbrica Terapeuta</button>
+            </div>
+
+            <!-- CONFIGURACIÓN DINÁMICA -->
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(255, 20, 147, 0.2);">
+                <div style="flex:2;" class="form-group" id="group-paciente">
+                    <label>PACIENTE (FIRESTORE / LOCAL):</label>
+                    <select id="selPacTS"></select>
+                </div>
+                <div style="flex:2; display:none;" class="form-group" id="group-terapeuta">
+                    <label>NOMBRE DEL TERAPEUTA:</label>
+                    <input type="text" id="inputTerapeutaTS" placeholder="Ingrese nombre del terapeuta">
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaTS">
+                </div>
+            </div>
+
+            <div id="cuerpo-rubrica"></div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="calcularYGraficarTS()"><i class="fa-solid fa-chart-pie"></i> Calcular y Graficar</button>
+                <button class="btn-outline-elite" onclick="informeIATS()"><i class="fa-solid fa-robot"></i> Informe IA Literal</button>
+                <button class="btn-elite" style="background:#2c3e50; color:#fff;" onclick="guardarBDTS()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                <button class="btn-elite" style="background:#27ae60; color:#fff;" onclick="guardarPDFTS()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="visual-root" style="display:none;"></div>
+            <div id="ia-box"></div>
+
+            <div class="historial-box">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL RECIENTE</h4>
+                <div id="historial-ts-list">Sin registros aún.</div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        const DATA_RUBRICA = {
+            material: ["Sin material nuevo fuera del foco", "Menciones aisladas de temas nuevos, rápidamente reconducibles al foco original.", "Intentos reiterados de 'abrir frentes' para prolongar la sesión o el contrato.", "Proyección de una 'nueva crisis' inexistente para invalidar el alta."],
+            retroceso: ["Sin síntomas nuevos", "Reaparición transitoria de síntomas leves (ansiedad, insomnio puntual).", "Retorno de la sintomatología que motivó la consulta con intensidad media.", "Colapso de los logros alcanzados; retorno al estado crítico inicial (Pseudo-recaída)."],
+            hostilidad: ["Sin hostilidad", "Quejas sutiles o ironías sobre la utilidad del proceso.", "Reclamos directos, desvalorización de la figura del terapeuta y sus intervenciones.", "Agresión verbal franca; acusación de abandono o maltrato profesional."],
+            acting: ["Sin manifestaciones", "Decisiones impulsivas menores (ej. compras innecesarias).", "Conductas de riesgo moderado o ruptura de encuadres externos (familia/trabajo).", "Acciones impulsivas graves que ponen en riesgo la integridad o el futuro del paciente."],
+            rtn: ["Sin indicadores", "Resistencia a reconocer la mejoría.", "Ausencias injustificadas a las últimas sesiones ('huida hacia adelante').", "Interrupción brusca del tratamiento antes de la fecha pautada."]
+        };
+
+        const DATA_TERAPEUTA = {
+            logro: ["Reconoce y valida la autonomía y los cambios estructurales", "Minimiza sutilmente los avances calificándolos de frágiles.", "Atribuye los éxitos solo a la transferencia, no al sujeto", "Niega sistemáticamente el progreso para justificar la continuidad"],
+            regresion: ["Fomenta la progresión y el cierre de brechas simbólicas.", "Permite regresiones tácticas sin cuestionar el alta a largo plano.", "Induce regresiones innecesarias ante intentos de autonomía.", "Actúa para que el paciente colapse ante la idea de la separación."],
+            dependencia: ["Promueve la auto-regulación (HPA) y la individuación.", "Siente 'preocupación' excesiva por la capacidad del paciente fuera del setting.", "Disfruta del lugar de 'sujeto supuesto saber' de forma omnipotente.", "Fomenta el afán inconsciente de perpetuar el vínculo simbiótico."],
+            gratificacion: ["La gratificación deriva de la eficacia clínica y el alta.", "Aparecen sentimientos de soledad ante la partida del paciente.", "Utiliza al paciente como regulador emocional o fuente de prestigio.", "Evita la ruptura por el dolor personal que le causa la pérdida."]
+        };
+
+        let modoActual = 'paciente';
+        let ultimoResultadoTS = null;
+
+        window.initTS = async function() {
+            const sel = document.getElementById('selPacTS');
+            sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listaPacientes.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                });
+            } catch(e) { console.warn("Firestore inaccesible, usando respaldo local.", e); }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => { if(i.p && !listaPacientes.some(p => p.nombre === i.p)) listaPacientes.push({ id: "local_" + i.p, nombre: i.p }); });
+                });
+            }
+
+            sel.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            listaPacientes.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`; });
+            document.getElementById('fechaTS').value = new Date().toISOString().split('T')[0];
+            
+            renderFormulario();
+            cargarHistorialLocal();
+        };
+
+        window.cambiarModo = function(modo) {
+            modoActual = modo;
+            document.getElementById('btn-modo-p').className = modo === 'paciente' ? 'btn-elite' : 'btn-outline-elite';
+            document.getElementById('btn-modo-t').className = modo === 'terapeuta' ? 'btn-elite' : 'btn-outline-elite';
+            
+            document.getElementById('group-paciente').style.display = modo === 'paciente' ? 'flex' : 'none';
+            document.getElementById('group-terapeuta').style.display = modo === 'terapeuta' ? 'flex' : 'none';
+            
+            renderFormulario();
+        };
+
+        function renderFormulario() {
+            const cont = document.getElementById('cuerpo-rubrica');
+            if(modoActual === 'paciente') {
+                cont.innerHTML = Object.keys(DATA_RUBRICA).map(k => `
+                    <div style="margin-bottom:20px; border-left:2px solid var(--primary-color); padding-left:15px;">
+                        <label style="font-weight:bold; font-size:11px; text-transform:uppercase;">${k}</label>
+                        <div style="display:flex; align-items:center; gap:15px; margin-top:8px;">
+                            <input type="number" min="0" max="3" value="0" class="iv-ts" data-k="${k}" style="width:60px; text-align:center; font-weight:bold;">
+                            <span class="desc-val" style="font-size:11px; color:#aaa;">${DATA_RUBRICA[k][0]}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                cont.innerHTML = Object.keys(DATA_TERAPEUTA).map(k => `
+                    <div style="margin-bottom:20px; border-left:2px solid var(--primary-color); padding-left:15px;">
+                        <label style="font-weight:bold; font-size:11px; text-transform:uppercase;">${k}</label>
+                        <div style="display:flex; align-items:center; gap:15px; margin-top:8px;">
+                            <input type="number" min="1" max="4" value="1" class="iv-ts" data-k="${k}" style="width:60px; text-align:center; font-weight:bold;">
+                            <span class="desc-val" style="font-size:11px; color:#aaa;">${DATA_TERAPEUTA[k][0]}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            document.querySelectorAll('.iv-ts').forEach(inp => {
+                inp.oninput = (e) => {
+                    const k = e.target.dataset.k;
+                    const val = parseInt(e.target.value) || 0;
+                    const descSpan = e.target.parentElement.querySelector('.desc-val');
+                    if(modoActual === 'paciente' && DATA_RUBRICA[k][val]) {
+                        descSpan.textContent = DATA_RUBRICA[k][val];
+                    } else if(modoActual === 'terapeuta' && DATA_TERAPEUTA[k][val-1]) {
+                        descSpan.textContent = DATA_TERAPEUTA[k][val-1];
+                    }
+                };
+            });
+        }
+
+        window.calcularYGraficarTS = function() {
+            let total = 0;
+            document.querySelectorAll('.iv-ts').forEach(i => total += parseInt(i.value) || 0);
+
+            const root = document.getElementById('visual-root');
+            root.style.display = 'flex';
+
+            let diag = "";
+            let color = "#2ecc71";
+            if(modoActual === 'paciente') {
+                if(total <= 8) { diag = "ELABORACIÓN NORMATIVA"; color = "#2ecc71"; }
+                else if(total <= 12) { diag = "RESISTENCIA AGUDA"; color = "#f1c40f"; }
+                else { diag = "DESCOMPENSACIÓN"; color = "#e74c3c"; }
+            } else {
+                if(total <= 6) { diag = "POSICIÓN SALUDABLE"; color = "#2ecc71"; }
+                else if(total <= 10) { diag = "INERCIA TERAPÉUTICA"; color = "#f1c40f"; }
+                else { diag = "RIESGO ÉTICO / IATROGÉNICO"; color = "#e74c3c"; }
+            }
+
+            ultimoResultadoTS = {
+                id: Date.now().toString(),
+                modo: modoActual,
+                entidad: modoActual === 'paciente' ? (document.getElementById('selPacTS').options[document.getElementById('selPacTS').selectedIndex]?.text || "Paciente") : (document.getElementById('inputTerapeutaTS').value || "Terapeuta"),
+                fecha: document.getElementById('fechaTS').value,
+                puntaje: total,
+                diagnostico: diag
+            };
+
+            root.innerHTML = `
+                <div style="text-align:center;">
+                    <div style="font-size:36px; font-weight:bold; color:${color};">${total} pts</div>
+                    <div style="font-size:14px; font-weight:bold; margin-top:5px; color:${color};">${diag}</div>
+                    <div style="font-size:11px; color:#888; margin-top:5px;">Modo: ${modoActual.toUpperCase()}</div>
+                </div>
+            `;
+            root.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.informeIATS = function() {
+            if(!ultimoResultadoTS) calcularYGraficarTS();
+            const box = document.getElementById('ia-box');
+            box.style.display = 'block';
+
+            let txt = `<h3 style="color:var(--primary-color); border-bottom:1px solid var(--primary-color); padding-bottom:5px;">INFORME TÉCNICO - TERMINACIÓN Y SEPARACIÓN (${ultimoResultadoTS.modo.toUpperCase()})</h3>`;
+            txt += `<p><b>Evaluado:</b> ${ultimoResultadoTS.entidad} | <b>Fecha:</b> ${ultimoResultadoTS.fecha} | <b>Puntaje:</b> ${ultimoResultadoTS.puntaje} (${ultimoResultadoTS.diagnostico})</p><br>`;
+            
+            if(ultimoResultadoTS.modo === 'paciente') {
+                if(ultimoResultadoTS.puntaje <= 8) txt += `<p><b>Análisis:</b> Elaboración normativa. Reacciones esperables de duelo por el fin del vínculo. Predomina la función de síntesis del yo y la simbolización de la pérdida.</p>`;
+                else if(ultimoResultadoTS.puntaje <= 12) txt += `<p><b>Análisis:</b> Resistencia aguda. El paciente experimenta la separación como un trauma. Requiere trabajo activo en transferencia.</p>`;
+                else txt += `<p><b>Análisis:</b> Descompensación por separación. Riesgo elevado de iatrogenia o interrupción violenta. El vínculo se tornó una prótesis necesaria.</p>`;
+            } else {
+                if(ultimoResultadoTS.puntaje <= 6) txt += `<p><b>Análisis:</b> Posición saludable. El proceso avanza hacia un final de análisis donde el duelo puede ser elaborado.</p>`;
+                else if(ultimoResultadoTS.puntaje <= 10) txt += `<p><b>Análisis:</b> Inercia terapéutica. Riesgo de estancamiento. Revisar puntos de fijación contratransferencial.</p>`;
+                else txt += `<p><b>Análisis:</b> Riesgo ético/iatrogénico. Tendencia a perpetuar la neurosis transferencial. Imperativo recurrir a supervisión.</p>`;
+            }
+
+            box.innerHTML = txt;
+        };
+
+        window.guardarBDTS = async function() {
+            if(!ultimoResultadoTS) calcularYGraficarTS();
+            
+            let patientId = modoActual === 'paciente' ? document.getElementById('selPacTS').value : "terapeuta_global";
+            if(modoActual === 'paciente' && (!patientId || patientId.startsWith("local_"))) {
+                let localData = JSON.parse(localStorage.getItem('db_ts_local') || '{}');
+                if(!localData[patientId]) localData[patientId] = [];
+                localData[patientId].push(ultimoResultadoTS);
+                localStorage.setItem('db_ts_local', JSON.stringify(localData));
+                alert("¡Guardado exitosamente en respaldo local!");
+                cargarHistorialLocal();
+                return;
+            }
+
+            if(modoActual === 'terapeuta') {
+                let localT = JSON.parse(localStorage.getItem('db_ts_terapeuta') || '[]');
+                localT.push(ultimoResultadoTS);
+                localStorage.setItem('db_ts_terapeuta', JSON.stringify(localT));
+                alert("¡Evaluación de terapeuta guardada localmente!");
+                cargarHistorialLocal();
+                return;
+            }
+
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().test_terminacion ? snap.data().test_terminacion : [];
+                
+                lista.push(ultimoResultadoTS);
+
+                await updateDoc(ref, { test_terminacion: lista });
+                alert("¡Guardado exitosamente en Firestore!");
+                cargarHistorialLocal();
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Error al sincronizar con la base de datos.");
+            }
+        };
+
+        function cargarHistorialLocal() {
+            let allRecords = [];
+            let localData = JSON.parse(localStorage.getItem('db_ts_local') || '{}');
+            Object.values(localData).forEach(arr => allRecords = allRecords.concat(arr));
+            let localT = JSON.parse(localStorage.getItem('db_ts_terapeuta') || '[]');
+            allRecords = allRecords.concat(localT);
+
+            const container = document.getElementById('historial-ts-list');
+            if(allRecords.length === 0) {
+                container.innerHTML = "Sin registros aún.";
+                return;
+            }
+
+            container.innerHTML = allRecords.slice(-5).reverse().map(r => `
+                <div style="border-bottom:1px solid #222; padding:6px 0; display:flex; justify-content:space-between;">
+                    <span>📅 <b>${r.fecha}</b> | [${r.modo.toUpperCase()}] ${r.entidad} | <b>${r.diagnostico}</b></span>
+                    <span style="color:var(--primary-color); font-weight:bold;">${r.puntaje} pts</span>
+                </div>
+            `).join('');
+        }
+
+        window.guardarPDFTS = function() {
+            const element = document.getElementById('ts-container');
+            const opt = { margin: 0.4, filename: `Terminacion_Separacion.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initTS();
+    </script>
+</body>
+</html>
