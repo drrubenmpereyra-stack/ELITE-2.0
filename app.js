@@ -269,11 +269,11 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
             } else if (terKey === "Medidor de reserva neural") {
                 cargarVistaIframe("reserva_neural.html");
             } else if (terKey === "Medidor autoestima") {
-                cargarVistaIframe("medidor_autoestma.html");
+                cargarVistaIframe("medidor_autoestima.html");
             } else if (terKey === "Termómetro de identidad") {
                 cargarVistaIframe("term_identidad.html");
             } else if (terKey === "Medidor de ansiedad") {
-                cargarVistaIframe("madidor_ansiedad.html");
+                cargarVistaIframe("medidor_ansiedad.html");
             } else if (terKey === "Alivio sintomático") {
                 cargarVistaIframe("alivio_sintomatico.html");
             } else {
