@@ -207,6 +207,24 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
                     cargarVistaIframe("interconsulta.html");
+                } else if (secKey === "3.1 Potencial acting out") {
+                    cargarVistaIframe("acting_out.html");
+                } else if (secKey === "3.2 Exp emocional creativa") {
+                    cargarVistaIframe("esp_em_creativa.html");
+                } else if (secKey === "3.4 Psicodiagnóstico") {
+                    cargarVistaIframeExterna("https://drrubenmpereyra-stack.github.io/LANZADOR-TEST-Drpereyra-Suite-Elite-7.0/");
+                } else if (secKey === "3.6 Riesgos en PB") {
+                    cargarVistaIframe("riesgos_PB.html");
+                } else if (secKey === "3.7 Memorias traumáticas") {
+                    cargarVistaIframe("memorias_trauma.html");
+                } else if (secKey === "3.8 Ritmos circadianos") {
+                    cargarVistaIframe("ritmos_circadianos.html");
+                } else if (secKey === "3.9 Mapeos visuales") {
+                    cargarVistaIframe("mapeos_visuales.html");
+                } else if (secKey === "3.10 Adherencia al tratamiento") {
+                    cargarVistaIframe("ad_tratamiento.html");
+                } else if (secKey === "3.11 Resonancia CT") {
+                    cargarVistaIframe("resonancia_CT.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -273,7 +291,7 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
             } else if (terKey === "Medidor de reserva neural") {
                 cargarVistaIframe("reserva_neural.html");
             } else if (terKey === "Medidor autoestima") {
-                cargarVistaIframe("medidor_autoestima.html");
+                cargarVistaIframe("medidor_autoestma.html");
             } else if (terKey === "Termómetro de identidad") {
                 cargarVistaIframe("term_identidad.html");
             } else if (terKey === "Medidor de ansiedad") {
@@ -294,10 +312,16 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
     });
 }
 
-// Función general para cargar vistas HTML limpias mediante iframe
+// Función general para cargar vistas HTML limpias mediante iframe local
 function cargarVistaIframe(archivoHtml) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<iframe src="${archivoHtml}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
+}
+
+// Función para cargar URLs externas (como el lanzador de GitHub) mediante iframe
+function cargarVistaIframeExterna(urlExterna) {
+    const contentArea = document.getElementById('content-area');
+    contentArea.innerHTML = `<iframe src="${urlExterna}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
 }
 
 function mostrarContenido(seccion) {
