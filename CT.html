@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Indicadores Contratransferenciales (CT) - ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff1493;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(255, 20, 147, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 1rem; color: #adff2f; margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"], input[type="text"], textarea { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; background: #0a0a0a; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+        .checkbox-item:hover { border-color: var(--primary-color); }
+        .checkbox-item input { accent-color: var(--primary-color); transform: scale(1.1); cursor: pointer; }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+        .btn-outline-elite { background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; }
+
+        #res-ct-box { background: #050505; border: 1px solid var(--primary-color); padding: 25px; margin-top: 15px; font-size: 12px; line-height: 1.6; border-radius: 6px; color: #ccc; display: none; }
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="ct-container">
+            <h2><i class="fa-solid fa-masks-theater"></i> REGISTRO DE INDICADORES CONTRATRANSFERENCIALES (CT) - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(255, 20, 147, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>PACIENTE (FIRESTORE / LOCAL):</label>
+                    <select id="selPacCT"></select>
+                </div>
+                <div style="flex:1;" class="form-group">
+                    <label>FECHA:</label>
+                    <input type="date" id="fechaCT">
+                </div>
+            </div>
+
+            <h3>Reacciones Afectivas</h3>
+            <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Empatía/Sintonía"> Empatía/Sintonía</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Ansiedad/Tensión"> Ansiedad/Tensión</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Aburrimiento/Desinterés"> Aburrimiento/Desinterés</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Irritación/Enojo"> Irritación/Enojo</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Deseo de protección"> Deseo de protección</label>
+            </div>
+
+            <h3>Indicadores Clínicos</h3>
+            <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Identificación Proyectiva"> Identificación Proyectiva</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Resonancia Somática"> Resonancia Somática</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Tendencia al Acting-out"> Tendencia al Acting-out</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Bloqueo Cognitivo"> Bloqueo Cognitivo</label>
+                <label class="checkbox-item"><input type="checkbox" name="ct-ind" value="Tinte Erótico"> Tinte Erótico</label>
+            </div>
+
+            <h3>Otros Indicadores Personalizados</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="otro-indicador-input" placeholder="Añadir otro indicador..." style="flex: 1;">
+                <button type="button" class="btn-outline-elite" onclick="agregarOtroIndicador()" style="padding: 10px 15px; font-size: 11px;">Agregar</button>
+            </div>
+            <div class="checkbox-grid" id="otros-indicadores-container"></div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>OBSERVACIONES CLÍNICAS:</label>
+                <textarea id="obsCT" placeholder="Describa el contexto y análisis de los indicadores contratransferenciales..."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:25px;">
+                <button class="btn-elite" onclick="generarInformeCT()"><i class="fa-solid fa-file-lines"></i> Informe / Resumen</button>
+                <button class="btn-elite" style="background:#2c3e50; color:#fff;" onclick="guardarBDCT()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                <button class="btn-elite" style="background:#27ae60; color:#fff;" onclick="guardarPDFCT()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+            </div>
+
+            <div id="res-ct-box"></div>
+
+            <div class="historial-box">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL DE REGISTROS CONTRATRANSFERENCIALES</h4>
+                <div id="historial-ct-list">Sin registros almacenados.</div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        let ultimoRegistroCT = null;
+
+        window.initCT = async function() {
+            const sel = document.getElementById('selPacCT');
+            sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+            let listaPacientes = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listaPacientes.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                });
+            } catch(e) { console.warn("Firestore inaccesible, usando respaldo local.", e); }
+
+            if(listaPacientes.length === 0) {
+                ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => { if(i.p && !listaPacientes.some(p => p.nombre === i.p)) listaPacientes.push({ id: "local_" + i.p, nombre: i.p }); });
+                });
+            }
+
+            sel.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            listaPacientes.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`; });
+            document.getElementById('fechaCT').value = new Date().toISOString().split('T')[0];
+            cargarHistorialLocal();
+        };
+
+        window.agregarOtroIndicador = function() {
+            const input = document.getElementById('otro-indicador-input');
+            const val = input.value.trim();
+            if(!val) return;
+
+            const container = document.getElementById('otros-indicadores-container');
+            const div = document.createElement('label');
+            div.className = 'checkbox-item';
+            div.innerHTML = `<input type="checkbox" name="ct-ind" value="${val}" checked> ${val}`;
+            container.appendChild(div);
+            input.value = '';
+        };
+
+        window.generarInformeCT = function() {
+            const sel = document.getElementById('selPacCT');
+            const patientId = sel.value;
+            const patientName = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : "No seleccionado";
+            const fecha = document.getElementById('fechaCT').value;
+            const obs = document.getElementById('obsCT').value.trim();
+
+            const checkboxes = document.querySelectorAll('input[name="ct-ind"]:checked');
+            const seleccionados = Array.from(checkboxes).map(cb => cb.value);
+
+            if(!patientId) {
+                alert("Seleccione un paciente.");
+                return;
+            }
+
+            ultimoRegistroCT = {
+                id: Date.now().toString(),
+                patientId,
+                patientName,
+                fecha,
+                indicadores: seleccionados,
+                observaciones: obs
+            };
+
+            const box = document.getElementById('res-ct-box');
+            box.style.display = 'block';
+            box.innerHTML = `
+                <h3 style="color:var(--primary-color); border-bottom:1px solid var(--primary-color); padding-bottom:5px; margin-top:0;">RESUMEN DE REGISTRO CONTRATRANSFERENCIAL</h3>
+                <p><b>Paciente:</b> ${patientName}</p>
+                <p><b>Fecha:</b> ${fecha}</p>
+                <p><b>Indicadores Seleccionados:</b> ${seleccionados.length > 0 ? seleccionados.join(', ') : 'Ninguno'}</p>
+                <p><b>Observaciones:</b> ${obs || 'Sin observaciones registradas.'}</p>
+            `;
+            box.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.guardarBDCT = async function() {
+            if(!ultimoRegistroCT) {
+                generarInformeCT();
+                if(!ultimoRegistroCT || !ultimoRegistroCT.patientId) return;
+            }
+
+            const patientId = ultimoRegistroCT.patientId;
+            if (patientId.startsWith("local_")) {
+                let localData = JSON.parse(localStorage.getItem('db_ct_local') || '{}');
+                if(!localData[patientId]) localData[patientId] = [];
+                localData[patientId].push(ultimoRegistroCT);
+                localStorage.setItem('db_ct_local', JSON.stringify(localData));
+                alert("¡Registro guardado en almacenamiento local (respaldo)!");
+                cargarHistorialLocal();
+                return;
+            }
+
+            try {
+                const ref = doc(dbFirestore, "patients", patientId);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().test_contratransferencial ? snap.data().test_contratransferencial : [];
+                
+                lista.push(ultimoRegistroCT);
+
+                await updateDoc(ref, { test_contratransferencial: lista });
+                alert("¡Registro contratransferencial guardado exitosamente en Firestore!");
+                cargarHistorialLocal();
+            } catch (err) {
+                console.error("Error al guardar en Firestore:", err);
+                alert("Error al sincronizar con la base de datos.");
+            }
+        };
+
+        function cargarHistorialLocal() {
+            let localData = JSON.parse(localStorage.getItem('db_ct_local') || '{}');
+            let allRecords = [];
+            Object.values(localData).forEach(arr => allRecords = allRecords.concat(arr));
+
+            const container = document.getElementById('historial-ct-list');
+            if(allRecords.length === 0) {
+                container.innerHTML = "Sin registros almacenados.";
+                return;
+            }
+
+            container.innerHTML = allRecords.slice(-5).reverse().map(r => `
+                <div style="border-bottom:1px solid #222; padding:6px 0; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📅 <b>${r.fecha}</b> | Paciente: <b>${r.patientName}</b><br><small style="color:#888;">Indicadores: ${r.indicadores.join(', ') || 'Ninguno'}</small></span>
+                </div>
+            `).join('');
+        }
+
+        window.guardarPDFCT = function() {
+            const sel = document.getElementById('selPacCT');
+            if (!sel.value) { alert("Seleccione un paciente primero."); return; }
+            const pac = sel.options[sel.selectedIndex].text;
+            const element = document.getElementById('ct-container');
+            
+            const opt = { margin: 0.4, filename: `Contratransferencia_${pac.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: '#050505' }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save();
+        };
+
+        initCT();
+    </script>
+</body>
+</html>
