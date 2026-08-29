@@ -231,6 +231,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("CT.html");
                 } else if (secKey === "4.3 Terminación Separación") {
                     cargarVistaIframe("terminacion_separacion.html");
+                } else if (secKey === "4.5 Farmacología") {
+                    cargarVistaIframe("farmacologia.html");
                 } else {
                     mostrarContenido(secKey);
                 }
