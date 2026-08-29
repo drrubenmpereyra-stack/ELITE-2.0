@@ -210,7 +210,7 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 } else if (secKey === "3.1 Potencial acting out") {
                     cargarVistaIframe("acting_out.html");
                 } else if (secKey === "3.2 Exp emocional creativa") {
-                    cargarVistaIframe("exp_em_creativa.html");
+                    cargarVistaIframe("esp_em_creativa.html");
                 } else if (secKey === "3.4 Psicodiagnóstico") {
                     cargarVistaIframeExterna("https://drrubenmpereyra-stack.github.io/LANZADOR-TEST-Drpereyra-Suite-Elite-7.0/");
                 } else if (secKey === "3.6 Riesgos en PB") {
@@ -225,6 +225,12 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("ad_tratamiento.html");
                 } else if (secKey === "3.11 Resonancia CT") {
                     cargarVistaIframe("resonancia_CT.html");
+                } else if (secKey === "4.1 Exp emocional creador T") {
+                    cargarVistaIframe("exp_em_creativaT.html");
+                } else if (secKey === "4.2 Contratransferencia") {
+                    cargarVistaIframe("CT.html");
+                } else if (secKey === "4.3 Terminación Separación") {
+                    cargarVistaIframe("terminacion_separacion.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -304,6 +310,14 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("ansiedad_beck.html");
             } else if (terKey === "Depresión de Beck") {
                 cargarVistaIframe("depresion_beck.html");
+            } else if (terKey === "4.4.1 Rol profesional") {
+                cargarVistaIframe("rol_profesional.html");
+            } else if (terKey === "4.4.2 Alianza terapéutica") {
+                cargarVistaIframe("alianza_terapeutica.html");
+            } else if (terKey === "4.4.3 Estilo de intervención y eficacia") {
+                cargarVistaIframe("estilo_eficacia.html");
+            } else if (terKey === "4.4.4 Cuidado del self y estado psicofisiológico") {
+                cargarVistaIframe("cuidado_self.html");
             } else {
                 mostrarContenido(terKey);
             }
