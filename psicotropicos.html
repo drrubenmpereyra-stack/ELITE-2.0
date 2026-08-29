@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vademécum Psicotrópicos - ELITE 2.0</title>
+    <!-- jsPDF para exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #06b6d4;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 950px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(6, 182, 212, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h4 { font-size: 1rem; color: #adff2f; margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, textarea { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+        textarea { resize: vertical; min-height: 120px; }
+
+        .btn-elite { background: var(--primary-color); color: #000; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin: 5px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.85; }
+
+        .preview-container { margin-top: 20px; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; }
+        .preview-container img { max-width: 100%; height: auto; border-radius: 6px; border: 1px solid #333; }
+
+        .historial-box { background: #0a0a0a; border: 1px solid #222; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="psicotropicos-container">
+            <h2><i class="fa-solid fa-pills"></i> VADEMÉCUM DE PSICOTRÓPICOS - ELITE 2.0</h2>
+
+            <div style="display:flex; gap:20px; background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(6, 182, 212, 0.2);">
+                <div style="flex:2;" class="form-group">
+                    <label>SELECCIONAR PACIENTE:</label>
+                    <select id="psicotropico-paciente-select" onchange="MODULO_PSICOTROPICOS.seleccionarPaciente(this.value)"></select>
+                </div>
+                <div style="flex:2;" class="form-group">
+                    <label>SELECCIONAR FÁRMACO (VADEMÉCUM):</label>
+                    <select id="psicotropico-esquema-select" onchange="MODULO_PSICOTROPICOS.mostrarEsquema(this.value)">
+                        <option value="">-- Seleccione un psicotrópico --</option>
+                        <option value="ALPRAZOLAM.png">Alprazolam</option>
+                        <option value="ARIPIPRAZOL.png">Aripiprazol</option>
+                        <option value="CLONAZEPAN.png">Clonazepam</option>
+                        <option value="CLOZAPINA.png">Clozapina</option>
+                        <option value="DIAZEPAN.png">Diazepam</option>
+                        <option value="ESCITALOPRAM.png">Escitalopram</option>
+                        <option value="FLUOXETINA.png">Fluoxetina</option>
+                        <option value="LAMOTRIGINA.png">Lamotrigina</option>
+                        <option value="LITIO.png">Litio</option>
+                        <option value="LORAZEPAN.png">Lorazepam</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="preview-container" id="preview-wrapper" style="display:none;">
+                <h4 id="titulo-esquema" style="margin-bottom:10px; color:var(--primary-color);"></h4>
+                <img id="imagen-esquema" src="" alt="Ficha del Fármaco">
+            </div>
+
+            <div id="form-hipotesis-cuerpo" style="display:none; margin-top:20px;">
+                <div class="form-group">
+                    <label>OBSERVACIONES CLÍNICAS SOBRE EL FÁRMACO:</label>
+                    <textarea id="observacionesFarmaTexto" placeholder="Escriba aquí las observaciones clínicas sobre el fármaco, respuesta terapéutica, tolerancia y seguimiento farmacológico..."></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:15px;">
+                    <button class="btn-elite" onclick="MODULO_PSICOTROPICOS.guardarBD()" style="background:#16a34a; color:#fff;"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                    <button class="btn-elite" onclick="MODULO_PSICOTROPICOS.informePDF()" style="background:#2563eb; color:#fff;"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+                </div>
+            </div>
+
+            <div class="historial-box">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 13px;">HISTORIAL DE OBSERVACIONES CLÍNICAS</h4>
+                <div id="historial-psicotropicos-list">Sin registros aún.</div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        window.MODULO_PSICOTROPICOS = {
+            pacienteSeleccionado: null,
+
+            init: async function() {
+                const sel = document.getElementById('psicotropico-paciente-select');
+                sel.innerHTML = '<option value="">Cargando pacientes...</option>';
+                let listaPacientes = [];
+
+                try {
+                    const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                    querySnapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        listaPacientes.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                    });
+                } catch(e) { console.warn("Firestore inaccesible, usando respaldo local.", e); }
+
+                if(listaPacientes.length === 0) {
+                    ["mem", "EPN", "CCRT", "icc"].forEach(k => {
+                        let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                        d.forEach(i => { if(i.p && !listaPacientes.some(p => p.nombre === i.p)) listaPacientes.push({ id: "local_" + i.p, nombre: i.p }); });
+                    });
+                }
+
+                sel.innerHTML = '<option value="">-- Seleccione un paciente --</option>';
+                listaPacientes.forEach(p => { sel.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`; });
+                window.dbPacientesGlobal = listaPacientes;
+            },
+
+            seleccionarPaciente: function(id) {
+                if (!id) {
+                    this.pacienteSeleccionado = null;
+                } else {
+                    const lista = window.dbPacientesGlobal || [];
+                    this.pacienteSeleccionado = lista.find(p => p.id == id) || { id, nombre: "Paciente" };
+                }
+                this.verificarEstadoFormulario();
+                this.cargarHistorialLocal();
+            },
+
+            mostrarEsquema: function(nombreArchivo) {
+                const wrapper = document.getElementById('preview-wrapper');
+                const img = document.getElementById('imagen-esquema');
+                const titulo = document.getElementById('titulo-esquema');
+
+                if (!nombreArchivo) {
+                    wrapper.style.display = 'none';
+                } else {
+                    wrapper.style.display = 'block';
+                    img.src = nombreArchivo;
+                    titulo.innerText = document.getElementById('psicotropico-esquema-select').selectedOptions[0].text;
+                }
+                this.verificarEstadoFormulario();
+            },
+
+            verificarEstadoFormulario: function() {
+                const pac = this.pacienteSeleccionado;
+                const esquema = document.getElementById('psicotropico-esquema-select').value;
+                const cuerpo = document.getElementById('form-hipotesis-cuerpo');
+
+                if (pac && esquema) {
+                    cuerpo.style.display = 'block';
+                } else {
+                    cuerpo.style.display = 'none';
+                }
+            },
+
+            guardarBD: async function() {
+                const pac = this.pacienteSeleccionado;
+                const selectEsquema = document.getElementById('psicotropico-esquema-select');
+                const esquemaArchivo = selectEsquema.value;
+                const esquemaNombre = selectEsquema.selectedOptions[0].text;
+                const observaciones = document.getElementById('observacionesFarmaTexto').value.trim();
+
+                if (!pac || !esquemaArchivo || !observaciones) {
+                    alert("Seleccione paciente, fármaco y escriba las observaciones clínicas.");
+                    return;
+                }
+
+                const nuevoRegistro = {
+                    id: Date.now().toString(),
+                    fecha: new Date().toLocaleDateString(),
+                    esquemaArchivo,
+                    esquemaNombre,
+                    observaciones
+                };
+
+                if (pac.id.startsWith("local_") || !dbFirestore) {
+                    let localData = JSON.parse(localStorage.getItem('db_psicotropicos_local') || '{}');
+                    if(!localData[pac.id]) localData[pac.id] = [];
+                    localData[pac.id].push(nuevoRegistro);
+                    localStorage.setItem('db_psicotropicos_local', JSON.stringify(localData));
+                    alert("¡Observaciones clínicas guardadas en almacenamiento local!");
+                    this.cargarHistorialLocal();
+                    return;
+                }
+
+                try {
+                    const ref = doc(dbFirestore, "patients", pac.id);
+                    const snap = await getDoc(ref);
+                    let lista = snap.exists() && snap.data().test_psicotropicos ? snap.data().test_psicotropicos : [];
+                    lista.push(nuevoRegistro);
+                    await updateDoc(ref, { test_psicotropicos: lista });
+                    alert("¡Observaciones clínicas guardadas exitosamente en Firestore!");
+                    this.cargarHistorialLocal();
+                } catch (err) {
+                    console.error("Error al guardar en Firestore:", err);
+                    alert("Error al sincronizar con la base de datos.");
+                }
+            },
+
+            cargarHistorialLocal: function() {
+                const pac = this.pacienteSeleccionado;
+                const container = document.getElementById('historial-psicotropicos-list');
+                if(!pac) {
+                    container.innerHTML = "Seleccione un paciente para ver su historial.";
+                    return;
+                }
+
+                let registros = [];
+                let localData = JSON.parse(localStorage.getItem('db_psicotropicos_local') || '{}');
+                registros = localData[pac.id] || [];
+
+                if(registros.length === 0) {
+                    container.innerHTML = "Sin registros almacenados para este paciente.";
+                    return;
+                }
+
+                container.innerHTML = registros.slice(-5).reverse().map(r => `
+                    <div style="border-bottom:1px solid #222; padding:8px 0;">
+                        📅 <b>${r.fecha}</b> | Fármaco: <b>${r.esquemaNombre}</b><br>
+                        <p style="color:#aaa; margin-top:4px; font-style:italic;">"${r.observaciones}"</p>
+                    </div>
+                `).join('');
+            },
+
+            informePDF: function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pac = this.pacienteSeleccionado?.nombre || "Sin nombre";
+                const selectEsquema = document.getElementById('psicotropico-esquema-select');
+                const esquemaNombre = selectEsquema.selectedOptions[0].text;
+                const observaciones = document.getElementById('observacionesFarmaTexto').value.trim();
+
+                if (!pac || !observaciones) {
+                    alert("Complete los datos y observaciones para generar el PDF.");
+                    return;
+                }
+
+                doc.setFillColor(6, 182, 212);
+                doc.rect(0, 0, 210, 15, 'F');
+                doc.setFontSize(18); doc.setTextColor(255, 255, 255);
+                doc.text("INFORME VADEMÉCUM PSICOTRÓPICOS - ELITE 2.0", 105, 10, {align: 'center'});
+
+                doc.setFontSize(12); doc.setTextColor(0, 0, 0);
+                doc.text(`Paciente: ${pac}`, 20, 30);
+                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
+                doc.text("------------------------------------------------------------------------------------", 20, 35);
+
+                doc.setFont("helvetica", "bold");
+                doc.text(`Fármaco Evaluado: ${esquemaNombre}`, 20, 45);
+                
+                doc.setFont("helvetica", "normal");
+                doc.text("Observaciones clínicas sobre el fármaco:", 20, 55);
+                
+                const splitObs = doc.splitTextToSize(observaciones, 170);
+                doc.text(splitObs, 20, 65);
+
+                let yFinal = 65 + (splitObs.length * 7) + 15;
+                doc.setFont("helvetica", "bold");
+                doc.text("Seguimiento Farmacológico y Tolerancia:", 20, yFinal);
+                doc.rect(20, yFinal + 4, 170, 35);
+
+                doc.save(`Vademecum_${esquemaNombre.replace(/\s+/g, '_')}_${pac.replace(/\s+/g, '_')}.pdf`);
+            }
+        };
+
+        MODULO_PSICOTROPICOS.init();
+    </script>
+</body>
+</html>

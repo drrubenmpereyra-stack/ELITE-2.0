@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rúbricas y Evaluaciones Clínicas - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #f59e0b;
+            --bg-dark: #000000;
+            --panel-dark: #050505;
+            --border-color: #222222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-dark); color: #fff; padding: 20px; line-height: 1.4; }
+
+        .container { max-width: 950px; margin: 0 auto; }
+        .card { background: var(--panel-dark); border-radius: 8px; padding: 25px; box-shadow: 0 0 15px rgba(245, 158, 11, 0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        h4 { font-size: 1rem; color: #adff2f; margin: 15px 0 10px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 10px 12px; background: #000; color: #fff; border: 1px solid var(--primary-color); border-radius: 4px; font-size: 0.9rem; outline: none; }
+
+        .preview-container { margin-top: 20px; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; position: relative; }
+        
+        /* Permitir scroll pero bloquear clics directos sobre las opciones nativas del visor de Google Drive */
+        .iframe-blocker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 40px); /* Deja libre la parte inferior si es necesario o usa pointer-events */
+            z-index: 10;
+            pointer-events: none; /* Permite el scroll nativo con la rueda del ratón */
+            background: transparent;
+        }
+
+        .preview-container iframe { width: 100%; height: 600px; border: 1px solid #333; border-radius: 6px; background: #fff; overflow-y: auto; }
+        .aviso-seguridad { font-size: 0.75rem; color: #888; margin-top: 8px; text-align: center; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card" id="rubricas-container">
+            <h2><i class="fa-solid fa-file-shield"></i> RÚBRICAS Y EVALUACIONES CLÍNICAS - ELITE 2.0</h2>
+
+            <div style="background:#0a0a0a; padding:20px; margin-bottom:20px; border:1px solid rgba(245, 158, 11, 0.2);">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>SELECCIONAR DOCUMENTO / RÚBRICA:</label>
+                    <select id="rubrica-select" onchange="MODULO_RUBRICAS.mostrarRubrica(this.value)">
+                        <option value="">-- Seleccione un documento para visualizar --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="preview-container" id="preview-wrapper" style="display:none;">
+                <h4 id="titulo-documento" style="margin-bottom:10px; color:var(--primary-color);"></h4>
+                <div style="position:relative; width:100%; overflow:hidden;">
+                    <iframe id="iframe-documento" src="" frameborder="0"></iframe>
+                </div>
+                <div class="aviso-seguridad">Modo de visualización protegido: La descarga e impresión directa se encuentran deshabilitadas por políticas de seguridad clínica.</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const DOCS = {
+            manual: {
+                titulo: "MANUAL MAESTRO DE USUARIO V7.0",
+                view: "https://drive.google.com/file/d/1SSyRVirM8Yfc1A5_8avcU4w9KGEkz5bA/preview"
+            },
+            fiorini: {
+                titulo: "TEXTO HÉCTOR FIORINI",
+                view: "https://drive.google.com/file/d/1oVV4za7hOpwJ74zQTS_B_HIu5B1zKIRI/preview"
+            },
+            rubrica_autoeval: {
+                titulo: "RÚBRICA: AUTOEVALUACIÓN INTERVENCIONES",
+                view: "https://drive.google.com/file/d/1kJXSNJ8JbQeJfR7NsSDtpKO0O6t05xIL/preview"
+            },
+            rol_profesional: {
+                titulo: "AUTOEVALUACIÓN DEL ROL PROFESIONAL",
+                view: "https://drive.google.com/file/d/1eWbDKvBTU5KhbsBTFmlJXRI96DwnVNQ6/preview"
+            },
+            alianza: {
+                titulo: "EVALUACIÓN: ALIANZA TERAPÉUTICA",
+                view: "https://drive.google.com/file/d/1h9CQ7CTeNziHRnaRQBtN_d9xu3iO-KaU/preview"
+            },
+            relacion_trabajo: {
+                titulo: "RELACIÓN DE TRABAJO PERSONALIZADA",
+                view: "https://drive.google.com/file/d/17zjEa5HrcDSxknvREEL1fpGceUjF-Cev/preview"
+            },
+            contratransferencia: {
+                titulo: "EVALUACIÓN DE LA CONTRATRANSFERENCIA",
+                view: "https://drive.google.com/file/d/17ZbdhZvdKaQ1HPUPDz8s2fYOIq5Nh-WU/preview"
+            },
+            ansiedad: {
+                titulo: "EVALUACIÓN CLÍNICA DE LA ANSIEDAD",
+                view: "https://drive.google.com/file/d/1nIta7osXWduG9r6Xj5pjnKcGUaWgTy5A/preview"
+            },
+            identidad: {
+                titulo: "EVALUACIÓN CLÍNICA DE LA IDENTIDAD",
+                view: "https://drive.google.com/file/d/1GaWlVqqJz27wnZIdCdBZyxTx8-hihqC6/preview"
+            },
+            autoestima: {
+                titulo: "EVALUACIÓN INTEGRAL DE LA AUTOESTIMA",
+                view: "https://drive.google.com/file/d/1XV85Dh3N4jjmbdsqQ0TrcyIzR_kn8TLa/preview"
+            },
+            acting_out: {
+                titulo: "EVALUACIÓN: ACTING OUT",
+                view: "https://drive.google.com/file/d/1rD_EHcoVV71jEpejlz1SVYQuztW8PmDW/preview"
+            },
+            conflicto_central: {
+                titulo: "RESOLUCIÓN DEL CONFLICTO CENTRAL",
+                view: "https://drive.google.com/file/d/1koscONBJQ0ia-tB8C0oOIxdBARbjvDj0/preview"
+            },
+            funciones_yoicas: {
+                titulo: "EVALUACIÓN: FUNCIONES YOICAS",
+                view: "https://drive.google.com/file/d/1mjsdGxo0edZ5JL6eaVujJFNQJPVARp9G/preview"
+            },
+            competencia_eec: {
+                titulo: "COMPETENCIA DEL TERAPEUTA EN EEC",
+                view: "https://drive.google.com/file/d/16IWINLOJA4xrSGH45rhWTSPMjSrjUzP7/preview"
+            },
+            matriz_epn: {
+                titulo: "CONSTRUCTOS MATRIZ EPN",
+                view: "https://drive.google.com/file/d/1TMoTog5P8UaQm9sctBNWYzQBNFejtaWZ/preview"
+            },
+            ello_diagnostico: {
+                titulo: "EL ELLO DIAGNÓSTICO PULSIONAL",
+                view: "https://drive.google.com/file/d/1Q17fDkYG32noFC4DrM2tFf2_0tlRHxaj/preview"
+            },
+            evaluacion_sy: {
+                titulo: "EVALUACIÓN DEL SUPER YÓ",
+                view: "https://drive.google.com/file/d/1Dedtvdu9-UfW0Ijc79R8Mkz4CqpLqIQ4/preview"
+            },
+            valoracion_yo: {
+                titulo: "VALORACIÓN CONSTITUTIVA DEL YO",
+                view: "https://drive.google.com/file/d/1654JUq1GKxBnEn7ulp1yDXxNRfXgih7v/preview"
+            }
+        };
+
+        window.MODULO_RUBRICAS = {
+            init: function() {
+                const select = document.getElementById('rubrica-select');
+                for (const [key, doc] of Object.entries(DOCS)) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = doc.titulo;
+                    select.appendChild(option);
+                }
+                console.log("Biblioteca Clínica Elite 7.0 Cargada.");
+            },
+
+            mostrarRubrica: function(key) {
+                const wrapper = document.getElementById('preview-wrapper');
+                const iframe = document.getElementById('iframe-documento');
+                const titulo = document.getElementById('titulo-documento');
+
+                if (!key || !DOCS[key]) {
+                    wrapper.style.display = 'none';
+                    iframe.src = '';
+                    return;
+                }
+
+                const docData = DOCS[key];
+                titulo.textContent = docData.titulo;
+                iframe.src = docData.view;
+                wrapper.style.display = 'block';
+            }
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's')) {
+                e.preventDefault();
+                alert("La función de impresión y descarga está deshabilitada en este módulo protegido.");
+            }
+        });
+
+        MODULO_RUBRICAS.init();
+    </script>
+</body>
+</html>
