@@ -203,6 +203,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
                     cargarVistaIframe("interconsulta.html");
+                } else if (secKey === "3.4 Psicodiagnóstico") {
+                    cargarVistaIframeExterna("https://drrubenmpereyra-stack.github.io/LANZADOR-TEST-Drpereyra-Suite-Elite-7.0/");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -284,10 +286,16 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
     });
 }
 
-// Función general para cargar vistas HTML limpias mediante iframe
+// Función general para cargar vistas HTML limpias mediante iframe local
 function cargarVistaIframe(archivoHtml) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<iframe src="${archivoHtml}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
+}
+
+// Función para cargar URLs externas (como el lanzador de GitHub) mediante iframe
+function cargarVistaIframeExterna(urlExterna) {
+    const contentArea = document.getElementById('content-area');
+    contentArea.innerHTML = `<iframe src="${urlExterna}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
 }
 
 function mostrarContenido(seccion) {
