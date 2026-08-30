@@ -302,7 +302,7 @@
                 <div style="display:flex; gap:10px; margin-top:25px; flex-wrap: wrap;">
                     <button onclick="MODULO_ENTREVISTA.guardarBD()" class="btn btn-save" style="flex:1; min-width: 200px;"><i class="fa-solid fa-cloud-arrow-up"></i> GUARDAR EN BD</button>
                     <button onclick="MODULO_ENTREVISTA.consultarIA()" class="btn btn-ia" style="flex:1; min-width: 200px;"><i class="fa-solid fa-wand-magic-sparkles"></i> INTERPRETACIÓN IA</button>
-                    <button onclick="MODULO_ENTREVISTA.guardarPDF()" class="btn btn-success" style="flex:1; min-width: 200px;"><i class="fa-solid fa-file-pdf"></i> GUARDAR PDF</button>
+                    <button onclick="MODULO_ENTREVISTA.conformarInforme()" class="btn btn-secondary" style="flex:1; min-width: 200px;"><i class="fa-solid fa-file-waveform"></i> CONFORMAR INFORME</button>
                 </div>
                 
                 <div id="ent-ia-output"></div>
@@ -311,13 +311,10 @@
         </div>
     </main>
 
-    <!-- Librería jsPDF para generación de reportes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <!-- Script de Firebase e Integración de la Entrevista -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -347,7 +344,7 @@
                         this.listaPacientes.push({ id: docSnap.id, ...data });
                         const opt = document.createElement('option');
                         opt.value = docSnap.id;
-                        opt.textContent = data.name;
+                        opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                         selectEl.appendChild(opt);
                     });
                 } catch (error) {
@@ -365,7 +362,7 @@
                 }
                 this.pacienteSeleccionado = this.listaPacientes.find(p => p.id == id);
                 if (this.pacienteSeleccionado) {
-                    document.getElementById('disp-nombre').textContent = this.pacienteSeleccionado.name;
+                    document.getElementById('disp-nombre').textContent = this.pacienteSeleccionado.name || this.pacienteSeleccionado.nombre || 'Sin nombre';
                     document.getElementById('disp-motivo').textContent = this.pacienteSeleccionado.motivo || 'Sin motivo especificado';
                     document.getElementById('patient-selected-display').style.display = 'block';
                     document.getElementById('form-entrevista-cuerpo').style.display = 'block';
@@ -434,7 +431,7 @@
                 const eficaciaCount = document.querySelectorAll('#ent-indicadores-eficacia input:checked').length;
                 
                 out.style.display = 'block';
-                let interpretacion = `<b>Interpretación IA:</b> En base a la entrevista inicial con <b>${this.pacienteSeleccionado?.name || 'el paciente'}</b>, se observa un nivel de motivación de ${motivacionCount}/6. `;
+                let interpretacion = `<b>Interpretación IA:</b> En base a la entrevista inicial con <b>${this.pacienteSeleccionado?.name || this.pacienteSeleccionado?.nombre || 'el paciente'}</b>, se observa un nivel de motivación de ${motivacionCount}/6. `;
                 
                 if (motivacionCount >= 4 && eficaciaCount >= 4) {
                     interpretacion += "El encuadre parece sólido y el paciente muestra aptitudes favorables para el inicio del proceso psicoterapéutico. El contrato ha sido aceptado con claridad.";
@@ -444,52 +441,56 @@
                 out.innerHTML = interpretacion;
             },
 
-            guardarPDF: function() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const pac = this.pacienteSeleccionado?.name || "Sin nombre";
+            conformarInforme: async function() {
+                if (!this.pacienteSeleccionado) {
+                    alert("Debe seleccionar un paciente primero.");
+                    return;
+                }
 
-                // Membrete
-                doc.setFillColor(13, 148, 136);
-                doc.rect(0, 0, 210, 15, 'F');
-                doc.setFontSize(14); doc.setTextColor(255, 255, 255);
-                doc.text("PROTOCOLO DE PRIMERA ENTREVISTA - Clínica de la Convergencia", 105, 10, {align: 'center'});
+                // Recolectar datos actuales del formulario
+                const diagBase = document.getElementById('ent-diag-base').value.trim();
+                const diagPsico = document.getElementById('ent-diag-psico').value.trim();
+                const condiciones = document.getElementById('ent-condiciones').value.trim();
+                const infoTerapeuta = document.getElementById('ent-info-terapeuta').value.trim();
+                const confrontacion = document.getElementById('ent-confrontacion').value.trim();
+                const contrato = document.getElementById('ent-contrato').value.trim();
 
-                doc.setFontSize(11); doc.setTextColor(0, 0, 0);
-                doc.text(`Paciente: ${pac}`, 20, 25);
-                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 25);
-                doc.line(20, 28, 190, 28);
+                const motivacionValues = Array.from(document.querySelectorAll('#ent-motivacion-checks input:checked')).map(c => c.value);
+                const eficaciaValues = Array.from(document.querySelectorAll('#ent-indicadores-eficacia input:checked')).map(c => c.value);
 
-                let y = 35;
-                const secciones = [
-                    {t: "DIAGNÓSTICO INICIAL:", v: document.getElementById('ent-diag-base').value},
-                    {t: "DIAGNÓSTICO PSICODINÁMICO:", v: document.getElementById('ent-diag-psico').value},
-                    {t: "CONDICIONES DE VIDA:", v: document.getElementById('ent-condiciones').value},
-                    {t: "INFORMACIÓN DEL TERAPEUTA:", v: document.getElementById('ent-info-terapeuta').value},
-                    {t: "CONFRONTACIÓN DE EXPECTATIVAS:", v: document.getElementById('ent-confrontacion').value},
-                    {t: "CONTRATO TERAPÉUTICO:", v: document.getElementById('ent-contrato').value}
-                ];
+                // Obtener texto de IA si está visible
+                const iaBox = document.getElementById('ent-ia-output');
+                const iaTexto = iaBox.style.display !== 'none' ? iaBox.innerText : "Interpretación IA no generada previamente.";
 
-                secciones.forEach(s => {
-                    doc.setFont("helvetica", "bold"); doc.text(s.t, 20, y);
-                    doc.setFont("helvetica", "normal");
-                    const splitText = doc.splitTextToSize(s.v || "No consignado", 170);
-                    doc.text(splitText, 20, y + 6);
-                    y += (splitText.length * 6) + 10;
-                    if (y > 270) { doc.addPage(); y = 20; }
-                });
+                // Construir el texto detallado integrado para el visualizador
+                let detalleConsolidado = `--- 1. FASES O MOMENTOS ---\n`;
+                detalleConsolidado += `• Diagnóstico Inicial: ${diagBase || 'No consignado'}\n`;
+                detalleConsolidado += `• Diagnóstico Clínico y Psicodinámico: ${diagPsico || 'No consignado'}\n`;
+                detalleConsolidado += `• Condiciones de Vida: ${condiciones || 'No consignado'}\n`;
+                detalleConsolidado += `• Motivación y Aptitudes: ${motivacionValues.length > 0 ? motivacionValues.join(', ') : 'Ninguna seleccionada'}\n\n`;
+                detalleConsolidado += `• Información del Terapeuta: ${infoTerapeuta || 'No consignado'}\n`;
+                detalleConsolidado += `• Confrontación de Expectativas: ${confrontacion || 'No consignado'}\n`;
+                detalleConsolidado += `• Contrato Terapéutico: ${contrato || 'No consignado'}\n\n`;
+                detalleConsolidado += `--- 2. INDICADORES DE EFICACIA ---\n`;
+                detalleConsolidado += `${eficaciaValues.length > 0 ? eficaciaValues.join(', ') : 'Ninguno seleccionado'}\n\n`;
+                detalleConsolidado += `--- 3. REPORTE / INTERPRETACIÓN DE IA ---\n`;
+                detalleConsolidado += `${iaTexto}`;
 
-                doc.setFont("helvetica", "bold");
-                doc.text("INDICADORES DE EFICACIA ALCANZADOS:", 20, y);
-                y += 6;
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                document.querySelectorAll('#ent-indicadores-eficacia input:checked').forEach(c => {
-                    doc.text(`[X] ${c.value}`, 25, y);
-                    y += 6;
-                });
+                const nuevoInforme = {
+                    titulo: "Informe de Primera Entrevista",
+                    tipo: "Informe de Primera Entrevista",
+                    fecha: serverTimestamp(),
+                    detalle: detalleConsolidado,
+                    resumen: "Protocolo completo de primera entrevista clínica e interpretación analítica."
+                };
 
-                doc.save(`Primera_Entrevista_${pac.replace(/\s+/g, '_')}.pdf`);
+                try {
+                    await addDoc(collection(dbFirestore, "patients", this.pacienteSeleccionado.id, "informes_medicos"), nuevoInforme);
+                    alert("¡Informe de Primera Entrevista conformado y guardado exitosamente para ser recuperado por el visualizador!");
+                } catch (error) {
+                    console.error("Error al conformar el informe:", error);
+                    alert("Ocurrió un error al guardar el informe en la base de datos.");
+                }
             }
         };
 
