@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rúbrica: Ética de la Singularidad en la Era Tecnológica | ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #7c3aed;
+            --secondary-color: #a78bfa;
+            --accent-bg: #f5f3ff;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #ddd6fe;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .no-print { display: block; }
+        .container { max-width: 950px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 20px; background: var(--accent-bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; background: #fff; outline: none; }
+        select:focus, input:focus { border-color: var(--primary-color); }
+
+        .rubric-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.85rem; }
+        .rubric-table th, .rubric-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; vertical-align: middle; }
+        .rubric-table th { background-color: var(--accent-bg); color: var(--primary-color); font-weight: 700; border-color: var(--border-color); }
+        .rubric-table tr:hover { background-color: #fcfcfc; }
+        .dimension-title { font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 4px; }
+        .neuro-tag { font-size: 0.75rem; color: #6d28d9; font-style: italic; }
+        
+        .radio-option { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+        .radio-option input { margin-top: 3px; cursor: pointer; accent-color: var(--primary-color); }
+
+        .score-preview-box { margin-bottom: 15px; padding: 12px 15px; background: var(--accent-bg); border: 1px solid var(--border-color); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: var(--primary-color); }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 11px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-informe { background-color: #8b5cf6; }
+        .btn-guardar { background-color: #5b21b6; }
+        .btn-pdf { background-color: #7c3aed; }
+
+        /* Estilo de la Hoja Membretada / Informe Institucional */
+        .printable-sheet {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto 0 auto;
+            padding: 40px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: none;
+            position: relative;
+        }
+        .printable-sheet.active { display: block; }
+
+        .letterhead {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .letterhead-info h3 { font-size: 1.2rem; color: var(--primary-color); font-weight: 700; text-transform: uppercase; border: none; margin: 0; padding: 0; }
+        .letterhead-info p { font-size: 0.75rem; color: #475569; margin-top: 3px; line-height: 1.3; }
+        .letterhead-logo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--secondary-color); }
+
+        .score-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: bold; color: white; font-size: 0.95rem; margin-bottom: 15px; text-align: center; width: 100%; }
+        .badge-desregulado { background-color: #dc2626; }
+        .badge-proceso { background-color: #d97706; }
+        .badge-optimo { background-color: #16a34a; }
+
+        .report-section { margin-bottom: 15px; font-size: 0.9rem; line-height: 1.6; }
+        .report-section strong { color: var(--primary-color); }
+
+        .sheet-footer {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .signature-block {
+            width: 280px;
+            border-top: 1px solid #334155;
+            text-align: center;
+            padding-top: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            line-height: 1.3;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .printable-sheet { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-microchip"></i> Rúbrica: Ética de la Singularidad en la Era Tecnológica</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Modelo Integrado: Secuestro Dopaminérgico, Masificación Algorítmica y Ética de la Singularidad frente a la Inmediatez Digital[cite: 10]. Evalúe el encuadre analítico frente a la sobreestimulación[cite: 10].
+            </p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="select-patient"><i class="fa-solid fa-user"></i> Seleccionar Paciente:</label>
+                    <select id="select-patient" required>
+                        <option value="">-- Cargando pacientes desde la base de datos --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="eval-fecha"><i class="fa-solid fa-calendar"></i> Fecha de Sesión:</label>
+                    <input type="date" id="eval-fecha">
+                </div>
+            </div>
+
+            <form id="cartografia-form">
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Dimensión Operativa / Neurobiológica</th>
+                            <th style="width: 25%;">Nivel 1: Intoxicación / Urgencia Algorítmica (1 Pt)</th>
+                            <th style="width: 25%;">Nivel 2: En Transición / Desaceleración Parcial (2 Pts)</th>
+                            <th style="width: 25%;">Nivel 3: Óptimo / Ética de la Singularidad (3 Pts)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">1. Abordaje de la Intoxicación Dopaminérgica</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Núcleo Accumbens / Recompensa Variable</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim1" value="1" required>
+                                    <span>Se valida pasivamente la prisa narrativa y la masificación algorítmica del sujeto sin cuestionar el consumo digital[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim1" value="2">
+                                    <span>Se señalan las distracciones digitales con dificultad para contener el apremio de inmediatez del paciente[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim1" value="3">
+                                    <span>Focalización firme sobre la brecha digital y interrupción del ritmo frenético para rescatar al sujeto de la urgencia[cite: 10].</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">2. Restauración de la Pausa y el Vacío Simbólico</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Tolerancia a la Falta / Límite al Tapón Digital</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim2" value="1" required>
+                                    <span>El analista cede ante la necesidad de llenar el silencio, reproduciendo la lógica del tapón digital constante[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim2" value="2">
+                                    <span>Se intenta sostener el silencio con resistencia moderada frente a la angustia del paciente hiperconectado[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim2" value="3">
+                                    <span>Sostén activo y continente del silencio analítico; se enseña que el pensamiento profundo nace al cesar la estimulación[cite: 10].</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">3. Análisis del Objeto Tecnológico como Prótesis</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Barrera Fóbica contra la Soledad y Castración</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim3" value="1" required>
+                                    <span>El dispositivo tecnológico se ignora en la sesión como un mero accesorio exterior a la estructura psíquica[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim3" value="2">
+                                    <span>Mención superficial del uso de pantallas sin profundizar en su función defensiva sintomática[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim3" value="3">
+                                    <span>Interrogación rigurosa del teléfono y las redes como escudos fóbicos frente al encuentro consigo mismo[cite: 10].</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">4. Vigencia de la Ética de la Singularidad</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Rescate del Síntoma vs. Perfil Estadístico</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim4" value="1" required>
+                                    <span>El terapeuta adopta una postura de adaptación pasiva o nostalgia reaccionaria, perdiendo la brújula singular[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim4" value="2">
+                                    <span>Defensa general de la subjetividad con dificultades técnicas para operar sobre la fatiga atencional[cite: 10].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim4" value="3">
+                                    <span>Erigir el consultorio como territorio de desintoxicación simbólica, devolviendo al sujeto la autoría de sus tiempos[cite: 10].</span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="score-preview-box">
+                    <span>Puntuación Total de la Sesión:</span>
+                    <span id="score-label" style="font-size: 1.1rem;">Sin calcular</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="eval-obs">Observaciones Clínicas / Notas de la Sesión:</label>
+                    <textarea id="eval-obs" rows="3" placeholder="Describa el impacto de la sobreestimulación digital, el manejo de la pausa y la intervención focal sobre la brecha tecnológica..." style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; outline: none;"></textarea>
+                </div>
+
+                <div class="btn-group no-print">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Calcular Puntuación</button>
+                    <button type="button" class="btn btn-informe" onclick="generarInformeClinico()"><i class="fa-solid fa-file-lines"></i> Generar Informe</button>
+                    <button type="button" class="btn btn-guardar" onclick="guardarBaseDatos()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                    <button type="button" class="btn btn-pdf" onclick="guardarPDF()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Hoja Membretada Oficial Institucional (Informe) -->
+        <div id="print-container" class="printable-sheet">
+            <div class="letterhead">
+                <div class="letterhead-info">
+                    <h3>Clínica de la Convergencia</h3>
+                    <p><strong>Dr. y Mgter. Rubén M. Pereyra</strong> — Psicoterapia Psicoanálisis Focalizado - Neurociencias Cognitivas Aplicadas</p>
+                    <p>Programa de Formación para Psicólogos | Sistema Integral ELITE 2.0</p>
+                </div>
+                <img src="Logotipo.jpg" alt="Logo" class="letterhead-logo" onerror="this.style.display='none'">
+            </div>
+
+            <h3 style="text-align: center; color: var(--primary-color); text-transform: uppercase; margin-bottom: 20px; font-size: 1.1rem; border:none;">Informe de Ética de la Singularidad en la Era Tecnológica</h3>
+            
+            <div style="background: var(--accent-bg); border: 1px solid var(--border-color); padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem;">
+                <p><strong>Paciente:</strong> <span id="res-patient" style="color: var(--primary-color); font-weight: 600;">-</span></p>
+                <p><strong>Fecha de Evaluación:</strong> <span id="res-fecha">-</span></p>
+            </div>
+
+            <div id="score-display-box"></div>
+
+            <div class="report-section">
+                <strong>Análisis de la Subjetividad frente al Cerebro Digital:</strong>
+                <p id="res-analisis" style="margin-top: 5px; color: #334155;">-</p>
+            </div>
+
+            <div class="report-section">
+                <strong>Prescripción Técnica de Desintoxicación Simbólica:</strong>
+                <p id="res-prescripcion" style="margin-top: 5px; color: #334155;">-</p>
+            </div>
+
+            <div class="report-section">
+                <strong>Observaciones del Terapeuta:</strong>
+                <p id="res-observaciones" style="margin-top: 5px; color: #334155; font-style: italic;">-</p>
+            </div>
+
+            <div class="sheet-footer">
+                <div>
+                    <p>Lugar y Fecha: Córdoba, <span id="footer-date"></span></p>
+                </div>
+                <div class="signature-block">
+                    Dr. y Mgter. Rubén M. Pereyra<br>
+                    Licenciado en Psicología MP 9523<br>
+                    Magter. en Neuropsicología Clínica<br>
+                    Dr. en Psicología - Neurociencias Cognitivas Aplicadas
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let ultimoRegistroEtica = null;
+
+        async function initPacientes() {
+            document.getElementById('eval-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('footer-date').innerText = new Date().toLocaleDateString('es-AR');
+
+            const selectEl = document.getElementById('select-patient');
+            selectEl.innerHTML = '<option value="">-- Cargando pacientes --</option>';
+            let lista = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    lista.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                });
+            } catch (e) {
+                console.warn("Firestore inaccesible, revisando almacenamiento local.", e);
+            }
+
+            if(lista.length === 0) {
+                ["mem", "EPN", "CCRT", "icc", "ct_local"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => { if(i.p && !lista.some(p => p.nombre === i.p)) lista.push({ id: "local_" + i.p, nombre: i.p }); });
+                });
+            }
+
+            selectEl.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            lista.forEach(p => {
+                selectEl.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`;
+            });
+        }
+
+        function obtenerDatosFormulario() {
+            const sel = document.getElementById('select-patient');
+            const patientId = sel.value;
+            const patientName = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : "No seleccionado";
+            const fecha = document.getElementById('eval-fecha').value;
+            const obs = document.getElementById('eval-obs').value.trim();
+
+            const getVal = (name) => {
+                const el = document.querySelector(`input[name="${name}"]:checked`);
+                return el ? parseInt(el.value) : null;
+            };
+
+            const d1 = getVal('dim1');
+            const d2 = getVal('dim2');
+            const d3 = getVal('dim3');
+            const d4 = getVal('dim4');
+
+            if (!patientId) {
+                alert('Por favor, seleccione un paciente.');
+                return null;
+            }
+            if (!d1 || !d2 || !d3 || !d4) {
+                alert('Por favor, complete las 4 dimensiones de la rúbrica.');
+                return null;
+            }
+
+            const totalScore = d1 + d2 + d3 + d4;
+            return { patientId, patientName, fecha, dimensiones: { d1, d2, d3, d4 }, totalScore, observaciones: obs };
+        }
+
+        window.calcularPuntuacion = function() {
+            const datos = obtenerDatosFormulario();
+            if (!datos) return;
+            ultimoRegistroEtica = datos;
+
+            let rangoTexto = '';
+            if (datos.totalScore >= 4 && datos.totalScore <= 6) {
+                rangoTexto = `Nivel Intoxicación / Urgencia Algorítmica (${datos.totalScore} Pts - 4 a 6)`;
+            } else if (datos.totalScore >= 7 && datos.totalScore <= 9) {
+                rangoTexto = `Nivel En Transición / Desaceleración Parcial (${datos.totalScore} Pts - 7 a 9)`;
+            } else {
+                rangoTexto = `Nivel Óptimo / Ética de la Singularidad Activa (${datos.totalScore} Pts - 10 a 12)`;
+            }
+
+            document.getElementById('score-label').innerText = rangoTexto;
+            return datos;
+        };
+
+        window.generarInformeClinico = function() {
+            let datos = ultimoRegistroEtica;
+            if (!datos) {
+                datos = window.calcularPuntuacion();
+                if (!datos) return;
+            }
+
+            let rangoTexto = '';
+            let badgeClass = '';
+            let analisis = '';
+            let prescripcion = '';
+
+            if (datos.totalScore >= 4 && datos.totalScore <= 6) {
+                badgeClass = 'badge-desregulado';
+                rangoTexto = `Nivel Intoxicación Digital (${datos.totalScore} Puntos)`;
+                analisis = "Se evidencia un sometimiento a la sobreestimulación dopaminérgica y al ritmo algorítmico de la era digital[cite: 10]. El sujeto se halla alienado en una temporalidad de presente perpetuo, anestesiado en su singularidad y deshabitado psíquicamente[cite: 10].";
+                prescripcion = "Interrumpir de manera activa la prisa narrativa superficial, interrogar el uso sintomático de la tecnología como prótesis defensiva y erigir el consultorio como un territorio de desintoxicación simbólica[cite: 10].";
+            } else if (datos.totalScore >= 7 && datos.totalScore <= 9) {
+                badgeClass = 'badge-proceso';
+                rangoTexto = `Nivel En Transición (${datos.totalScore} Puntos)`;
+                analisis = "El encuadre analítico detecta la fatiga atencional y el consumo compulsivo de pantallas, pero experimenta dificultades para sostener el ritmo desacelerado y tolerar los silencios ante la angustia del paciente[cite: 10].";
+                prescripcion = "Profundizar en la tolerancia activa de la pausa y el vacío analítico, guiando al paciente hacia el descubrimiento de su propio discurso por fuera de los dictados algorítmicos[cite: 10].";
+            } else {
+                badgeClass = 'badge-optimo';
+                rangoTexto = `Nivel Óptimo / Singularidad Restaurada (${datos.totalScore} Puntos)`;
+                analisis = "Excelente aplicación de la Ética de la Singularidad frente a la masificación tecnológica[cite: 10]. Se ha logrado frenar la urgencia dopaminérgica y restablecer el espesor de la palabra y del tiempo histórico en el espacio analítico[cite: 10].";
+                prescripcion = "Consolidar el posicionamiento estratégico actual, sosteniendo el consultorio como un espacio de desintoxicación y autoría subjetiva[cite: 10].";
+            }
+
+            const sheet = document.getElementById('print-container');
+            sheet.classList.add('active');
+
+            document.getElementById('res-patient').innerText = datos.patientName;
+            document.getElementById('res-fecha').innerText = datos.fecha;
+            document.getElementById('score-display-box').innerHTML = `<span class="score-badge ${badgeClass}">${rangoTexto}</span>`;
+            document.getElementById('res-analisis').innerText = analisis;
+            document.getElementById('res-prescripcion').innerText = prescripcion;
+            document.getElementById('res-observaciones').innerText = datos.observaciones || "Sin observaciones adicionales.";
+
+            sheet.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.guardarBaseDatos = async function() {
+            let datos = ultimoRegistroEtica;
+            if (!datos) {
+                datos = window.calcularPuntuacion();
+                if (!datos) return;
+            }
+
+            const pid = datos.patientId;
+            if (pid.startsWith("local_")) {
+                let localData = JSON.parse(localStorage.getItem('db_etica_local') || '{}');
+                if(!localData[pid]) localData[pid] = [];
+                localData[pid].push(datos);
+                localStorage.setItem('db_etica_local', JSON.stringify(localData));
+                alert("¡Evaluación guardada exitosamente en el almacenamiento local de respaldo!");
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", pid);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().etica_sing_tecnologica ? snap.data().etica_sing_tecnologica : [];
+                
+                lista.push(datos);
+
+                await updateDoc(ref, { etica_sing_tecnologica: lista });
+                alert("¡Evaluación de Ética de la Singularidad guardada exitosamente en Firestore!");
+            } catch (err) {
+                console.error("Error al sincronizar con Firestore:", err);
+                alert("Error al conectar con la base de datos.");
+            }
+        };
+
+        window.guardarPDF = function() {
+            const sheet = document.getElementById('print-container');
+            if(!sheet.classList.contains('active')) {
+                window.generarInformeClinico();
+            }
+            const opt = {
+                margin: 0.4,
+                filename: `Etica_Singularidad_Tecnologica_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(sheet).save();
+        };
+
+        initPacientes();
+    </script>
+</body>
+</html>
