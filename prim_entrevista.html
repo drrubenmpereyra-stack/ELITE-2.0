@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primera Entrevista - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #0d9488;
+            --success-color: #16a34a;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 15px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #38bdf8;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 2px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: #38bdf8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 1rem;
+            color: #38bdf8;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; width: 100%; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        .btn-secondary:hover { background-color: #0f766e; }
+
+        .btn-ia { background-color: #8e44ad; color: white; }
+        .btn-ia:hover { background-color: #732d91; }
+
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-success:hover { background-color: #15803d; }
+
+        .btn-save { background-color: #2563eb; color: white; }
+        .btn-save:hover { background-color: #1d4ed8; }
+
+        .creation-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .patient-info-box {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.9em;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--secondary-color);
+        }
+
+        #ent-ia-output {
+            margin-top: 15px;
+            padding: 15px;
+            background: #1e1b4b;
+            border-left: 5px solid #8e44ad;
+            border-radius: 4px;
+            color: #f8fafc;
+            font-style: italic;
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1><i class="fa-solid fa-clipboard-list"></i> Formulario: Primera Entrevista</h1>
+            <p>Módulo Integrado ELITE 2.0</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="creation-container">
+            
+            <!-- Selector de Paciente Requerido por Estándar -->
+            <div class="card" style="border-top: 5px solid var(--secondary-color);">
+                <h2><i class="fa-solid fa-user-check"></i> Selección de Paciente</h2>
+                <div class="form-group">
+                    <label for="ent-paciente-select"><b>Buscar / Seleccionar Paciente Activo (Registros Cloud):</b></label>
+                    <select id="ent-paciente-select" onchange="MODULO_ENTREVISTA.seleccionarPaciente(this.value)">
+                        <option value="">-- Cargando pacientes desde Firebase --</option>
+                    </select>
+                </div>
+                <div id="patient-selected-display" class="patient-info-box" style="display: none;">
+                    <strong>Paciente Seleccionado:</strong> <span id="disp-nombre">-</span> | <strong>Motivo:</strong> <span id="disp-motivo">-</span>
+                </div>
+            </div>
+
+            <!-- Cuerpo del Formulario (Oculto hasta seleccionar paciente) -->
+            <div id="form-entrevista-cuerpo" class="card" style="display: none; border-top: 5px solid var(--primary-color);">
+                
+                <h3>1. FASES O MOMENTOS</h3>
+                
+                <div class="grid-2">
+                    <div>
+                        <div class="form-group">
+                            <label><b>1.1 Diagnóstico</b> <small style="color:#94a3b8;">(Info proporcionada por el paciente)</small></label>
+                            <textarea id="ent-diag-base" style="height:90px;" placeholder="Detalle la información inicial..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label><b>1.1.1 Diagnóstico Clínico y Psicodinámico</b> <small style="color:#94a3b8;">(Síntomas, familia, éxito/fracaso, interacción)</small></label>
+                            <textarea id="ent-diag-psico" style="height:90px;" placeholder="Describa el diagnóstico psicodinámico..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><b>1.1.3 Condiciones de vida</b> <small style="color:#94a3b8;">(Descripción breve)</small></label>
+                            <textarea id="ent-condiciones" style="height:90px;" placeholder="Contexto de vida del paciente..."></textarea>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="form-group">
+                            <label><b>1.1.2 Motivación y aptitudes para la psicoterapia:</b></label>
+                            <div id="ent-motivacion-checks" class="checkbox-group" style="height: 315px; overflow-y: auto;">
+                                <label><input type="checkbox" value="Reconoce carácter psicológico de trastornos"> Reconocer carácter psicológico de trastornos</label>
+                                <label><input type="checkbox" value="Capacidad de introspección y honestidad"> Capacidad de introspección y honestidad</label>
+                                <label><input type="checkbox" value="Deseo de comprender / participación activa"> Deseo de comprender / participación activa</label>
+                                <label><input type="checkbox" value="Disposición al cambio"> Disposición a cambiar</label>
+                                <label><input type="checkbox" value="Esperanza de resultados positivos"> Esperanza de resultados positivos</label>
+                                <label><input type="checkbox" value="Disposición al sacrificio por logros"> Realizar sacrificios para acceder a logros</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label><b>1.2 Información del Terapeuta</b> <small style="color:#94a3b8;">(Clarificación y reforzamiento motivación)</small></label>
+                    <textarea id="ent-info-terapeuta" style="height:70px;" placeholder="Detalle la información brindada..."></textarea>
+                    
+                    <label style="margin-top: 12px;"><b>1.3 Confrontación de expectativas</b> <small style="color:#94a3b8;">(Dudas, objeciones y cuestionamientos)</small></label>
+                    <textarea id="ent-confrontacion" style="height:70px;" placeholder="Apunte las objeciones o dudas..."></textarea>
+
+                    <label style="margin-top: 12px;"><b>1.4 Contrato Terapéutico</b> <small style="color:#94a3b8;">(Horarios, honorarios, duración)</small></label>
+                    <textarea id="ent-contrato" style="height:70px;" placeholder="Términos del contrato acordado..."></textarea>
+                </div>
+
+                <h3 style="margin-top: 25px;">2. INDICADORES DE EFICACIA</h3>
+                <div id="ent-indicadores-eficacia" class="checkbox-group grid-3" style="background: #0f172a;">
+                    <label><input type="checkbox" value="Diagnóstico inicial"> 1- Diagnóstico inicial</label>
+                    <label><input type="checkbox" value="Clarificación/Orientación"> 2- Clarificación/Orientación</label>
+                    <label><input type="checkbox" value="Elaboración conjunta"> 3- Elaboración conjunta</label>
+                    <label><input type="checkbox" value="Acuerdos objetivos"> 4- Acuerdos s/ objetivos</label>
+                    <label><input type="checkbox" value="Contrato establecido"> 5- Contrato</label>
+                    <label><input type="checkbox" value="Anticipación interacción"> 6- Anticipación interacción</label>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:25px; flex-wrap: wrap;">
+                    <button onclick="MODULO_ENTREVISTA.guardarBD()" class="btn btn-save" style="flex:1; min-width: 200px;"><i class="fa-solid fa-cloud-arrow-up"></i> GUARDAR EN BD</button>
+                    <button onclick="MODULO_ENTREVISTA.consultarIA()" class="btn btn-ia" style="flex:1; min-width: 200px;"><i class="fa-solid fa-wand-magic-sparkles"></i> INTERPRETACIÓN IA</button>
+                    <button onclick="MODULO_ENTREVISTA.guardarPDF()" class="btn btn-success" style="flex:1; min-width: 200px;"><i class="fa-solid fa-file-pdf"></i> GUARDAR PDF</button>
+                </div>
+                
+                <div id="ent-ia-output"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Librería jsPDF para generación de reportes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Script de Firebase e Integración de la Entrevista -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbFirestore = getFirestore(app);
+
+        // Objeto global modular adaptado a la arquitectura ELITE 2.0
+        window.MODULO_ENTREVISTA = {
+            pacienteSeleccionado: null,
+            listaPacientes: [],
+
+            inicializar: async function() {
+                const selectEl = document.getElementById('ent-paciente-select');
+                try {
+                    const querySnapshot = await getDocs(collection(dbFirestore, "patients"));
+                    this.listaPacientes = [];
+                    selectEl.innerHTML = '<option value="">-- Seleccione un paciente --</option>';
+                    querySnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        this.listaPacientes.push({ id: docSnap.id, ...data });
+                        const opt = document.createElement('option');
+                        opt.value = docSnap.id;
+                        opt.textContent = data.name;
+                        selectEl.appendChild(opt);
+                    });
+                } catch (error) {
+                    console.error("Error al cargar pacientes de Firestore: ", error);
+                    selectEl.innerHTML = '<option value="">-- Error al cargar pacientes --</option>';
+                }
+            },
+
+            seleccionarPaciente: function(id) {
+                if (!id) {
+                    this.pacienteSeleccionado = null;
+                    document.getElementById('form-entrevista-cuerpo').style.display = 'none';
+                    document.getElementById('patient-selected-display').style.display = 'none';
+                    return;
+                }
+                this.pacienteSeleccionado = this.listaPacientes.find(p => p.id == id);
+                if (this.pacienteSeleccionado) {
+                    document.getElementById('disp-nombre').textContent = this.pacienteSeleccionado.name;
+                    document.getElementById('disp-motivo').textContent = this.pacienteSeleccionado.motivo || 'Sin motivo especificado';
+                    document.getElementById('patient-selected-display').style.display = 'block';
+                    document.getElementById('form-entrevista-cuerpo').style.display = 'block';
+
+                    // Cargar datos previos si existen en el objeto del paciente
+                    const ent = this.pacienteSeleccionado.primeraEntrevista || {};
+                    document.getElementById('ent-diag-base').value = ent.diagBase || '';
+                    document.getElementById('ent-diag-psico').value = ent.diagPsico || '';
+                    document.getElementById('ent-condiciones').value = ent.condiciones || '';
+                    document.getElementById('ent-info-terapeuta').value = ent.infoTerapeuta || '';
+                    document.getElementById('ent-confrontacion').value = ent.confrontacion || '';
+                    document.getElementById('ent-contrato').value = ent.contrato || '';
+
+                    // Marcar checkboxes de motivación
+                    const motivacionChecks = document.querySelectorAll('#ent-motivacion-checks input');
+                    motivacionChecks.forEach(chk => {
+                        chk.checked = ent.motivacionChecks ? ent.motivacionChecks.includes(chk.value) : false;
+                    });
+
+                    // Marcar checkboxes de indicadores de eficacia
+                    const eficaciaChecks = document.querySelectorAll('#ent-indicadores-eficacia input');
+                    eficaciaChecks.forEach(chk => {
+                        chk.checked = ent.eficaciaChecks ? ent.eficaciaChecks.includes(chk.value) : false;
+                    });
+
+                    document.getElementById('ent-ia-output').style.display = 'none';
+                }
+            },
+
+            guardarBD: async function() {
+                if (!this.pacienteSeleccionado) {
+                    alert("Debe seleccionar un paciente primero.");
+                    return;
+                }
+
+                const motivacionValues = Array.from(document.querySelectorAll('#ent-motivacion-checks input:checked')).map(c => c.value);
+                const eficaciaValues = Array.from(document.querySelectorAll('#ent-indicadores-eficacia input:checked')).map(c => c.value);
+
+                const entrevistaData = {
+                    diagBase: document.getElementById('ent-diag-base').value.trim(),
+                    diagPsico: document.getElementById('ent-diag-psico').value.trim(),
+                    condiciones: document.getElementById('ent-condiciones').value.trim(),
+                    motivacionChecks: motivacionValues,
+                    infoTerapeuta: document.getElementById('ent-info-terapeuta').value.trim(),
+                    confrontacion: document.getElementById('ent-confrontacion').value.trim(),
+                    contrato: document.getElementById('ent-contrato').value.trim(),
+                    eficaciaChecks: eficaciaValues,
+                    ultimaActualizacion: new Date().toLocaleDateString()
+                };
+
+                this.pacienteSeleccionado.primeraEntrevista = entrevistaData;
+
+                try {
+                    const patientRef = doc(dbFirestore, "patients", this.pacienteSeleccionado.id);
+                    await updateDoc(patientRef, { primeraEntrevista: entrevistaData });
+                    alert("¡Informe de Primera Entrevista guardado exitosamente en la base de datos (Firestore)!");
+                } catch (error) {
+                    console.error("Error al guardar en Firestore: ", error);
+                    alert("Hubo un error al intentar guardar en la base de datos.");
+                }
+            },
+
+            consultarIA: function() {
+                const out = document.getElementById('ent-ia-output');
+                const motivacionCount = document.querySelectorAll('#ent-motivacion-checks input:checked').length;
+                const eficaciaCount = document.querySelectorAll('#ent-indicadores-eficacia input:checked').length;
+                
+                out.style.display = 'block';
+                let interpretacion = `<b>Interpretación IA:</b> En base a la entrevista inicial con <b>${this.pacienteSeleccionado?.name || 'el paciente'}</b>, se observa un nivel de motivación de ${motivacionCount}/6. `;
+                
+                if (motivacionCount >= 4 && eficaciaCount >= 4) {
+                    interpretacion += "El encuadre parece sólido y el paciente muestra aptitudes favorables para el inicio del proceso psicoterapéutico. El contrato ha sido aceptado con claridad.";
+                } else {
+                    interpretacion += "Es necesario reforzar el encuadre y la clarificación del problema, ya que algunos indicadores de eficacia o aptitud del paciente no han sido plenamente alcanzados en este primer contacto.";
+                }
+                out.innerHTML = interpretacion;
+            },
+
+            guardarPDF: function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pac = this.pacienteSeleccionado?.name || "Sin nombre";
+
+                // Membrete
+                doc.setFillColor(13, 148, 136);
+                doc.rect(0, 0, 210, 15, 'F');
+                doc.setFontSize(14); doc.setTextColor(255, 255, 255);
+                doc.text("PROTOCOLO DE PRIMERA ENTREVISTA - Clínica de la Convergencia", 105, 10, {align: 'center'});
+
+                doc.setFontSize(11); doc.setTextColor(0, 0, 0);
+                doc.text(`Paciente: ${pac}`, 20, 25);
+                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 25);
+                doc.line(20, 28, 190, 28);
+
+                let y = 35;
+                const secciones = [
+                    {t: "DIAGNÓSTICO INICIAL:", v: document.getElementById('ent-diag-base').value},
+                    {t: "DIAGNÓSTICO PSICODINÁMICO:", v: document.getElementById('ent-diag-psico').value},
+                    {t: "CONDICIONES DE VIDA:", v: document.getElementById('ent-condiciones').value},
+                    {t: "INFORMACIÓN DEL TERAPEUTA:", v: document.getElementById('ent-info-terapeuta').value},
+                    {t: "CONFRONTACIÓN DE EXPECTATIVAS:", v: document.getElementById('ent-confrontacion').value},
+                    {t: "CONTRATO TERAPÉUTICO:", v: document.getElementById('ent-contrato').value}
+                ];
+
+                secciones.forEach(s => {
+                    doc.setFont("helvetica", "bold"); doc.text(s.t, 20, y);
+                    doc.setFont("helvetica", "normal");
+                    const splitText = doc.splitTextToSize(s.v || "No consignado", 170);
+                    doc.text(splitText, 20, y + 6);
+                    y += (splitText.length * 6) + 10;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+
+                doc.setFont("helvetica", "bold");
+                doc.text("INDICADORES DE EFICACIA ALCANZADOS:", 20, y);
+                y += 6;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                document.querySelectorAll('#ent-indicadores-eficacia input:checked').forEach(c => {
+                    doc.text(`[X] ${c.value}`, 25, y);
+                    y += 6;
+                });
+
+                doc.save(`Primera_Entrevista_${pac.replace(/\s+/g, '_')}.pdf`);
+            }
+        };
+
+        // Ejecutar inicialización de pacientes al cargar la página
+        MODULO_ENTREVISTA.inicializar();
+    </script>
+</body>
+</html>
