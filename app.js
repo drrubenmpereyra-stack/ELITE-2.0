@@ -199,7 +199,7 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 } else if (secKey === "1 Registro de Sesiones") {
                     cargarVistaIframe("sesiones.html");
                 } else if (secKey === "2 Primera entrevista") {
-                    cargarVistaIframe("entrevista.html");
+                    cargarVistaIframe("prim_entrevista.html");
                 } else if (secKey === "3 Est y NC") {
                     cargarVistaIframe("eync.html");
                 } else if (secKey === "5 Genograma") {
