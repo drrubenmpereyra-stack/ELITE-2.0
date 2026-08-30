@@ -50,7 +50,8 @@ const menuData = {
                 "8.3 Proyecto vital": {},
                 "8.4 Via motora": {},
                 "8.5 Temporalidad": {},
-                "8.6 Convergencia clínica": {}
+                "8.6 Convergencia clínica": {},
+                "Ventana creadora": {}
             },
             "9 Interconsultas": {},
             "10 Creación de Documentos": {}
@@ -297,6 +298,8 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("temporalidad.html");
             } else if (terKey === "8.6 Convergencia clínica") {
                 cargarVistaIframe("convergencia_clinica.html");
+            } else if (terKey === "Ventana creadora") {
+                cargarVistaIframe("ventana_creadora.html");
             } else if (terKey === "MEM") {
                 cargarVistaIframe("mem.html");
             } else if (terKey === "EPN") {
