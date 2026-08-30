@@ -20,7 +20,8 @@ const menuData = {
             "Pacientes": {},
             "Agenda": {},
             "Contabilidad": {},
-            "Centro de impresiones": {}
+            "Centro de impresiones": {},
+            "Visualizador de reportes": {}
         }
     },
     "2": {
@@ -177,13 +178,13 @@ function inicializarSistema() {
         btn.onclick = () => {
             document.querySelectorAll('#barras-principales .nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            cargarBarraSecundaria(item.hijos, item.color);
+            cargarBarraSecundaria(item.hijos, item.color, item.nombre === "Administración");
         };
         barPrincipal.appendChild(btn);
     });
 }
 
-function cargarBarraSecundaria(hijosSecundarios, colorBase) {
+function cargarBarraSecundaria(hijosSecundarios, colorBase, esAdmin = false) {
     const barSecundaria = document.getElementById('barras-secundarias');
     const barTerciaria = document.getElementById('barras-terciarias');
     barSecundaria.innerHTML = '';
@@ -191,6 +192,40 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
 
     Object.keys(hijosSecundarios).forEach(secKey => {
         const subHijos = hijosSecundarios[secKey];
+
+        if (esAdmin && secKey === "Visualizador de reportes") {
+            // Contenedor desplegable (Dropdown) para Administración -> Visualizador de reportes
+            const dropdownContainer = document.createElement('div');
+            dropdownContainer.className = 'nav-item-dropdown';
+            dropdownContainer.style.cssText = "width: 100%; display: flex; flex-direction: column;";
+
+            const mainAdminBtn = document.createElement('button');
+            mainAdminBtn.className = 'nav-btn main-admin';
+            mainAdminBtn.innerHTML = `<i class="fa-solid fa-gears"></i> Administración <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-left: auto;"></i>`;
+            mainAdminBtn.style.background = colorBase;
+
+            const submenu = document.createElement('div');
+            submenu.id = 'admin-submenu';
+            submenu.className = 'submenu-container';
+            submenu.style.cssText = "display: none; padding-left: 15px; margin-top: 5px; flex-direction: column; gap: 5px;";
+
+            const subLink = document.createElement('a');
+            subLink.href = "visualizador_resportes.html";
+            subLink.className = 'nav-btn secondary-sub';
+            subLink.style.cssText = "background: #0284c7; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;";
+            subLink.innerHTML = `<i class="fa-solid fa-file-lines"></i> Visualizador de reportes`;
+
+            mainAdminBtn.onclick = (e) => {
+                toggleAdminMenu(e, submenu);
+            };
+
+            submenu.appendChild(subLink);
+            dropdownContainer.appendChild(mainAdminBtn);
+            dropdownContainer.appendChild(submenu);
+            barSecundaria.appendChild(dropdownContainer);
+            return;
+        }
+
         const btn = document.createElement('button');
         btn.className = 'nav-btn';
         btn.textContent = secKey;
@@ -395,4 +430,14 @@ function cargarVistaIframeExterna(urlExterna) {
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
+}
+
+// Función para alternar la visualización del submenú dependiente de Administración
+function toggleAdminMenu(event, submenu) {
+    event.preventDefault();
+    if (submenu.style.display === 'none' || submenu.style.display === '') {
+        submenu.style.display = 'flex';
+    } else {
+        submenu.style.display = 'none';
+    }
 }
