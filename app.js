@@ -52,7 +52,8 @@ const menuData = {
                 "8.5 Temporalidad": {},
                 "8.6 Convergencia clínica": {}
             },
-            "9 Interconsultas": {}
+            "9 Interconsultas": {},
+            "10 Creación de Documentos": {}
         }
     },
     "3": {
@@ -207,6 +208,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
                     cargarVistaIframe("interconsulta.html");
+                } else if (secKey === "10 Creación de Documentos") {
+                    cargarVistaIframe("creacion_documentos.html");
                 } else if (secKey === "3.1 Potencial acting out") {
                     cargarVistaIframe("acting_out.html");
                 } else if (secKey === "3.2 Exp emocional creativa") {
