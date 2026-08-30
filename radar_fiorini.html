@@ -40,6 +40,8 @@
         .btn:hover { background-color: var(--secondary-color); }
         .btn-informe { background-color: #7c3aed; }
         .btn-informe:hover { background-color: #6d28d9; }
+        .btn-blue { background-color: #2563eb; }
+        .btn-blue:hover { background-color: #1d4ed8; }
 
         .chart-container { position: relative; width: 100%; max-width: 550px; margin: 0 auto 20px auto; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
 
@@ -87,6 +89,7 @@
             <div class="btn-group">
                 <button type="button" class="btn" onclick="generarGraficoRadar()"><i class="fa-solid fa-chart-pie"></i> Obtener Gráfico Radar de Fiorini</button>
                 <button type="button" class="btn btn-informe" onclick="generarInformeGlobal()"><i class="fa-solid fa-file-medical-alt"></i> Informe del Gráfico</button>
+                <button type="button" class="btn btn-blue" onclick="conformarInformeRadarFiorini()"><i class="fa-solid fa-file-waveform"></i> Conformar Informe</button>
             </div>
 
             <!-- Contenedor del Gráfico -->
@@ -104,9 +107,10 @@
         </div>
     </main>
 
+    <!-- Script de Firebase, Chart.js e integración -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -137,7 +141,7 @@
                     const data = docSnap.data();
                     const opt = document.createElement('option');
                     opt.value = docSnap.id;
-                    opt.textContent = data.name;
+                    opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                     selectEl.appendChild(opt);
                 });
             } catch (error) {
@@ -161,12 +165,9 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     
-                    // Recuperar Eje 1 (Foco) - Guardado previamente en ultimaEvaluacionFoco
                     const e1 = data.ultimaEvaluacionFoco ? data.ultimaEvaluacionFoco.puntaje : null;
-                    // Recuperar Eje 2 (Funciones Yoicas) - Guardado en ultimaEvaluacionFuncionesYoicas
                     const e2 = data.ultimaEvaluacionFuncionesYoicas ? data.ultimaEvaluacionFuncionesYoicas.puntaje : null;
                     
-                    // Recuperar Eje 3 (RTP) - Buscando en la colección 'fiorini_radar' o en el documento
                     let e3 = null;
                     const radarSnap = await getDocs(collection(db, "fiorini_radar"));
                     let ultimoE3 = 0;
@@ -182,7 +183,6 @@
                     pacienteDataCache.eje2Score = e2 !== null ? e2 : 0;
                     pacienteDataCache.eje3Score = e3 !== null ? e3 : 0;
 
-                    // Actualizar Etiquetas con los puntajes obtenidos
                     document.getElementById('lbl-eje1').innerText = e1 !== null ? `${e1} / 15 pts` : "No evaluado";
                     document.getElementById('desc-eje1').innerText = obtenerDescEje1(e1);
 
@@ -240,7 +240,6 @@
             document.getElementById('box-chart').style.display = 'block';
             const ctx = document.getElementById('fioriniRadarChart').getContext('2d');
 
-            // Normalizar valores a porcentaje (Eje 1 max 15 -> %, Eje 2 max 36 -> %, Eje 3 max 15 -> %)
             const val1Pct = Math.round((pacienteDataCache.eje1Score / 15) * 100);
             const val2Pct = Math.round((pacienteDataCache.eje2Score / 36) * 100);
             const val3Pct = Math.round((pacienteDataCache.eje3Score / 15) * 100);
@@ -309,21 +308,65 @@
             cardRes.classList.add('active');
             document.getElementById('res-synthesis').innerText = sintesis;
             document.getElementById('res-strategy').innerText = estrategia;
+        };
+
+        window.conformarInformeRadarFiorini = async function() {
+            const patientId = document.getElementById('select-patient').value;
+            if (!patientId) {
+                alert("Por favor, seleccione un paciente primero.");
+                return;
+            }
+
+            const e1 = pacienteDataCache.eje1Score;
+            const e2 = pacienteDataCache.eje2Score;
+            const e3 = pacienteDataCache.eje3Score;
+
+            // Asegurarnos de que el gráfico esté generado para capturar su imagen base64
+            let chartImageBase64 = "";
+            if (radarChartInstance) {
+                chartImageBase64 = radarChartInstance.toBase64Image();
+            } else {
+                // Si no se ha generado visualmente, lo generamos de forma temporal para obtener la imagen
+                generarGraficoRadar();
+                if (radarChartInstance) {
+                    chartImageBase64 = radarChartInstance.toBase64Image();
+                }
+            }
+
+            // Obtener o calcular los textos del informe global actual
+            let sintesis = document.getElementById('res-synthesis').innerText;
+            let estrategia = document.getElementById('res-strategy').innerText;
+            if (sintesis === "-") {
+                // Generar de forma predeterminada si no se hizo clic previo
+                sintesis = `Evaluación integrativa basada en los puntajes: Eje 1 (${e1}/15 pts), Eje 2 (${e2}/36 pts) y Eje 3 (${e3}/15 pts).`;
+                estrategia = "Proceso terapéutico analizado bajo los vectores estructurales del modelo focalizado de Fiorini.";
+            }
+
+            let detalleConsolidado = `--- PUNTUACIONES ASIGNADAS ---\n`;
+            detalleConsolidado += `• Eje 1 (Foco Terapéutico): ${e1} / 15 pts (${obtenerDescEje1(e1)})\n`;
+            detalleConsolidado += `• Eje 2 (Funciones Yoicas): ${e2} / 36 pts (${obtenerDescEje2(e2)})\n`;
+            detalleConsolidado += `• Eje 3 (Relación de Trabajo - RTP): ${e3} / 15 pts (${obtenerDescEje3(e3)})\n\n`;
+            detalleConsolidado += `--- SÍNTESIS DIAGNÓSTICA INTER-EJES ---\n${sintesis}\n\n`;
+            detalleConsolidado += `--- DIRECCIONALIDAD ESTRATÉGICA ---\n${estrategia}\n\n`;
+            if (chartImageBase64) {
+                detalleConsolidado += `[IMAGEN DE GRÁFICO RADAR GENERADA Y ALMACENADA]`;
+            }
+
+            const nuevoInforme = {
+                titulo: "Informe Radar de Fiorini",
+                tipo: "Informe Radar de Fiorini",
+                fecha: serverTimestamp(),
+                detalle: detalleConsolidado,
+                resumen: `Puntajes - E1: ${e1}/15, E2: ${e2}/36, E3: ${e3}/15. Incluye síntesis y representación gráfica.`,
+                imagenGrafico: chartImageBase64
+            };
 
             try {
-                const informeGlobalRef = doc(db, "fiorini_radar_global", patientId);
-                await setDoc(informeGlobalRef, {
-                    patientId: patientId,
-                    eje1Score: e1,
-                    eje2Score: e2,
-                    eje3Score: e3,
-                    sintesis: sintesis,
-                    estrategia: estrategia,
-                    fecha: new Date().toISOString()
-                });
-                console.log("Informe global del Radar de Fiorini guardado en la base de datos.");
+                await addDoc(collection(db, "patients", patientId, "informes_medicos"), nuevoInforme);
+                alert("¡Informe 'Informe Radar de Fiorini' conformado y guardado exitosamente para ser recuperado en el visualizador!");
             } catch (error) {
-                console.error("Error al guardar el informe global en Firebase:", error);
+                console.error("Error al guardar el informe en la base de datos:", error);
+                alert("Ocurrió un error al guardar el informe en la base de datos.");
             }
         };
     </script>
