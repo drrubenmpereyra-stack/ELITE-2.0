@@ -118,6 +118,22 @@ const menuData = {
             "5.4 Psicotrópicos": {},
             "5.5 Rúbricas": {}
         }
+    },
+    "6": {
+        nombre: "6 Herramientas Clínica Convergencia",
+        color: "linear-gradient(135deg, #b91c1c, #ef4444)",
+        hijos: {
+            "1- Cartografia Intersubjetividad": {},
+            "2- Memorias Traumáticas y el a posteriori": {},
+            "3- Circuitos de recompensa": {},
+            "4- Interfaz Cuerpo Mente": {},
+            "5- Neurobiologia de la Repetición": {},
+            "6- Plasticidad Simbólica y Sináptica": {},
+            "7- Arquitectura del Sueño": {},
+            "8- El Ello Somático y Trast PS": {},
+            "9- Focalización en Est Límbicas": {},
+            "10- La Ética de la Singulridad en la Era Tecnológica": {}
+        }
     }
 };
 
@@ -247,6 +263,26 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("psicotropicos.html");
                 } else if (secKey === "5.5 Rúbricas") {
                     cargarVistaIframe("rubricas.html");
+                } else if (secKey === "1- Cartografia Intersubjetividad") {
+                    cargarVistaIframe("cartografia.html");
+                } else if (secKey === "2- Memorias Traumáticas y el a posteriori") {
+                    cargarVistaIframe("mt_tecnicas.html");
+                } else if (secKey === "3- Circuitos de recompensa") {
+                    cargarVistaIframe("circuitos_recompensas.html");
+                } else if (secKey === "4- Interfaz Cuerpo Mente") {
+                    cargarVistaIframe("interfaz_cuerpo_mente.html");
+                } else if (secKey === "5- Neurobiologia de la Repetición") {
+                    cargarVistaIframe("neuro_repeticion.html");
+                } else if (secKey === "6- Plasticidad Simbólica y Sináptica") {
+                    cargarVistaIframe("plasticidad_simb_sinaptica.html");
+                } else if (secKey === "7- Arquitectura del Sueño") {
+                    cargarVistaIframe("arq_sueño.html");
+                } else if (secKey === "8- El Ello Somático y Trast PS") {
+                    cargarVistaIframe("ello_somatico.html");
+                } else if (secKey === "9- Focalización en Est Límbicas") {
+                    cargarVistaIframe("foc_est_limbicas.html");
+                } else if (secKey === "10- La Ética de la Singulridad en la Era Tecnológica") {
+                    cargarVistaIframe("etica_sing_tecnologica.html");
                 } else {
                     mostrarContenido(secKey);
                 }
