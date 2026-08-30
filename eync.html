@@ -33,6 +33,8 @@
         
         .btn { background-color: var(--hc-sesiones); color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         .btn:hover { background-color: #047857; }
+        .btn-blue { background-color: #2563eb; }
+        .btn-blue:hover { background-color: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -126,6 +128,7 @@
 
             <div style="margin-top:25px; display:flex; gap:10px;">
                 <button onclick="consultarIA()" class="btn" style="background:#8e44ad; flex:1;"><i class="fa-solid fa-wand-magic-sparkles"></i> BOTÓN IA</button>
+                <button onclick="conformarInformeEyNC()" class="btn btn-blue" style="flex:1;"><i class="fa-solid fa-file-waveform"></i> CONFORMAR INFORME</button>
             </div>
             <div id="ia-output-eync" style="margin-top:15px; padding:15px; background:#f4f1f8; border-left:5px solid #8e44ad; display:none; border-radius:4px; font-size: 0.9rem;"></div>
         </div>
@@ -133,7 +136,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -158,7 +161,7 @@
                     const data = docSnap.data();
                     const opt = document.createElement('option');
                     opt.value = docSnap.id;
-                    opt.textContent = data.name;
+                    opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                     selectEl.appendChild(opt);
                 });
             } catch (error) {
@@ -185,6 +188,7 @@
                     eyncData = data.eyncData || { objectives: [], indicators: {} };
                     renderObjetivos();
                     cargarIndicadoresUI();
+                    document.getElementById('ia-output-eync').style.display = 'none';
                 }
             } catch (error) {
                 console.error("Error al cargar datos de EyNC:", error);
@@ -280,6 +284,56 @@
             const output = document.getElementById('ia-output-eync');
             output.style.display = 'block';
             output.innerHTML = "<b>Interpretación IA (ELITE 2.0):</b> Análisis de objetivos y niveles de cambio procesado con éxito. Se recomienda mantener enfoque sobre los indicadores que se encuentran marcados 'En proceso'.";
+        }
+
+        window.conformarInformeEyNC = async function() {
+            if (!activePatientId) {
+                alert("Seleccione un paciente primero[cite: 4].");
+                return;
+            }
+
+            // Recolectar objetivos fijados y sus estados
+            let detalleObjetivos = "--- OBJETIVOS FIJADOS ---\n";
+            if (eyncData.objectives && eyncData.objectives.length > 0) {
+                eyncData.objectives.forEach((o, index) => {
+                    detalleObjetivos += `${index + 1}. ${o.texto} [Estado: ${o.estado}]\n`;
+                });
+            } else {
+                detalleObjetivos += "No hay objetivos registrados.\n";
+            }
+
+            // Recolectar matriz de indicadores de cambio
+            let detalleIndicadores = "\n--- MATRIZ DE INDICADORES DE CAMBIO ---\n";
+            const indicatorBoxes = document.querySelectorAll('.indicator-box');
+            indicatorBoxes.forEach(box => {
+                const key = box.getAttribute('data-key');
+                const checked = box.querySelector('input[type="radio"]:checked');
+                const val = checked ? checked.value : "Sin evaluar";
+                detalleIndicadores += `• ${key}: ${val}\n`;
+            });
+
+            // Recoger texto de la IA si fue generado
+            const iaBox = document.getElementById('ia-output-eync');
+            const iaTexto = iaBox.style.display !== 'none' ? iaBox.innerText : "Interpretación IA no generada previamente.";
+            const detalleIA = `\n--- INTERPRETACIÓN DE IA ---\n${iaTexto}`;
+
+            const detalleConsolidado = `${detalleObjetivos}\n${detalleIndicadores}\n${detalleIA}`;
+
+            const nuevoInforme = {
+                titulo: "Informe Estrategias y Niveles de cambio",
+                tipo: "Informe Estrategias y Niveles de cambio",
+                fecha: serverTimestamp(),
+                detalle: detalleConsolidado,
+                resumen: "Consolidado de objetivos terapéuticos y matriz de indicadores de cambio."
+            };
+
+            try {
+                await addDoc(collection(db, "patients", activePatientId, "informes_medicos"), nuevoInforme);
+                alert("¡Informe 'Informe Estrategias y Niveles de cambio' conformado y guardado exitosamente para ser recuperado desde el visor[cite: 4]!");
+            } catch (error) {
+                console.error("Error al conformar el informe:", error);
+                alert("Ocurrió un error al guardar el informe en la base de datos.");
+            }
         }
 
         initEyNC();
