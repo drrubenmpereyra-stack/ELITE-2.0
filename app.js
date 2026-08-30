@@ -210,7 +210,7 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 } else if (secKey === "3.1 Potencial acting out") {
                     cargarVistaIframe("acting_out.html");
                 } else if (secKey === "3.2 Exp emocional creativa") {
-                    cargarVistaIframe("esp_em_creativa.html");
+                    cargarVistaIframe("exp_em_creativa.html");
                 } else if (secKey === "3.4 Psicodiagnóstico") {
                     cargarVistaIframeExterna("https://drrubenmpereyra-stack.github.io/LANZADOR-TEST-Drpereyra-Suite-Elite-7.0/");
                 } else if (secKey === "3.6 Riesgos en PB") {
