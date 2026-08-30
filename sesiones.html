@@ -94,6 +94,22 @@
 
         <div id="sessions-history-card" class="card" style="display: none;">
             <h2><i class="fa-solid fa-timeline"></i> Evolución y Bitácora de Sesiones</h2>
+            
+            <!-- Selector de fechas y botón Conformar Informe -->
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 6px;">
+                <div class="form-group">
+                    <label for="report-from">Desde</label>
+                    <input type="date" id="report-from">
+                </div>
+                <div class="form-group">
+                    <label for="report-to">Hasta</label>
+                    <input type="date" id="report-to">
+                </div>
+                <button type="button" class="btn" style="background-color: var(--primary-color);" onclick="conformarInformeSesiones()">
+                    <i class="fa-solid fa-file-waveform"></i> Conformar Informe
+                </button>
+            </div>
+
             <div id="sessions-container">
                 <p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 15px;">Seleccione un paciente para ver sus registros previos.</p>
             </div>
@@ -102,7 +118,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -126,7 +142,7 @@
                     const data = docSnap.data();
                     const opt = document.createElement('option');
                     opt.value = docSnap.id;
-                    opt.textContent = data.name;
+                    opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                     selectEl.appendChild(opt);
                 });
             } catch (error) {
@@ -165,7 +181,7 @@
                     
                     container.innerHTML = '';
                     if (sessions.length === 0) {
-                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 15px;">No hay sesiones registradas para este paciente.</p>';
+                        container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 15px;">No hay sesiones registradas para este paciente[cite: 2].</p>';
                         return;
                     }
 
@@ -216,6 +232,65 @@
                 alert("Error al registrar la sesión.");
             }
         });
+
+        window.conformarInformeSesiones = async function() {
+            if (!activePatientId) {
+                alert("Seleccione un paciente primero[cite: 2].");
+                return;
+            }
+
+            const dateFrom = document.getElementById('report-from').value;
+            const dateTo = document.getElementById('report-to').value;
+
+            try {
+                const patientRef = doc(db, "patients", activePatientId);
+                const patientSnap = await getDoc(patientRef);
+                
+                if (!patientSnap.exists()) return;
+                const sessions = patientSnap.data().sessions || [];
+
+                if (sessions.length === 0) {
+                    alert("No hay sesiones registradas para conformar un informe.");
+                    return;
+                }
+
+                // Filtrar por rango de fechas si se especificaron
+                const filteredSessions = sessions.filter(s => {
+                    if (!s.date) return false;
+                    if (dateFrom && s.date < dateFrom) return false;
+                    if (dateTo && s.date > dateTo) return false;
+                    return true;
+                });
+
+                if (filteredSessions.length === 0) {
+                    alert("No se encontraron sesiones en el rango de fechas seleccionado.");
+                    return;
+                }
+
+                // Ordenar cronológicamente para el informe consolidado
+                filteredSessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                let detalleConsolidado = filteredSessions.map(s => 
+                    `[Sesión: ${s.title} - Fecha: ${s.date}]\n${s.narrative}\n--------------------------------------------------`
+                ).join('\n\n');
+
+                const nuevoInforme = {
+                    titulo: `Registro de Sesiones (${dateFrom || 'Inicio'} al ${dateTo || 'Actualidad'})`,
+                    tipo: "Registro de sesiones",
+                    fecha: serverTimestamp(),
+                    detalle: detalleConsolidado,
+                    totalSesiones: filteredSessions.length
+                };
+
+                // Guardar estructurado e integrado en la base de datos para recuperación inmediata en el visualizador[cite: 2]
+                await addDoc(collection(db, "patients", activePatientId, "informes_medicos"), nuevoInforme);
+                
+                alert("¡Informe 'Registro de sesiones' conformado y guardado exitosamente en la base de datos[cite: 2]!");
+            } catch (error) {
+                console.error("Error al conformar informe:", error);
+                alert("Ocurrió un error al generar el informe.");
+            }
+        };
 
         let recognition = null;
         let isRecording = false;
