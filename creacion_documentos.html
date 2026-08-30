@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creación y Gestión de Documentos - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #0d9488;
+            --success-color: #16a34a;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 15px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #38bdf8;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 2px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: #38bdf8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; width: 100%; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        .btn-secondary:hover { background-color: #0f766e; }
+
+        .btn-gamma { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; padding: 12px 20px; font-size: 0.95rem; }
+        .btn-gamma:hover { opacity: 0.9; }
+
+        .creation-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .gamma-banner {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(to right, #1e1b4b, #311042);
+            border-radius: 8px;
+            border: 1px solid #7e22ce;
+            margin-bottom: 20px;
+        }
+
+        .gamma-banner h3 {
+            color: #e879f9;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .gamma-banner p {
+            color: #d8b4fe;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .patient-info-box {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1><i class="fa-solid fa-file-pen"></i> Creación y Enlace de Documentos</h1>
+            <p>Módulo Integrado ELITE 2.0</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="creation-container">
+            
+            <!-- Selector de Paciente Requerido por Estándar de Historia Clínica -->
+            <div class="card">
+                <h2><i class="fa-solid fa-user-check"></i> Selección de Paciente</h2>
+                <div class="form-group">
+                    <label for="select-paciente">Buscar / Seleccionar Paciente Activo:</label>
+                    <select id="select-paciente">
+                        <option value="">-- Cargando pacientes desde Firebase --</option>
+                    </select>
+                </div>
+                <div id="patient-selected-display" class="patient-info-box" style="display: none;">
+                    <strong>Paciente Seleccionado:</strong> <span id="disp-nombre">-</span> | <strong>Motivo:</strong> <span id="disp-motivo">-</span>
+                </div>
+            </div>
+
+            <div class="card gamma-banner">
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Módulo de Redacción y Diseño</h3>
+                <p>Acceda a las plataformas externas para redactar, diseñar y almacenar sus archivos en la carpeta oficial de la clínica.</p>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://gamma.app" target="_blank" class="btn btn-gamma">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Gamma.app
+                    </a>
+                    <a href="https://drive.google.com/drive/folders/1OtS5Tsx7CSl0Hyj5D1qRW7tOfUGAPqSB?usp=drive_link" target="_blank" class="btn btn-secondary" style="background-color: #2563eb;">
+                        <i class="fa-brands fa-google-drive"></i> Abrir Carpeta Google Drive
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><i class="fa-solid fa-link"></i> Enlazar Documento Creado al Paciente</h2>
+                <form id="quick-link-form">
+                    <div class="form-group">
+                        <label for="quick-doc-title">Título del Documento:</label>
+                        <input type="text" id="quick-doc-title" required placeholder="Ej. Análisis de Caso Clínico y Propuesta">
+                    </div>
+                    <div class="form-group">
+                        <label for="quick-doc-url">Enlace del PDF (Google Drive):</label>
+                        <input type="url" id="quick-doc-url" required placeholder="https://...">
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar en el Reservorio del Paciente</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Script de Firebase e Integración del Listado -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let patients = [];
+        const selectPaciente = document.getElementById('select-paciente');
+        const patientDisplay = document.getElementById('patient-selected-display');
+        const dispNombre = document.getElementById('disp-nombre');
+        const dispMotivo = document.getElementById('disp-motivo');
+        const quickLinkForm = document.getElementById('quick-link-form');
+
+        async function initPacientes() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                patients = [];
+                selectPaciente.innerHTML = '<option value="">-- Seleccione un paciente --</option>';
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    patients.push({ id: docSnap.id, ...data });
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectPaciente.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes: ", error);
+                selectPaciente.innerHTML = '<option value="">-- Error al cargar la lista --</option>';
+            }
+        }
+
+        selectPaciente.addEventListener('change', (e) => {
+            const selectedId = e.target.value;
+            const patient = patients.find(p => p.id === selectedId);
+            if (patient) {
+                dispNombre.textContent = patient.name;
+                dispMotivo.textContent = patient.motivo || 'Sin motivo especificado';
+                patientDisplay.style.display = 'block';
+            } else {
+                patientDisplay.style.display = 'none';
+            }
+        });
+
+        quickLinkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const patientId = selectPaciente.value;
+            if (!patientId) {
+                alert('Por favor, seleccione un paciente primero.');
+                return;
+            }
+
+            const title = document.getElementById('quick-doc-title').value.trim();
+            const url = document.getElementById('quick-doc-url').value.trim();
+
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            if (!patient.documents) {
+                patient.documents = [];
+            }
+
+            const newDoc = {
+                id: Date.now().toString(),
+                title,
+                url,
+                date: new Date().toLocaleDateString(),
+                notes: ''
+            };
+
+            patient.documents.push(newDoc);
+
+            try {
+                const patientRef = doc(db, "patients", patientId);
+                await updateDoc(patientRef, { documents: patient.documents });
+                quickLinkForm.reset();
+                alert('¡Documento guardado exitosamente en el reservorio del paciente!');
+            } catch (error) {
+                console.error("Error al guardar documento: ", error);
+                alert('Hubo un error al guardar el documento.');
+            }
+        });
+
+        initPacientes();
+    </script>
+</body>
+</html>
