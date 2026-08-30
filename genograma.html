@@ -34,6 +34,8 @@
         .btn:hover { background-color: #047857; }
         .btn-secondary { background-color: #2563eb; }
         .btn-secondary:hover { background-color: #1d4ed8; }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { background-color: #1d4ed8; }
 
         /* Estilo del Lienzo con Etiquetas de Nivel Gen en el Margen Izquierdo */
         .genogram-canvas-wrapper { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 10px; padding: 15px; min-height: 700px; position: relative; overflow-x: auto; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
@@ -152,8 +154,9 @@
                     <textarea id="g-hipotesis" placeholder="Ingrese la lectura clínica sistémica de la dinámica multigeneracional..."></textarea>
                 </div>
 
-                <div style="margin: 20px 0;">
+                <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="button" class="btn btn-secondary" onclick="generarGenogramaGrafico()"><i class="fa-solid fa-project-diagram"></i> Obtener Gráfico</button>
+                    <button type="button" class="btn btn-blue" onclick="conformarInformeGenograma()"><i class="fa-solid fa-file-waveform"></i> Conformar Informe</button>
                 </div>
 
                 <!-- Lienzo con Niveles en el Margen Izquierdo -->
@@ -219,9 +222,12 @@
         </div>
     </main>
 
+    <!-- Librería html2canvas para la conversión del esquema en imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -246,7 +252,7 @@
                     const data = docSnap.data();
                     const opt = document.createElement('option');
                     opt.value = docSnap.id;
-                    opt.textContent = data.name;
+                    opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                     selectEl.appendChild(opt);
                 });
             } catch (error) {
@@ -269,7 +275,8 @@
                 const ref = doc(db, "patients", activePatientId);
                 const snap = await getDoc(ref);
                 if (snap.exists()) {
-                    activePatientName = snap.data().name;
+                    const data = snap.data();
+                    activePatientName = data.name || data.nombre || "Paciente";
                     document.getElementById('lbl-paciente-node').textContent = activePatientName.toUpperCase();
                 }
             } catch (e) {
@@ -353,6 +360,78 @@
             drawLine({x: par.x, y: par.top}, {x: par.x, y: par.top - 18}, "#0d9488", "2.5");
             drawLine({x: pac.x, y: pac.top - 18}, {x: par.x, y: pac.top - 18}, "#0d9488", "2.5");
         }
+
+        window.conformarInformeGenograma = async function() {
+            if (!activePatientId) {
+                alert("Seleccione un paciente primero.");
+                return;
+            }
+
+            // Recolectar datos del formulario
+            const titulo = document.getElementById('g-titulo').value;
+            const fecha = document.getElementById('g-fecha').value;
+            const hipotesis = document.getElementById('g-hipotesis').value;
+
+            const abuelo1 = document.getElementById('g-abuelo1').value;
+            const abuela1 = document.getElementById('g-abuela1').value;
+            const abuelo2 = document.getElementById('g-abuelo2').value;
+            const abuela2 = document.getElementById('g-abuela2').value;
+            const padre = document.getElementById('g-padre').value;
+            const madre = document.getElementById('g-madre').value;
+            const unionPadres = document.getElementById('g-union-padres').value;
+            const hermano1 = document.getElementById('g-hermano1').value;
+            const hermano2 = document.getElementById('g-hermano2').value;
+            const pareja = document.getElementById('g-pareja').value;
+            const unionPaciente = document.getElementById('g-union-paciente').value;
+            const hermano3 = document.getElementById('g-hermano3').value;
+            const hijo1 = document.getElementById('g-hijo1').value;
+            const hijo2 = document.getElementById('g-hijo2').value;
+
+            // Capturar la imagen del esquema del genograma usando html2canvas
+            let canvasImageBase64 = "";
+            try {
+                const canvasWrapper = document.getElementById('canvas-wrapper');
+                const canvas = await html2canvas(canvasWrapper, { scale: 1 });
+                canvasImageBase64 = canvas.toDataURL("image/png");
+            } catch (err) {
+                console.error("Error al capturar la imagen del genograma:", err);
+            }
+
+            let detalleConsolidado = `--- DATOS GENERALES ---\n`;
+            detalleConsolidado += `• Título: ${titulo}\n• Fecha: ${fecha}\n\n`;
+            detalleConsolidado += `--- GEN 1: ABUELOS ---\n`;
+            detalleConsolidado += `• Abuelo Paterno: ${abuelo1}\n• Abuela Paterna: ${abuela1}\n`;
+            detalleConsolidado += `• Abuelo Materno: ${abuelo2}\n• Abuela Materna: ${abuela2}\n\n`;
+            detalleConsolidado += `--- GEN 2: PADRES ---\n`;
+            detalleConsolidado += `• Padre: ${padre}\n• Madre: ${madre}\n• Unión: ${unionPadres}\n\n`;
+            detalleConsolidado += `--- GEN 3: PACIENTE E HERMANOS ---\n`;
+            detalleConsolidado += `• Paciente (Índice): ${activePatientName}\n`;
+            detalleConsolidado += `• Hermanos: ${hermano1}, ${hermano2}, ${hermano3}\n`;
+            detalleConsolidado += `• Pareja Actual: ${pareja} (Unión: ${unionPaciente})\n\n`;
+            detalleConsolidado += `--- GEN 4: HIJOS ---\n`;
+            detalleConsolidado += `• Hijos: ${hijo1}, ${hijo2}\n\n`;
+            detalleConsolidado += `--- HIPÓTESIS SISTÉMICA FAMILIAR ---\n${hipotesis || 'Sin hipótesis consignada'}\n\n`;
+            if (canvasImageBase64) {
+                detalleConsolidado += `[IMAGEN DE ESQUEMA DE GENOGRAMA ALMACENADA]`;
+            }
+
+            const nuevoInforme = {
+                titulo: "Informe de Genograma",
+                tipo: "Informe de Genograma",
+                fecha: serverTimestamp(),
+                detalle: detalleConsolidado,
+                resumen: `Genograma multigeneracional estructural de ${activePatientName} con hipótesis sistémica y esquema gráfico.`,
+                imagenGrafico: canvasImageBase64
+            };
+
+            try {
+                await addDoc(collection(db, "patients", activePatientId, "informes_medicos"), nuevoInforme);
+                alert("¡Informe de Genograma conformado y guardado exitosamente en la base de datos para ser recuperado desde el visualizador!");
+            } catch (error) {
+                console.error("Error al guardar el informe:", error);
+                alert("Ocurrió un error al guardar el informe en la base de datos.");
+            }
+        };
 
         async function renderHistory() {
             const container = document.getElementById('genogram-history-container');
