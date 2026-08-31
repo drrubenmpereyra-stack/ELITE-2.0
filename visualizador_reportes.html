@@ -56,11 +56,13 @@
             color: #0369a1;
             margin-bottom: 4px;
         }
-        .actions { display: flex; gap: 10px; }
-        .btn { background-color: var(--hc-sesiones); color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { background-color: var(--hc-sesiones); color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: 1; }
         .btn:hover { background-color: #0369a1; }
         .btn-secondary { background-color: #e2e8f0; color: #334155; }
         .btn-secondary:hover { background-color: #cbd5e1; }
+        .btn-purple { background-color: #7c3aed; color: white; }
+        .btn-purple:hover { background-color: #6d28d9; }
 
         #elite-preview-content {
             flex-grow: 1;
@@ -140,8 +142,9 @@
                 </div>
             </div>
             <div class="actions">
-                <button class="btn" id="btn-save"><i class="fa-solid fa-floppy-disk"></i> Guardar H.C.</button>
-                <button class="btn btn-secondary" id="btn-print"><i class="fa-solid fa-print"></i> Imprimir</button>
+                <button class="btn" id="btn-save" title="Guardar H.C."><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                <button class="btn btn-purple" onclick="mostrarReportesPrevios()" title="Mostrar Reportes Previos"><i class="fa-solid fa-clock-rotate-left"></i> Previos</button>
+                <button class="btn btn-secondary" id="btn-print" title="Imprimir"><i class="fa-solid fa-print"></i> Imprimir</button>
             </div>
         </section>
 
@@ -149,7 +152,7 @@
         <section class="card preview-area" style="border-top: 4px solid var(--primary-color);">
             <h2><i class="fa-solid fa-file-lines"></i> Vista Previa Institucional</h2>
             <div id="elite-preview-content">
-                <p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 40px;">Seleccione elementos a la izquierda para armar el reporte.</p>
+                <p style="color: #94a3b8; font-style: italic; text-align: center; margin-top: 40px;">Seleccione elementos a la izquierda o consulte reportes previos.</p>
             </div>
         </section>
     </main>
@@ -308,6 +311,77 @@
             `;
 
             previewContent.innerHTML = htmlContenido;
+        };
+
+        window.mostrarReportesPrevios = async function() {
+            if (!pacienteActualId) {
+                alert("Seleccione un paciente primero.");
+                return;
+            }
+
+            const previewContent = document.getElementById('elite-preview-content');
+            previewContent.innerHTML = '<p style="color: #64748b; text-align: center; margin-top: 40px;">Cargando reportes previos guardados...</p>';
+
+            try {
+                const snap = await getDocs(collection(db, "patients", pacienteActualId, "reportes_historia_clinica"));
+                
+                if (snap.empty) {
+                    previewContent.innerHTML = '<p style="color: #e11d48; text-align: center; margin-top: 40px;">No existen reportes previos consolidados guardados para este paciente.</p>';
+                    return;
+                }
+
+                let html = `
+                    <div class="report-header">
+                        <div class="report-logo-area">
+                            <h1>ELITE 2.0</h1>
+                            <p>Historial de Reportes Previos Consolidados</p>
+                        </div>
+                        <div class="report-patient-meta">
+                            <strong>Paciente:</strong> ${nombrePacienteActual}
+                        </div>
+                    </div>
+                    <div class="report-body-items">
+                `;
+
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    let fechaStr = "Fecha desconocida";
+                    if (data.fechaCreacion && data.fechaCreacion.toDate) {
+                        fechaStr = data.fechaCreacion.toDate().toLocaleString();
+                    }
+
+                    html += `
+                        <div style="margin-bottom: 25px; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; background: #f8fafc;">
+                            <div style="font-size: 0.8rem; font-weight: bold; color: var(--primary-color);">ESTADO: ${data.estado || 'Consolidado'} | FECHA: ${fechaStr}</div>
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #334155;">
+                                <strong>IDs de elementos incluidos en este reporte:</strong>
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    ${data.elementosSeleccionados ? data.elementosSeleccionados.map(id => `<li>Elemento ID: ${id}</li>`).join('') : '<li>Sin detalles detallados</li>'}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+
+                html += `
+                    <div class="print-footer">
+                        <div class="signature-line"></div>
+                        <div class="signature-data">
+                            Dr./Lic. Profesional Tratante<br>
+                            Matrícula Profesional N° 00000 | Especialista en Psicoterapia<br>
+                            Equipo Clínico ELITE 2.0
+                        </div>
+                    </div>
+                `;
+
+                previewContent.innerHTML = html;
+
+            } catch (error) {
+                console.error("Error al obtener reportes previos:", error);
+                previewContent.innerHTML = '<p style="color: #e11d48; text-align: center; margin-top: 40px;">Error al cargar el historial de reportes.</p>';
+            }
         };
 
         document.getElementById('btn-save').addEventListener('click', async () => {
