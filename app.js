@@ -355,9 +355,9 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
             } else if (terKey === "4.4.4 Cuidado del self y estado psicofisiológico") {
                 cargarVistaIframe("cuidado_self.html");
             } else if (terKey === "6.1.1 Evaluación Convergente/Duelo") {
-                cargarVistaIframe("eval_convergente_duelos.html");
+                cargarVistaIframe("eval_conv_duelos.html");
             } else if (terKey === "6.1.2 Diagnóstico Funcional Operatividad Defensiva/Duelo") {
-                cargarVistaIframe("diagn_funcional_operativo_duelo.html");
+                cargarVistaIframe("diagn_func_op_duelo.html");
             } else if (terKey === "6.2.1 Evaluación Convergente/Crisis") {
                 cargarVistaIframe("eval_convergente_crisis.html");
             } else if (terKey === "6.2.2 Diagnóstico Funcional Operatividad Defensiva/Crisis") {
