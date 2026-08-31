@@ -215,7 +215,7 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                 } else if (secKey === "Centro de impresiones") {
                     cargarVistaIframe("impresiones.html");
                 } else if (secKey === "Visualizador de informes") {
-                    cargarVistaIframe("visualizador_resportes.html");
+                    cargarVistaIframe("visualizador_reportes.html");
                 } else if (secKey === "1 Registro de Sesiones") {
                     cargarVistaIframe("sesiones.html");
                 } else if (secKey === "2 Primera entrevista") {
