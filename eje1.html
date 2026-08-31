@@ -18,7 +18,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1300px; margin: 0 auto; }
         .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         
@@ -33,18 +33,58 @@
         .btn:hover { background-color: #047857; }
         .btn-evaluar { background-color: #2563eb; margin-left: 10px; }
         .btn-evaluar:hover { background-color: #1d4ed8; }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { background-color: #1d4ed8; }
 
-        .schema-preview-container {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f1f5f9; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); align-items: center;
+        /* Contenedor de la Imagen con Capa Superpuesta */
+        .schema-overlay-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        @media (max-width: 900px) { .schema-preview-container { grid-template-columns: 1fr; } }
-        
-        .schema-image-box { text-align: center; background: white; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; }
-        .schema-image-box img { max-width: 100%; height: auto; border-radius: 4px; }
+        .schema-overlay-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
 
-        .schema-live-box { background: white; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; max-height: 500px; overflow-y: auto; }
-        .live-item { margin-bottom: 10px; padding: 8px; background: #f8fafc; border-left: 3px solid var(--hc-sesiones); border-radius: 4px; font-size: 0.85rem; }
-        .live-item strong { color: var(--primary-color); display: block; margin-bottom: 2px; }
+        /* Burbujas de texto flotantes sobre la imagen según las coordenadas solicitadas */
+        .overlay-box {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px dashed var(--primary-color);
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 0.75rem;
+            color: #1e293b;
+            max-width: 220px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            pointer-events: none;
+            display: none;
+            word-break: break-word;
+        }
+        .overlay-box strong {
+            display: block;
+            color: var(--primary-color);
+            font-size: 0.7rem;
+            border-bottom: 1px solid #cbd5e1;
+            margin-bottom: 2px;
+        }
+
+        /* Coordenadas personalizadas */
+        #box-sec-1 { top: 50%; left: 10%; }
+        #box-sec-2 { top: 20%; left: 10%; }
+        #box-sec-3 { top: 40%; left: 50%; }
+        #box-sec-4 { top: 50%; right: 20%; left: auto; }
+        #box-sec-5 { top: 50%; right: 2%; left: auto; }
+        #box-sec-6 { top: 20%; right: 25%; left: auto; }
+        #box-sec-7 { top: 70%; left: 50%; }
 
         .foco-card { background: #f8fafc; border-left: 4px solid var(--hc-sesiones); padding: 15px; border-radius: 6px; margin-bottom: 12px; }
     </style>
@@ -110,20 +150,25 @@
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label style="margin-bottom: 8px; display: block;"><i class="fa-solid fa-eye"></i> Vista Previa Dinámica sobre el Esquema:</label>
-                    <div class="schema-preview-container">
-                        <div class="schema-image-box">
-                            <img src="Fiorini foco vacio.jpeg" alt="Esquema Foco Fiorini">
-                            <p style="font-size: 0.75rem; color: #64748b; margin-top: 5px;">Esquema de referencia modelo Fiorini</p>
-                        </div>
-                        <div class="schema-live-box" id="live-schema-output">
-                            <p style="color: #64748b; font-size: 0.85rem; text-align: center;">Comience a escribir en los campos para ver reflejado el contenido aquí...</p>
-                        </div>
+                    <label style="margin-bottom: 8px; display: block;"><i class="fa-solid fa-eye"></i> Vista Previa Superpuesta sobre el Esquema:</label>
+                    
+                    <!-- Contenedor con la imagen de fondo y las capas de texto posicionadas -->
+                    <div class="schema-overlay-wrapper" id="schema-canvas-wrapper">
+                        <img src="Fiorini foco vacio.jpeg" alt="Esquema Foco Fiorini">
+                        
+                        <div id="box-sec-1" class="overlay-box"><strong>1. Conflicto Nuclear</strong><span class="content">--</span></div>
+                        <div id="box-sec-2" class="overlay-box"><strong>2. Situación Actual</strong><span class="content">--</span></div>
+                        <div id="box-sec-3" class="overlay-box"><strong>3. Situación Grupal</strong><span class="content">--</span></div>
+                        <div id="box-sec-4" class="overlay-box"><strong>4. Caracterología</strong><span class="content">--</span></div>
+                        <div id="box-sec-5" class="overlay-box"><strong>5. Contexto Social</strong><span class="content">--</span></div>
+                        <div id="box-sec-6" class="overlay-box"><strong>6. Histórico Genético</strong><span class="content">--</span></div>
+                        <div id="box-sec-7" class="overlay-box"><strong>7. Momento Evolutivo</strong><span class="content">--</span></div>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="submit" class="btn" style="flex: 1;"><i class="fa-solid fa-floppy-disk"></i> Guardar Foco en la Nube</button>
+                    <button type="button" class="btn btn-blue" onclick="conformarInformeImagenFoco()"><i class="fa-solid fa-file-waveform"></i> Conformar Informe</button>
                     <button type="button" class="btn btn-evaluar" onclick="abrirEvaluacionFoco()"><i class="fa-solid fa-calculator"></i> Evaluar el foco obtener puntaje</button>
                 </div>
             </form>
@@ -137,9 +182,12 @@
         </div>
     </main>
 
+    <!-- Librería html2canvas para capturar la imagen superpuesta -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -154,6 +202,7 @@
         const db = getFirestore(app);
 
         let activePatientId = null;
+        let activePatientName = "";
 
         const labelsMap = {
             1: "1- Motivo de consulta y conflicto nuclear",
@@ -173,7 +222,7 @@
                     const data = docSnap.data();
                     const opt = document.createElement('option');
                     opt.value = docSnap.id;
-                    opt.textContent = data.name;
+                    opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                     selectEl.appendChild(opt);
                 });
             } catch (error) {
@@ -192,6 +241,17 @@
                 return;
             }
 
+            try {
+                const ref = doc(db, "patients", activePatientId);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    activePatientName = data.name || data.nombre || "Paciente";
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+
             formCard.style.display = 'block';
             historyCard.style.display = 'block';
             document.getElementById('foco-fecha').valueAsDate = new Date();
@@ -208,25 +268,69 @@
         }
 
         window.updateLiveSchema = function() {
-            const container = document.getElementById('live-schema-output');
-            container.innerHTML = '';
-            let hasContent = false;
+            for (let i = 1; i <= 7; i++) {
+                const val = document.getElementById(`foco-${i}`).value.trim();
+                const box = document.getElementById(`box-sec-${i}`);
+                const spanContent = box.querySelector('.content');
 
+                if (val) {
+                    spanContent.innerText = val;
+                    box.style.display = 'block';
+                } else {
+                    box.style.display = 'none';
+                }
+            }
+        }
+
+        window.conformarInformeImagenFoco = async function() {
+            if (!activePatientId) {
+                alert("Seleccione un paciente primero.");
+                return;
+            }
+
+            const tituloFoco = document.getElementById('foco-titulo').value.trim();
+            const fechaFoco = document.getElementById('foco-fecha').value;
+
+            // Capturar la imagen completa con los cuadros de texto superpuestos usando html2canvas
+            let imageBase64 = "";
+            try {
+                const wrapperEl = document.getElementById('schema-canvas-wrapper');
+                const canvas = await html2canvas(wrapperEl, { scale: 1, useCORS: true });
+                imageBase64 = canvas.toDataURL("image/png");
+            } catch (err) {
+                console.error("Error al capturar la imagen de foco:", err);
+            }
+
+            let detalleTexto = `--- IDENTIFICACIÓN DEL FOCO ---\n`;
+            detalleTexto += `• Título: ${tituloFoco}\n• Fecha: ${fechaFoco}\n\n`;
+            detalleTexto += `--- CONTENIDO DE LOS SECTORES ---\n`;
             for (let i = 1; i <= 7; i++) {
                 const val = document.getElementById(`foco-${i}`).value.trim();
                 if (val) {
-                    hasContent = true;
-                    const div = document.createElement('div');
-                    div.className = 'live-item';
-                    div.innerHTML = `<strong>[Sect. ${i}] ${labelsMap[i]}</strong> ${val}`;
-                    container.appendChild(div);
+                    detalleTexto += `• ${labelsMap[i]}: ${val}\n`;
                 }
             }
-
-            if (!hasContent) {
-                container.innerHTML = '<p style="color: #64748b; font-size: 0.85rem; text-align: center;">Comience a escribir en los campos para ver reflejado el contenido aquí...</p>';
+            if (imageBase64) {
+                detalleTexto += `\n[IMAGEN ESQUEMÁTICA CON TEXTOS SUPERPUESTOS ALMACENADA]`;
             }
-        }
+
+            const nuevoInforme = {
+                titulo: `Informe Imagen de Foco - ${tituloFoco}`,
+                tipo: "Informe Imagen de Foco",
+                fecha: serverTimestamp(),
+                detalle: detalleTexto,
+                resumen: `Esquema gráfico de Foco Terapéutico (Eje 1) de ${activePatientName} con textos superpuestos.`,
+                imagenGrafico: imageBase64
+            };
+
+            try {
+                await addDoc(collection(db, "patients", activePatientId, "informes_medicos"), nuevoInforme);
+                alert("¡Informe 'Informe Imagen de Foco' conformado y guardado en la base de datos para ser recuperado desde el visualizador!");
+            } catch (error) {
+                console.error("Error al guardar el informe en la base de datos:", error);
+                alert("Ocurrió un error al guardar el informe.");
+            }
+        };
 
         async function renderFocosHistory() {
             const container = document.getElementById('focos-container');
