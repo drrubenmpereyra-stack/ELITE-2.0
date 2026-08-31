@@ -42,6 +42,8 @@
         .btn { background-color: #00e5ff; color: black; border: none; padding: 11px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
         .btn:hover { opacity: 0.85; }
         .btn-informe { background-color: #b21f1f; color: white; }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { opacity: 0.85; }
 
         .result-box { background: #000; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
         .result-box.active { display: block; }
@@ -64,12 +66,12 @@
         <div class="card">
             <h2><i class="fa-solid fa-brain"></i> Eje 2: Rúbrica de Evaluación de Funciones Yoicas (Modelo Fiorini - Neurociencias)</h2>
             <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 20px;">
-                Evaluación de las 9 funciones yoicas fundamentales y su correlato con las redes neuronales[cite: 17]. Marque el nivel operativo (de 0 a 4) correspondiente para cada función[cite: 17].
+                Evaluación de las 9 funciones yoicas fundamentales y su correlato con las redes neuronales. Marque el nivel operativo (de 0 a 4) correspondiente para cada función.
             </p>
 
             <form id="evaluacion-yoica-form">
                 
-                <div class="seccion-titulo">FUNCIONES 1-3: Adaptación y Realidad (Red de Modo Por Defecto vs. Atención Ejecutiva)[cite: 17]</div>
+                <div class="seccion-titulo">FUNCIONES 1-3: Adaptación y Realidad (Red de Modo Por Defecto vs. Atención Ejecutiva)</div>
                 <table class="rubric-table">
                     <thead>
                         <tr>
@@ -83,24 +85,24 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">1. Prueba de Realidad</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad para diferenciar fantasía de hechos y reconocer la situación de enfermedad/conflicto[cite: 17].<br><b>Rol Terapeuta:</b> Rectifica distorsiones cognitivas y mantiene el encuadre frente a la regresión[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad para diferenciar fantasía de hechos y reconocer la situación de enfermedad/conflicto.<br><b>Rol Terapeuta:</b> Rectifica distorsiones cognitivas y mantiene el encuadre frente a la regresión.</span>
                             </td>
                             <td>
-                                <label class="checkbox-option"><input type="checkbox" name="f1" value="0"><span><b>0 - Ausente:</b> Función colapsada (ej. brote psicótico, delirio). Terapeuta 100% directivo[cite: 17].</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="0"><span><b>0 - Ausente:</b> Función colapsada (ej. brote psicótico, delirio). Terapeuta 100% directivo.</span></label>
                             </td>
                             <td>
-                                <label class="checkbox-option"><input type="checkbox" name="f1" value="1"><span><b>1 - Débil:</b> Aparece solo con intervención constante del terapeuta[cite: 17].</span></label>
-                                <label class="checkbox-option"><input type="checkbox" name="f1" value="2"><span><b>2 - Inestable:</b> La usa pero la pierde ante niveles moderados de ansiedad[cite: 17].</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="1"><span><b>1 - Débil:</b> Aparece solo con intervención constante del terapeuta.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="2"><span><b>2 - Inestable:</b> La usa pero la pierde ante niveles moderados de ansiedad.</span></label>
                             </td>
                             <td>
-                                <label class="checkbox-option"><input type="checkbox" name="f1" value="3"><span><b>3 - Funcional:</b> Recupera la función tras un señalamiento[cite: 17].</span></label>
-                                <label class="checkbox-option"><input type="checkbox" name="f1" value="4"><span><b>4 - Óptima:</b> Realiza auto-señalamientos y mantiene autonomía focal[cite: 17].</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="3"><span><b>3 - Funcional:</b> Recupera la función tras un señalamiento.</span></label>
+                                <label class="checkbox-option"><input type="checkbox" name="f1" value="4"><span><b>4 - Óptima:</b> Realiza auto-señalamientos y mantiene autonomía focal.</span></label>
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <span class="funcion-title">2. Adaptación</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Flexibilidad para modificar conductas en función de las metas del tratamiento[cite: 17].<br><b>Rol Terapeuta:</b> Propone tareas terapéuticas y objetivos alcanzables (foco)[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Flexibilidad para modificar conductas en función de las metas del tratamiento.<br><b>Rol Terapeuta:</b> Propone tareas terapéuticas y objetivos alcanzables (foco).</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f2" value="0"><span><b>0 - Ausente:</b> Rigidez adaptativa total, incapacidad de ajuste al encuadre.</span></label>
@@ -117,7 +119,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">3. Sentido de Realidad</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Vivencia de la propia identidad y del cuerpo sin despersonalización[cite: 17].<br><b>Rol Terapeuta:</b> Valida la experiencia subjetiva mientras ancla al paciente en el "aquí y ahora"[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Vivencia de la propia identidad y del cuerpo sin despersonalización.<br><b>Rol Terapeuta:</b> Valida la experiencia subjetiva mientras ancla al paciente en el "aquí y ahora".</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f3" value="0"><span><b>0 - Ausente:</b> Despersonalización severa o fragmentación yoica.</span></label>
@@ -134,7 +136,7 @@
                     </tbody>
                 </table>
 
-                <div class="seccion-titulo">FUNCIONES 4-6: Cognitivas y de Regulación (Control Inhibitorio y Memoria de Trabajo)[cite: 17]</div>
+                <div class="seccion-titulo">FUNCIONES 4-6: Cognitivas y de Regulación (Control Inhibitorio y Memoria de Trabajo)</div>
                 <table class="rubric-table">
                     <thead>
                         <tr>
@@ -148,7 +150,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">4. Control de Impulsos</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de postergar la descarga motora o verbal (Tolerancia a la frustración)[cite: 17].<br><b>Rol Terapeuta:</b> Actúa como regulador externo y ayuda a verbalizar antes de actuar (Simbología vs. Acción)[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de postergar la descarga motora o verbal (Tolerancia a la frustración).<br><b>Rol Terapeuta:</b> Actúa como regulador externo y ayuda a verbalizar antes de actuar (Simbología vs. Acción).</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f4" value="0"><span><b>0 - Ausente:</b> Acting-out inmediato, impulsividad extrema.</span></label>
@@ -165,7 +167,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">5. Pensamiento (Proceso Secundario)</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de síntesis, lógica y mantenimiento del hilo conductor sobre el foco[cite: 17].<br><b>Rol Terapeuta:</b> Organiza el material disperso; jerarquiza lo relevante sobre lo accesorio[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de síntesis, lógica y mantenimiento del hilo conductor sobre el foco.<br><b>Rol Terapeuta:</b> Organiza el material disperso; jerarquiza lo relevante sobre lo accesorio.</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f5" value="0"><span><b>0 - Ausente:</b> Pensamiento disgregado o incapacidad lógica.</span></label>
@@ -182,7 +184,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">6. Juicio de Valor</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Evaluación de las consecuencias de sus actos sobre sí mismo y otros[cite: 17].<br><b>Rol Terapeuta:</b> Confronta las conductas autodestructivas mediante el señalamiento de contradicciones[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Evaluación de las consecuencias de sus actos sobre sí mismo y otros.<br><b>Rol Terapeuta:</b> Confronta las conductas autodestructivas mediante el señalamiento de contradicciones.</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f6" value="0"><span><b>0 - Ausente:</b> Conductas de alto riesgo sin registro de consecuencias.</span></label>
@@ -199,7 +201,7 @@
                     </tbody>
                 </table>
 
-                <div class="seccion-titulo">FUNCIONES 7-9: Sintético-Integrativas y de Enlace (Conectividad Hipocampo - CPF)[cite: 17]</div>
+                <div class="seccion-titulo">FUNCIONES 7-9: Sintético-Integrativas y de Enlace (Conectividad Hipocampo - CPF)</div>
                 <table class="rubric-table">
                     <thead>
                         <tr>
@@ -213,7 +215,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">7. Auto-observación (Insight)</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de disociación operativa: una parte del yo observa a la otra[cite: 17].<br><b>Rol Terapeuta:</b> Fomenta la curiosidad reflexiva y la "mentalización" (Teoría de la Mente)[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de disociación operativa: una parte del yo observa a la otra.<br><b>Rol Terapeuta:</b> Fomenta la curiosidad reflexiva y la "mentalización" (Teoría de la Mente).</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f7" value="0"><span><b>0 - Ausente:</b> Incapacidad total de autoobservación; externalización masiva.</span></label>
@@ -230,7 +232,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">8. Memoria y Anticipación</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de ligar experiencias pasadas con el presente y proyectar cambios[cite: 17].<br><b>Rol Terapeuta:</b> Realiza interpretaciones extra-transferenciales que conectan el foco con la biografía[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Capacidad de ligar experiencias pasadas con el presente y proyectar cambios.<br><b>Rol Terapeuta:</b> Realiza interpretaciones extra-transferenciales que conectan el foco con la biografía.</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f8" value="0"><span><b>0 - Ausente:</b> Desconexión biográfica absoluta o amnesia defensiva.</span></label>
@@ -247,7 +249,7 @@
                         <tr>
                             <td>
                                 <span class="funcion-title">9. Elaboración (Work-through)</span>
-                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Persistencia en el trabajo sobre el conflicto a pesar de las resistencias[cite: 17].<br><b>Rol Terapeuta:</b> Mantiene la tensión focal y evita la dispersión defensiva hacia otros temas[cite: 17].</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-top: 4px;"><b>Criterio:</b> Persistencia en el trabajo sobre el conflicto a pesar de las resistencias.<br><b>Rol Terapeuta:</b> Mantiene la tensión focal y evita la dispersión defensiva hacia otros temas.</span>
                             </td>
                             <td>
                                 <label class="checkbox-option"><input type="checkbox" name="f9" value="0"><span><b>0 - Ausente:</b> Fuga temática constante, resistencia impenetrable al trabajo.</span></label>
@@ -267,6 +269,7 @@
                 <div class="btn-group">
                     <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Puntuación</button>
                     <button type="button" class="btn btn-informe" onclick="generarInformeFuncionesYoicas()"><i class="fa-solid fa-file-lines"></i> Informe Funciones Yoicas</button>
+                    <button type="button" class="btn btn-blue" onclick="conformarInformeEje2()"><i class="fa-solid fa-file-waveform"></i> Conformar Informe Eje 2</button>
                 </div>
             </form>
 
@@ -279,7 +282,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -305,7 +308,7 @@
                     const data = docSnap.data();
                     const opt = document.createElement('option');
                     opt.value = docSnap.id;
-                    opt.textContent = data.name;
+                    opt.textContent = data.name || data.nombre || `Paciente (${docSnap.id})`;
                     if (docSnap.id === activePatientId) {
                         opt.selected = true;
                     }
@@ -413,6 +416,71 @@
                 console.log("Informe de funciones yoicas guardado en Firestore.");
             } catch (e) {
                 console.error("Error al guardar informe:", e);
+            }
+        };
+
+        window.conformarInformeEje2 = async function() {
+            if (!activePatientId) {
+                alert("Por favor, seleccione un paciente activo antes de conformar el informe.");
+                return;
+            }
+
+            const { total, marcas } = obtenerSeleccionPuntuacion();
+            if (total === 0) {
+                alert("Por favor, realice al menos el cálculo de puntuación o marque las opciones de la rúbrica antes de conformar el informe.");
+                return;
+            }
+
+            let interpretacion = "";
+            let nivelClinico = "";
+
+            if (total >= 0 && total <= 9) {
+                nivelClinico = "Rango 0 - 9 puntos (Funciones Colapsadas / Alta Fragilidad)";
+                interpretacion = "Indica un colapso operativo severo o debilidad masiva de las funciones yoicas. El paciente requiere un terapeuta 100% directivo, con un fuerte rol de regulación externa, sostén y contención somato-emocional para evitar desbordes o acting-out.";
+            } else if (total >= 10 && total <= 22) {
+                nivelClinico = "Rango 10 - 22 puntos (Funciones Débiles / Inestables)";
+                interpretacion = "Las funciones yoicas aparecen de forma intermitente o se pierden ante niveles moderados de ansiedad. El terapeuta debe actuar permanentemente como 'yo auxiliar', utilizando la confrontación estructurada y el señalamiento constante para mantener la tensión focal.";
+            } else {
+                nivelClinico = "Rango 23 - 36 puntos (Funciones Funcionales / Óptimas)";
+                interpretacion = "Denota una excelente fortaleza yoica y capacidad de trabajo colaborativo. El paciente recupera las funciones con facilidad, realiza auto-señalamientos y sostiene un proceso analítico focalizado autónomo con alta conectividad prefrontal.";
+            }
+
+            const funcionesNombres = [
+                "1. Prueba de Realidad",
+                "2. Adaptación",
+                "3. Sentido de Realidad",
+                "4. Control de Impulsos",
+                "5. Pensamiento (Proceso Secundario)",
+                "6. Juicio de Valor",
+                "7. Auto-observación (Insight)",
+                "8. Memoria y Anticipación",
+                "9. Elaboración (Work-through)"
+            ];
+
+            let detalleInforme = `--- INFORME EJE 2: FUNCIONES YOICAS (MODELO FIORINI) ---\n` +
+                                 `• Puntuación Total: ${total} / 36 Puntos\n` +
+                                 `• Categoría Clínica: ${nivelClinico}\n\n` +
+                                 `--- EVALUACIÓN CUALITATIVA ---\n${interpretacion}\n\n` +
+                                 `--- DETALLE DE FUNCIONES YOICAS ---\n`;
+
+            for (let i = 1; i <= 9; i++) {
+                detalleInforme += `• ${funcionesNombres[i-1]}: ${marcas[`f${i}`]}/4 pts\n`;
+            }
+
+            const nuevoInforme = {
+                titulo: "Informe Eje 2: Funciones Yoicas",
+                tipo: "Informe Eje 2",
+                fecha: serverTimestamp(),
+                detalle: detalleInforme,
+                resumen: `Puntuación Eje 2: ${total}/36 pts - ${nivelClinico}`
+            };
+
+            try {
+                await addDoc(collection(db, "patients", activePatientId, "informes_medicos"), nuevoInforme);
+                alert("¡Informe Eje 2 conformado y guardado en la base de datos para ser recuperado desde el visualizador!");
+            } catch (error) {
+                console.error("Error al guardar el informe en la base de datos:", error);
+                alert("Ocurrió un error al guardar el informe en la base de datos.");
             }
         };
     </script>
