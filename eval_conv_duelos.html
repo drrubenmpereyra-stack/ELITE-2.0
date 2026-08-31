@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rúbrica: Evaluación Convergente para Procesos de Duelo (RECD) | ELITE 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0891b2;
+            --secondary-color: #22d3ee;
+            --accent-bg: #ecfeff;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cffafe;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .no-print { display: block; }
+        .container { max-width: 950px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 20px; background: var(--accent-bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"] { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; background: #fff; outline: none; }
+        select:focus, input:focus { border-color: var(--primary-color); }
+
+        .rubric-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.85rem; }
+        .rubric-table th, .rubric-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; vertical-align: middle; }
+        .rubric-table th { background-color: var(--accent-bg); color: var(--primary-color); font-weight: 700; border-color: var(--border-color); }
+        .rubric-table tr:hover { background-color: #fcfcfc; }
+        .dimension-title { font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 4px; }
+        .neuro-tag { font-size: 0.75rem; color: #0e7490; font-style: italic; }
+        
+        .radio-option { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+        .radio-option input { margin-top: 3px; cursor: pointer; accent-color: var(--primary-color); }
+
+        .score-preview-box { margin-bottom: 15px; padding: 12px 15px; background: var(--accent-bg); border: 1px solid var(--border-color); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; color: var(--primary-color); }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 11px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-informe { background-color: #0284c7; }
+        .btn-guardar { background-color: #0369a1; }
+        .btn-pdf { background-color: #0e7490; }
+        .btn-grafico { background-color: #059669; }
+
+        .chart-container-preview {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            display: none;
+        }
+
+        .printable-sheet {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto 0 auto;
+            padding: 40px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: none;
+            position: relative;
+        }
+        .printable-sheet.active { display: block; }
+
+        .letterhead {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .letterhead-info h3 { font-size: 1.2rem; color: var(--primary-color); font-weight: 700; text-transform: uppercase; border: none; margin: 0; padding: 0; }
+        .letterhead-info p { font-size: 0.75rem; color: #475569; margin-top: 3px; line-height: 1.3; }
+        .letterhead-logo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--secondary-color); }
+
+        .score-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: bold; color: white; font-size: 0.95rem; margin-bottom: 15px; text-align: center; width: 100%; }
+        .badge-urgencia { background-color: #dc2626; }
+        .badge-vulnerabilidad { background-color: #d97706; }
+        .badge-elaboracion { background-color: #16a34a; }
+
+        .report-section { margin-bottom: 15px; font-size: 0.9rem; line-height: 1.6; }
+        .report-section strong { color: var(--primary-color); }
+
+        .chart-report-wrapper {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .chart-report-wrapper img {
+            max-width: 320px;
+            height: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .sheet-footer {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .signature-block {
+            width: 280px;
+            border-top: 1px solid #334155;
+            text-align: center;
+            padding-top: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            line-height: 1.3;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .printable-sheet { border: none; box-shadow: none; margin: 0; padding: 0; width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-seedling"></i> Rúbrica: Evaluación Convergente para Procesos de Duelo (RECD)</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Intersección entre el diagnóstico operatorio de funcionalidad defensiva (Héctor Fiorini) y la Clínica de la Convergencia (Dr. y Mgter. Rubén M. Pereyra)[cite: 11].
+            </p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="select-patient"><i class="fa-solid fa-user"></i> Seleccionar Paciente:</label>
+                    <select id="select-patient" required>
+                        <option value="">-- Cargando pacientes --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="eval-fecha"><i class="fa-solid fa-calendar"></i> Fecha de Sesión:</label>
+                    <input type="date" id="eval-fecha">
+                </div>
+            </div>
+
+            <form id="cartografia-form">
+                <table class="rubric-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Eje de Evaluación</th>
+                            <th style="width: 25%;">Nivel 1: Operatoria Bloqueada / Descompensada (1 Pt)</th>
+                            <th style="width: 25%;">Nivel 2: Operatoria Rígida / En Tensión (2 Pts)</th>
+                            <th style="width: 25%;">Nivel 3: Operatoria Plástica / Elaborativa (3 Pts)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">Eje I: Registros Vinculares y Familiares</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Economías intersubjetivas</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim1" value="1" required>
+                                    <span>Desorganización vincular severa; el grupo familiar expulsa, aglutina o deposita el rol de "portavoz" del dolor[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim1" value="2">
+                                    <span>Funcionalidad defensiva familiar basada en silencio, evitación o sobredepartamento; intercambios rígidos[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim1" value="3">
+                                    <span>Economía vincular flexible; red de sostén transicional que permite expresión compartida y elaboración singular[cite: 11].</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">Eje II: Afectación Somática y Estrés Biológico</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Quantum de estrés</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim2" value="1" required>
+                                    <span>Descargas somáticas desreguladas crónicas (trastornos severos del sueño, activación persistente, afecciones agudas)[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim2" value="2">
+                                    <span>Síntomas somáticos oscilantes o encapsulados como vía preferencial de descarga ante la falta de simbolización[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim2" value="3">
+                                    <span>Buena modulación neurovegetativa; quantum de estrés acotado que no desorganiza la autoconservación[cite: 11].</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">Eje III: Anclajes Socioculturales y Epocales</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Rituales y tiempos sociales</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim3" value="1" required>
+                                    <span>Ruptura o imposibilidad de rituales de despedida (duelos desautorizados); choque con exigencias productivistas[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim3" value="2">
+                                    <span>Adhesión rígida a mandatos externos del luto sin internalización, o culpa por no ajustarse a los tiempos[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim3" value="3">
+                                    <span>Articulación creativa entre mandatos culturales y necesidades singulares; capacidad de resignificar rituales[cite: 11].</span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="dimension-title">Eje IV: Operatoria Defensiva y Procesos Terciarios</span>
+                                <span class="neuro-tag"><i class="fa-solid fa-microchip"></i> Fiorini / Plasticidad</span>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim4" value="1" required>
+                                    <span>Defensas arcaicas y fragmentarias (escisión masiva, negación radical); bloqueo absoluto de procesos terciarios[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim4" value="2">
+                                    <span>Defensas obsesivas, fóbicas o histeriformes rígidas; control hipertrofiado o intelectualización que congela el dolor[cite: 11].</span>
+                                </label>
+                            </td>
+                            <td>
+                                <label class="radio-option">
+                                    <input type="radio" name="dim4" value="3">
+                                    <span>Flexibilización defensiva; apertura a procesos terciarios, articulando dolor primario con producciones simbólicas[cite: 11].</span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="score-preview-box">
+                    <span>Puntuación Total RECD (Suma 4 a 12):</span>
+                    <span id="score-label" style="font-size: 1.1rem;">Sin calcular</span>
+                </div>
+
+                <div id="chart-preview-box" class="chart-container-preview">
+                    <canvas id="radarChart"></canvas>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="eval-obs">Observaciones Clínicas / Notas de la Sesión:</label>
+                    <textarea id="eval-obs" rows="3" placeholder="Describa el estado de los ejes vinculares, somáticos, socioculturales y defensivos del proceso de duelo..." style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; outline: none;"></textarea>
+                </div>
+
+                <div class="btn-group no-print">
+                    <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Calcular Puntuación</button>
+                    <button type="button" class="btn btn-grafico" onclick="generarGraficoRadar()"><i class="fa-solid fa-chart-radar"></i> Obtener Gráfico</button>
+                    <button type="button" class="btn btn-informe" onclick="generarInformeClinico()"><i class="fa-solid fa-file-lines"></i> Conformar Informe Diagnóstico</button>
+                    <button type="button" class="btn btn-guardar" onclick="guardarBaseDatos()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Base de Datos</button>
+                    <button type="button" class="btn btn-pdf" onclick="guardarPDF()"><i class="fa-solid fa-file-pdf"></i> Guardar PDF</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="print-container" class="printable-sheet">
+            <div class="letterhead">
+                <div class="letterhead-info">
+                    <h3>Clínica de la Convergencia</h3>
+                    <p><strong>Dr. y Mgter. Rubén M. Pereyra</strong> — Psicoterapia Psicoanálisis Focalizado - Neurociencias Cognitivas Aplicadas</p>
+                    <p>Programa de Formación para Psicólogos | Sistema Integral ELITE 2.0</p>
+                </div>
+                <img src="Logotipo.jpg" alt="Logo" class="letterhead-logo" onerror="this.style.display='none'">
+            </div>
+
+            <h3 style="text-align: center; color: var(--primary-color); text-transform: uppercase; margin-bottom: 20px; font-size: 1.1rem; border:none;">Informe de Evaluación Convergente para Procesos de Duelo (RECD)</h3>
+            
+            <div style="background: var(--accent-bg); border: 1px solid var(--border-color); padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem;">
+                <p><strong>Paciente:</strong> <span id="res-patient" style="color: var(--primary-color); font-weight: 600;">-</span></p>
+                <p><strong>Fecha de Evaluación:</strong> <span id="res-fecha">-</span></p>
+            </div>
+
+            <div id="score-display-box"></div>
+
+            <div class="chart-report-wrapper">
+                <p style="font-size: 0.8rem; font-weight: 600; color: #059669; margin-bottom: 5px;">Gráfico RECD - Perfil Dimensional Esmeralda</p>
+                <img id="res-chart-img" alt="Gráfico Radar RECD" style="display: none;">
+            </div>
+
+            <div class="report-section">
+                <strong>Caracterización del Perfil Clínico y Zonas Convergentes:</strong>
+                <p id="res-caracterizacion" style="margin-top: 5px; color: #334155;">-</p>
+            </div>
+
+            <div class="report-section">
+                <strong>Consideraciones Prospectivas y Modulación Técnica:</strong>
+                <p id="res-modulacion" style="margin-top: 5px; color: #334155;">-</p>
+            </div>
+
+            <div class="report-section">
+                <strong>Directrices Operativas de Intervención:</strong>
+                <p id="res-directrices" style="margin-top: 5px; color: #334155;">-</p>
+            </div>
+
+            <div class="report-section">
+                <strong>Observaciones del Terapeuta:</strong>
+                <p id="res-observaciones" style="margin-top: 5px; color: #334155; font-style: italic;">-</p>
+            </div>
+
+            <div class="sheet-footer">
+                <div>
+                    <p>Lugar y Fecha: Córdoba, <span id="footer-date"></span></p>
+                </div>
+                <div class="signature-block">
+                    Dr. y Mgter. Rubén M. Pereyra<br>
+                    Licenciado en Psicología MP 9523<br>
+                    Magter. en Neuropsicología Clínica<br>
+                    Dr. en Psicología - Neurociencias Cognitivas Aplicadas
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let ultimoRegistroRECD = null;
+        let myRadarChart = null;
+
+        async function initPacientes() {
+            document.getElementById('eval-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('footer-date').innerText = new Date().toLocaleDateString('es-AR');
+
+            const selectEl = document.getElementById('select-patient');
+            selectEl.innerHTML = '<option value="">-- Cargando pacientes --</option>';
+            let lista = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    lista.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                });
+            } catch (e) {
+                console.warn("Firestore inaccesible, revisando almacenamiento local.", e);
+            }
+
+            if(lista.length === 0) {
+                ["mem", "EPN", "CCRT", "icc", "recd_local"].forEach(k => {
+                    let d = JSON.parse(localStorage.getItem(`db_${k}`) || '[]');
+                    d.forEach(i => { if(i.p && !lista.some(p => p.nombre === i.p)) lista.push({ id: "local_" + i.p, nombre: i.p }); });
+                });
+            }
+
+            selectEl.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            lista.forEach(p => {
+                selectEl.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`;
+            });
+        }
+
+        function obtenerDatosFormulario() {
+            const sel = document.getElementById('select-patient');
+            const patientId = sel.value;
+            const patientName = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : "No seleccionado";
+            const fecha = document.getElementById('eval-fecha').value;
+            const obs = document.getElementById('eval-obs').value.trim();
+
+            const getVal = (name) => {
+                const el = document.querySelector(`input[name="${name}"]:checked`);
+                return el ? parseInt(el.value) : null;
+            };
+
+            const d1 = getVal('dim1');
+            const d2 = getVal('dim2');
+            const d3 = getVal('dim3');
+            const d4 = getVal('dim4');
+
+            if (!patientId) {
+                alert('Por favor, seleccione un paciente.');
+                return null;
+            }
+            if (!d1 || !d2 || !d3 || !d4) {
+                alert('Por favor, complete los 4 ejes de la rúbrica.');
+                return null;
+            }
+
+            const totalScore = d1 + d2 + d3 + d4;
+            return { patientId, patientName, fecha, dimensiones: { d1, d2, d3, d4 }, totalScore, observaciones: obs };
+        }
+
+        window.calcularPuntuacion = function() {
+            const datos = obtenerDatosFormulario();
+            if (!datos) return;
+            ultimoRegistroRECD = datos;
+
+            let rangoTexto = '';
+            if (datos.totalScore >= 4 && datos.totalScore <= 6) {
+                rangoTexto = `Zona de Urgencia Convergente (${datos.totalScore} Pts - 4 a 6)`;
+            } else if (datos.totalScore >= 7 && datos.totalScore <= 9) {
+                rangoTexto = `Zona de Vulnerabilidad / Transición (${datos.totalScore} Pts - 7 a 9)`;
+            } else {
+                rangoTexto = `Zona de Elaboración Operativa (${datos.totalScore} Pts - 10 a 12)`;
+            }
+
+            document.getElementById('score-label').innerText = rangoTexto;
+            return datos;
+        };
+
+        window.generarGraficoRadar = function() {
+            const datos = obtenerDatosFormulario();
+            if (!datos) return;
+            ultimoRegistroRECD = datos;
+
+            document.getElementById('chart-preview-box').style.display = 'block';
+
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if (myRadarChart) {
+                myRadarChart.destroy();
+            }
+
+            myRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Eje I: Vinculares/Familiares',
+                        'Eje II: Somáticos/Estrés',
+                        'Eje III: Socioculturales/Rituales',
+                        'Eje IV: Defensivos/Terciarios'
+                    ],
+                    datasets: [{
+                        label: 'RECD - Perfil Convergente',
+                        data: [datos.dimensiones.d1, datos.dimensiones.d2, datos.dimensiones.d3, datos.dimensiones.d4],
+                        backgroundColor: 'rgba(5, 150, 105, 0.2)',
+                        borderColor: '#059669',
+                        pointBackgroundColor: '#059669',
+                        pointBorderColor: '#000000',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 3,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#000000',
+                                font: { size: 10, weight: 'bold' }
+                            },
+                            grid: { color: '#a7f3d0' },
+                            angleLines: { color: '#a7f3d0' },
+                            pointLabels: {
+                                color: '#000000',
+                                font: { size: 11, weight: 'bold' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#000000',
+                                font: { weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+
+            setTimeout(() => {
+                const chartImage = myRadarChart.toBase64Image();
+                document.getElementById('res-chart-img').src = chartImage;
+                ultimoRegistroRECD.chartImage = chartImage;
+            }, 300);
+
+            alert("¡Gráfico Radar generado exitosamente con estética esmeralda!");
+            return datos;
+        };
+
+        window.generarInformeClinico = function() {
+            let datos = ultimoRegistroRECD;
+            if (!datos) {
+                datos = window.calcularPuntuacion();
+                if (!datos) return;
+            }
+            if(!myRadarChart) {
+                window.generarGraficoRadar();
+                datos = ultimoRegistroRECD;
+            }
+
+            let perfilTexto = '';
+            let badgeClass = '';
+            let caracterizacion = '';
+            let modulacion = '';
+            let directrices = '';
+
+            if (datos.totalScore >= 4 && datos.totalScore <= 6) {
+                badgeClass = 'badge-urgencia';
+                perfilTexto = `Zona de Urgencia Convergente (${datos.totalScore} Puntos) — Duelo Patológico / Congelado`;
+                caracterizacion = "Desorganización multisistémica (somática, vincular y defensiva)[cite: 11]. El proceso de duelo se encuentra bloqueado o traumático, con alta afectación del equilibrio vital.";
+                modulacion = "El encuadre debe priorizar la contención activa[cite: 11], reduciendo el quantum de estrés biológico y trabajando en paralelo con el entorno familiar inmediato (abordaje vincular de soporte) para evitar la segregación del doliente[cite: 11].";
+                directrices = "Respetar transitoriamente las defensas como diques de contención contra la descarga destructiva; promover espacios no verbales de expresión (narrativas escritas, metáforas visuales) y erigir el consultorio como 'excepción protegida' frente a las exigencias productivistas[cite: 11].";
+            } else if (datos.totalScore >= 7 && datos.totalScore <= 9) {
+                badgeClass = 'badge-vulnerabilidad';
+                perfilTexto = `Zona de Vulnerabilidad / Transición (${datos.totalScore} Puntos) — Duelo en Curso con Obstáculos`;
+                caracterizacion = "Duelo en curso con obstáculos estructurales o rigideces defensivas (como intelectualización o evitación fóbica) que dificultan el pasaje elaborativo[cite: 11].";
+                modulacion = "Uso de intervenciones focales orientadas a desarticular los nudos defensivos rígidos que impiden el contacto con el afecto de la pérdida[cite: 11].";
+                directrices = "Desatender exigencias epocales de celeridad, legitimando los tiempos singulares del psiquismo y promoviendo la transición hacia una reestructuración simbólica donde el ausente adquiera un estatuto integrado[cite: 11].";
+            } else {
+                badgeClass = 'badge-elaboracion';
+                perfilTexto = `Zona de Elaboración Operativa (${datos.totalScore} Puntos) — Resolución Fecunda`;
+                caracterizacion = "Duelo en vías de resolución fecunda, con recursos plásticos, modulación neurovegetativa adecuada y redes de sostén vincular activas[cite: 11].";
+                modulacion = "Encuentro dinámico enfocado en consolidar la articulación entre las necesidades singulares y la capacidad de resignificación vital[cite: 11].";
+                directrices = "Favorecer la autonomía y los procesos terciarios, consolidando la reestructuración de los espacios internos sin buscar el olvido ni el desprendimiento total del objeto[cite: 11].";
+            }
+
+            const sheet = document.getElementById('print-container');
+            sheet.classList.add('active');
+
+            document.getElementById('res-patient').innerText = datos.patientName;
+            document.getElementById('res-fecha').innerText = datos.fecha;
+            document.getElementById('score-display-box').innerHTML = `<span class="score-badge ${badgeClass}">${perfilTexto}</span>`;
+            
+            if(datos.chartImage) {
+                const imgEl = document.getElementById('res-chart-img');
+                imgEl.src = datos.chartImage;
+                imgEl.style.display = 'inline-block';
+            }
+
+            document.getElementById('res-caracterizacion').innerText = caracterizacion;
+            document.getElementById('res-modulacion').innerText = modulacion;
+            document.getElementById('res-directrices').innerText = directrices;
+            document.getElementById('res-observaciones').innerText = datos.observaciones || "Sin observaciones adicionales.";
+
+            sheet.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.guardarBaseDatos = async function() {
+            let datos = ultimoRegistroRECD;
+            if (!datos) {
+                datos = window.calcularPuntuacion();
+                if (!datos) return;
+            }
+            if(!datos.chartImage && myRadarChart) {
+                datos.chartImage = myRadarChart.toBase64Image();
+            }
+
+            const pid = datos.patientId;
+            if (pid.startsWith("local_")) {
+                let localData = JSON.parse(localStorage.getItem('db_recd_local') || '{}');
+                if(!localData[pid]) localData[pid] = [];
+                localData[pid].push(datos);
+                localStorage.setItem('db_recd_local', JSON.stringify(localData));
+                alert("¡Informe e Imagen Gráfico RECD guardados exitosamente en almacenamiento local!");
+                return;
+            }
+
+            try {
+                const ref = doc(db, "patients", pid);
+                const snap = await getDoc(ref);
+                let lista = snap.exists() && snap.data().eval_conv_duelos ? snap.data().eval_conv_duelos : [];
+                
+                lista.push(datos);
+
+                await updateDoc(ref, { eval_conv_duelos: lista });
+                alert("¡Informe e Imagen Gráfico RECD guardados exitosamente en Firestore para ser recuperados por el visualizador!");
+            } catch (err) {
+                console.error("Error al sincronizar con Firestore:", err);
+                alert("Error al conectar con la base de datos.");
+            }
+        };
+
+        window.guardarPDF = function() {
+            const sheet = document.getElementById('print-container');
+            if(!sheet.classList.contains('active')) {
+                window.generarInformeClinico();
+            }
+            const opt = {
+                margin: 0.4,
+                filename: `Evaluacion_Convergencia_Duelos_RECD_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(sheet).save();
+        };
+
+        initPacientes();
+    </script>
+</body>
+</html>
