@@ -36,6 +36,8 @@
         .btn:hover { background-color: #047857; }
         .btn-secundario { background-color: #2563eb; }
         .btn-secundario:hover { background-color: #1d4ed8; }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { background-color: #1d4ed8; }
 
         .result-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
         .result-box.active { display: block; }
@@ -173,6 +175,7 @@
                 <div class="btn-group">
                     <button type="button" class="btn" onclick="calcularPuntuacion()"><i class="fa-solid fa-calculator"></i> Puntuación</button>
                     <button type="button" class="btn btn-secundario" onclick="generarInformeFoco()"><i class="fa-solid fa-file-lines"></i> Informe del foco</button>
+                    <button type="button" class="btn btn-blue" onclick="conformarInformeFoco()"><i class="fa-solid fa-file-waveform"></i> Conformar Informe Foco</button>
                 </div>
             </form>
 
@@ -185,7 +188,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, updateDoc, addDoc, collection, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -201,6 +204,20 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const patientId = urlParams.get('patientId');
+        let patientName = "Paciente";
+
+        async function initPaciente() {
+            if (!patientId) return;
+            try {
+                const snap = await getDoc(doc(db, "patients", patientId));
+                if (snap.exists()) {
+                    patientName = snap.data().name || snap.data().nombre || "Paciente";
+                }
+            } catch (e) {
+                console.error("Error al obtener paciente:", e);
+            }
+        }
+        initPaciente();
 
         // Permitir solo un checkbox por dimensión para mantener coherencia de puntaje
         document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
@@ -286,6 +303,60 @@
                 } catch (e) {
                     console.error("Error al guardar informe:", e);
                 }
+            }
+        };
+
+        window.conformarInformeFoco = async function() {
+            if (!patientId) {
+                alert("No se ha especificado el ID del paciente.");
+                return;
+            }
+
+            const { total, marcas } = obtenerSeleccionPuntuacion();
+            if (total === 0) {
+                alert("Por favor, calcule o seleccione los puntajes de la rúbrica antes de conformar el informe.");
+                return;
+            }
+
+            let interpretacion = "";
+            let tituloRango = "";
+
+            if (total >= 5 && total <= 8) {
+                tituloRango = "Rango 5 - 8 puntos (Foco Difuso o Insuficiente)";
+                interpretacion = "Indica una dispersión clínica significativa. El encuadre focal no está operativo debido a defensas masivas o desorganización yoica. Se requiere priorizar intervenciones de sostén, contención y clarificación preliminar antes de intentar cualquier recorte focal.";
+            } else if (total >= 9 && total <= 12) {
+                tituloRango = "Rango 9 - 12 puntos (Foco en Constitución / Parcial)";
+                interpretacion = "Revela un proceso analítico en marcha donde el foco se vislumbra pero requiere ajustes constantes. El paciente posee zonas de insight intermitentes. Las intervenciones deben orientarse a la confrontación sistemática de las resistencias que fragmentan el campo asociativo.";
+            } else {
+                tituloRango = "Rango 13 - 15 puntos (Foco Consolidado y Operativo)";
+                interpretacion = "Denota alta eficacia del modelo focalizado. El encuadre interno del paciente y del analista coinciden en la dirección del tratamiento. Permite sostener interpretaciones de profundidad y trabajar activamente sobre el vector de cambio y resolución sintomática.";
+            }
+
+            const detalleInforme = `--- INFORME DE FOCO (EJE 1 - RÚBRICA) ---\n` +
+                                   `• Puntuación Total: ${total} / 15 Puntos\n` +
+                                   `• Categoría: ${tituloRango}\n\n` +
+                                   `--- EVALUACIÓN CUALITATIVA ---\n${interpretacion}\n\n` +
+                                   `--- DETALLE DE DIMENSIONES ---\n` +
+                                   `• Zona Conflictiva Central: ${marcas.dim1}/3 pts\n` +
+                                   `• Ansiedades y Defensas: ${marcas.dim2}/3 pts\n` +
+                                   `• Recursos y Déficits Yoicos: ${marcas.dim3}/3 pts\n` +
+                                   `• Proyección Temporal: ${marcas.dim4}/3 pts\n` +
+                                   `• Dinámica Vincular (Transferencia): ${marcas.dim5}/3 pts`;
+
+            const nuevoInforme = {
+                titulo: "Informe de Foco",
+                tipo: "Informe de Foco",
+                fecha: serverTimestamp(),
+                detalle: detalleInforme,
+                resumen: `Puntuación: ${total}/15 pts - ${tituloRango}`
+            };
+
+            try {
+                await addDoc(collection(db, "patients", patientId, "informes_medicos"), nuevoInforme);
+                alert("¡Informe de Foco conformado y guardado en la base de datos para ser recuperado desde el visualizador!");
+            } catch (error) {
+                console.error("Error al guardar el informe en la base de datos:", error);
+                alert("Ocurrió un error al guardar el informe en la base de datos.");
             }
         };
     </script>
