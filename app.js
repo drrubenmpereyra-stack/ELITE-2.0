@@ -20,8 +20,7 @@ const menuData = {
             "Pacientes": {},
             "Agenda": {},
             "Contabilidad": {},
-            "Centro de impresiones": {},
-            "Visualizador de informes": {}
+            "Centro de impresiones": {}
         }
     },
     "2": {
@@ -121,19 +120,21 @@ const menuData = {
         }
     },
     "6": {
-        nombre: "6 Herramientas Clínica Convergencia",
+        nombre: "Herramientas Protocolos Especiales",
         color: "linear-gradient(135deg, #b91c1c, #ef4444)",
         hijos: {
-            "1- Cartografia Intersubjetividad": {},
-            "2- Memorias Traumáticas y el a posteriori": {},
-            "3- Circuitos de recompensa": {},
-            "4- Interfaz Cuerpo Mente": {},
-            "5- Neurobiologia de la Repetición": {},
-            "6- Plasticidad Simbólica y Sináptica": {},
-            "7- Arquitectura del Sueño": {},
-            "8- El Ello Somático y Trast PS": {},
-            "9- Focalización en Est Límbicas": {},
-            "10- La Ética de la Singulridad en la Era Tecnológica": {}
+            "6.1 Duelos": {
+                "6.1.1 Evaluación Convergente/Duelo": {},
+                "6.1.2 Diagnóstico Funcional Operatividad Defensiva/Duelo": {}
+            },
+            "6.2 Crisis": {
+                "6.2.1 Evaluación Convergente/Crisis": {},
+                "6.2.2 Diagnóstico Funcional Operatividad Defensiva/Crisis": {}
+            },
+            "6.3 Suicidio": {
+                "6.3.1 Evaluación Convergente/Suicidio": {},
+                "6.3.2 Diagnóstico Funcional Operatividad Defensiva/Suicidio": {}
+            }
         }
     }
 };
@@ -214,8 +215,6 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("contabilidad.html");
                 } else if (secKey === "Centro de impresiones") {
                     cargarVistaIframe("impresiones.html");
-                } else if (secKey === "Visualizador de informes") {
-                    cargarVistaIframe("visualizador_reportes.html");
                 } else if (secKey === "1 Registro de Sesiones") {
                     cargarVistaIframe("sesiones.html");
                 } else if (secKey === "2 Primera entrevista") {
@@ -266,26 +265,6 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("psicotropicos.html");
                 } else if (secKey === "5.5 Rúbricas") {
                     cargarVistaIframe("rubricas.html");
-                } else if (secKey === "1- Cartografia Intersubjetividad") {
-                    cargarVistaIframe("cartografia.html");
-                } else if (secKey === "2- Memorias Traumáticas y el a posteriori") {
-                    cargarVistaIframe("mt_tecnicas.html");
-                } else if (secKey === "3- Circuitos de recompensa") {
-                    cargarVistaIframe("circuitos_recompensas.html");
-                } else if (secKey === "4- Interfaz Cuerpo Mente") {
-                    cargarVistaIframe("interfaz_cuerpo_mente.html");
-                } else if (secKey === "5- Neurobiologia de la Repetición") {
-                    cargarVistaIframe("neuro_repeticion.html");
-                } else if (secKey === "6- Plasticidad Simbólica y Sináptica") {
-                    cargarVistaIframe("plasticidad_simb_sinaptica.html");
-                } else if (secKey === "7- Arquitectura del Sueño") {
-                    cargarVistaIframe("arq_sueño.html");
-                } else if (secKey === "8- El Ello Somático y Trast PS") {
-                    cargarVistaIframe("ello_somatico.html");
-                } else if (secKey === "9- Focalización en Est Límbicas") {
-                    cargarVistaIframe("foc_est_limbicas.html");
-                } else if (secKey === "10- La Ética de la Singulridad en la Era Tecnológica") {
-                    cargarVistaIframe("etica_sing_tecnologica.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -375,6 +354,18 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("estilo_eficacia.html");
             } else if (terKey === "4.4.4 Cuidado del self y estado psicofisiológico") {
                 cargarVistaIframe("cuidado_self.html");
+            } else if (terKey === "6.1.1 Evaluación Convergente/Duelo") {
+                cargarVistaIframe("eval_convergente_duelos.html");
+            } else if (terKey === "6.1.2 Diagnóstico Funcional Operatividad Defensiva/Duelo") {
+                cargarVistaIframe("diagn_funcional_operativo_duelo.html");
+            } else if (terKey === "6.2.1 Evaluación Convergente/Crisis") {
+                cargarVistaIframe("eval_convergente_crisis.html");
+            } else if (terKey === "6.2.2 Diagnóstico Funcional Operatividad Defensiva/Crisis") {
+                cargarVistaIframe("diagn_funcional_operativo_crisis.html");
+            } else if (terKey === "6.3.1 Evaluación Convergente/Suicidio") {
+                cargarVistaIframe("eval_convergente_suicidio.html");
+            } else if (terKey === "6.3.2 Diagnóstico Funcional Operatividad Defensiva/Suicidio") {
+                cargarVistaIframe("diagn_funcional_operativo_suicidio.html");
             } else {
                 mostrarContenido(terKey);
             }
@@ -399,3 +390,4 @@ function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
 }
+
