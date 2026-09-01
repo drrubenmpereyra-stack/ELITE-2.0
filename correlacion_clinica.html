@@ -345,36 +345,46 @@
             });
         }
 
-        // Renderizado de marcas sobre human.jpg usando porcentajes (coordenadas relativas)
+        // --- MAPEO ANATÓMICO ROBUSTO Y TOLERANTE SOBRE human.jpg ---
         function renderizarMarcasHumanMap(registro) {
             const wrapper = document.getElementById('humanMapWrapper');
-            // Limpiar marcas anteriores manteniendo la imagen human.jpg
             wrapper.innerHTML = `<img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">`;
 
-            // Mapeo porcentual aproximado sobre human.jpg
             const porcMapa = {
-                "Cabeza / Sien": {x: 50, y: 15},
-                "Garganta / Opresión": {x: 50, y: 25},
-                "Pecho / Corazón": {x: 50, y: 35},
-                "Estómago / Plexo": {x: 50, y: 45},
-                "Hombro Izquierdo": {x: 35, y: 30},
-                "Hombro Derecho": {x: 65, y: 30},
-                "Brazo Izquierdo": {x: 25, y: 45},
-                "Brazo Derecho": {x: 75, y: 45},
-                "Abdomen": {x: 50, y: 55},
-                "Pierna Izquierda": {x: 42, y: 75},
-                "Pierna Derecha": {x: 58, y: 75}
+                "cabeza": {x: 50, y: 14},
+                "sien": {x: 50, y: 14},
+                "garganta": {x: 50, y: 24},
+                "pecho": {x: 50, y: 35},
+                "corazon": {x: 54, y: 35},
+                "estomago": {x: 50, y: 46},
+                "plexo": {x: 50, y: 46},
+                "hombro": {x: 35, y: 32},
+                "brazo": {x: 26, y: 48},
+                "abdomen": {x: 50, y: 56},
+                "pierna": {x: 44, y: 75}
             };
 
             if (registro && registro.marcasSomaticas && registro.marcasSomaticas.length > 0) {
-                registro.marcasSomaticas.forEach(marca => {
-                    let p = porcMapa[marca] || {x: 50 + (Math.random() * 20 - 10), y: 40 + (Math.random() * 20 - 10)};
-                    
+                registro.marcasSomaticas.forEach((marca, index) => {
+                    let p = {x: 50, y: 30 + (index * 12)};
+
+                    if (typeof marca === 'object' && marca !== null && marca.x !== undefined && marca.y !== undefined) {
+                        p = { x: marca.x, y: marca.y };
+                    } else if (typeof marca === 'string') {
+                        const mLower = marca.toLowerCase();
+                        for (let clave in porcMapa) {
+                            if (mLower.includes(clave)) {
+                                p = porcMapa[clave];
+                                break;
+                            }
+                        }
+                    }
+
                     const dot = document.createElement('div');
                     dot.className = 'marca-corporal';
                     dot.style.left = `${p.x}%`;
                     dot.style.top = `${p.y}%`;
-                    dot.title = marca;
+                    dot.title = typeof marca === 'string' ? marca : 'Marca somática';
                     wrapper.appendChild(dot);
                 });
             }
