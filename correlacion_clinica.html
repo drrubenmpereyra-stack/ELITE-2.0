@@ -199,30 +199,37 @@
                 document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada.</span>`;
             }
 
-            // 2. Operatividad Defensiva
-            const defData = data[`defensiva_${protocoloActivo}`] || data[`diagn_func_op_${protocoloActivo}`] || data[`diagnosticoDefensivo`] || null;
-            let puntajeDefNum = 5;
-            if (defData) {
-                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || "Registrado";
-                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || "Diagnóstico completado.";
-                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
-                if(estadoTxt.toLowerCase().includes('fracasada') || estadoTxt.toLowerCase().includes('desbordada')) puntajeDefNum = 9;
-                if(estadoTxt.toLowerCase().includes('eficaz') || estadoTxt.toLowerCase().includes('compensada')) puntajeDefNum = 2;
-            } else {
-                let encontradoPlano = false;
+            // 2. Operatividad Defensiva - Búsqueda Universal corregida
+            let defData = data[`defensiva_${protocoloActivo}`] || 
+                          data[`diagn_func_op_${protocoloActivo}`] || 
+                          data[`diagn_funcional_operativo_${protocoloActivo}`] || 
+                          data[`diagnosticoDefensivo`] || 
+                          data[`operatividadDefensiva`] ||
+                          null;
+
+            if (!defData) {
                 for (let key in data) {
-                    if (key.toLowerCase().includes('defensiv') || key.toLowerCase().includes('operatividad')) {
-                        const val = data[key];
-                        if (typeof val === 'object' && val !== null) {
-                            document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${val.estado || 'Registrado'}<br><small>${val.mecanismo || JSON.stringify(val)}</small>`;
-                            encontradoPlano = true;
+                    const k = key.toLowerCase();
+                    if (k.includes('defensiv') || k.includes('operatividad') || k.includes('diagn_func')) {
+                        if (typeof data[key] === 'object' && data[key] !== null) {
+                            defData = data[key];
                             break;
                         }
                     }
                 }
-                if (!encontradoPlano) {
-                    document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico defensivo registrado.</span>`;
-                }
+            }
+
+            let puntajeDefNum = 5;
+            if (defData) {
+                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || defData.resultado || "Registrado";
+                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || defData.informe || JSON.stringify(defData);
+                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
+                
+                const txtLower = String(estadoTxt + " " + mecanismoTxt).toLowerCase();
+                if(txtLower.includes('fracasada') || txtLower.includes('desbordada') || txtLower.includes('colapso')) puntajeDefNum = 9;
+                if(txtLower.includes('eficaz') || txtLower.includes('compensada')) puntajeDefNum = 2;
+            } else {
+                document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico defensivo registrado.</span>`;
             }
 
             // 3. MNSA
@@ -234,7 +241,6 @@
             }
             document.getElementById('info-mnsa').innerHTML = `<strong>Registros MNSA:</strong> ${registros.length} (Prom. Estrés: ${promedioEstres})<br><small>Sincronizado con protocolo ${admision.protocolo}.</small>`;
 
-            // Guardar caché para gráficos e informes
             datosTriangulacionCache = {
                 protocolo: admision.protocolo,
                 evaluacion: evalData,
@@ -322,7 +328,6 @@
             const ctxBar = document.getElementById('mnsaBarChart').getContext('2d');
             if(barChartInstance) barChartInstance.destroy();
 
-            // Cambiamos temporalmente el gráfico de barras por un Radar Multidimensional
             barChartInstance = new Chart(ctxBar, {
                 type: 'radar',
                 data: {
@@ -386,7 +391,6 @@ CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de pro
             document.getElementById('texto-informe-final').textContent = textoInforme;
             document.getElementById('seccion-informe').style.display = 'block';
 
-            // Guardar en Firestore bajo la clave exacta del protocolo
             const claveInforme = `informe_final_${protocoloNombre.toLowerCase()}`;
             try {
                 const ref = doc(db, "patients", pacienteActualId);
