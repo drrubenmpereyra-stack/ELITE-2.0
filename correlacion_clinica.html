@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Correlación Clínica MNSA | ELITE 2.0</title>
+    <title>Panel de Triangulación Clínica Integral | ELITE 2.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -19,7 +19,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
 
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 1100px; margin: 0 auto; }
         .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
         h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         
@@ -27,22 +27,19 @@
         .form-group { display: flex; flex-direction: column; gap: 6px; }
         label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
         select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; background: #fff; outline: none; }
-        select:focus { border-color: var(--primary-color); }
-
-        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
-        .btn:hover { opacity: 0.9; }
+        
+        .triangulation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        @media (max-width: 768px) { .triangulation-grid { grid-template-columns: 1fr; } }
+        
+        .dimension-card { background: #f1f5f9; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 4px; font-size: 0.85rem; }
+        .dimension-title { font-weight: 700; color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; position: relative; }
+        .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; }
         .chart-title { font-size: 0.9rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
 
-        .records-table-container { margin-top: 20px; overflow-x: auto; }
-        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
-        .data-table th { background-color: var(--accent-bg); color: var(--primary-color); font-weight: 700; }
-        
         .alert-box { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.85rem; display: none; }
     </style>
 </head>
@@ -50,54 +47,52 @@
 
     <main class="container">
         <div class="card">
-            <h2><i class="fa-solid fa-chart-line"></i> Panel de Visualización y Correlación Clínica MNSA</h2>
+            <h2><i class="fa-solid fa-network-wired"></i> Panel de Triangulación Clínica Integral (MNSA + Rúbricas)</h2>
             <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
-                Seguimiento longitudinal de los registros interoceptivos del paciente (Quantum de estrés, sueño y marcas somáticas) y su correlación con las rúbricas especiales.
+                Cruce metódico segmentado estrictamente por el protocolo activo del paciente.
             </p>
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="select-patient"><i class="fa-solid fa-user"></i> Seleccionar Paciente para Auditoría:</label>
-                    <select id="select-patient" onchange="cargarDatosPaciente()">
+                    <label for="select-patient"><i class="fa-solid fa-user"></i> Seleccionar Paciente en Seguimiento:</label>
+                    <select id="select-patient" onchange="cargarDatosTriangulacion()">
                         <option value="">-- Seleccionar Paciente --</option>
                     </select>
                 </div>
-                <div class="form-group" style="justify-content: flex-end;">
-                    <button class="btn" onclick="cargarDatosPaciente()"><i class="fa-solid fa-rotate"></i> Actualizar Datos</button>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-tag"></i> Protocolo Activo:</label>
+                    <div id="protocolo-activo-badge" style="padding: 9px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; font-weight: 600; color: #b91c1c;">Sin asignar</div>
                 </div>
             </div>
 
             <div id="alerta-riesgo" class="alert-box">
-                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Atención Clínica:</strong> Se detectaron picos sostenidos de estrés o múltiples marcas somáticas que requieren revisión del protocolo especial asignado.
+                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Alerta de Convergencia:</strong> Se detectaron picos somáticos críticos bajo el protocolo activo que requieren revisión del plan terapéutico.
+            </div>
+
+            <div class="triangulation-grid">
+                <div class="dimension-card">
+                    <div class="dimension-title"><i class="fa-solid fa-file-waveform"></i> 1. Evaluación Convergente</div>
+                    <div id="info-convergente" style="color: #475569;">Esperando selección de paciente...</div>
+                </div>
+                <div class="dimension-card">
+                    <div class="dimension-title"><i class="fa-solid fa-shield-halved"></i> 2. Operatividad Defensiva</div>
+                    <div id="info-defensiva" style="color: #475569;">Esperando selección de paciente...</div>
+                </div>
+                <div class="dimension-card">
+                    <div class="dimension-title"><i class="fa-solid fa-heart-pulse"></i> 3. Estado Interoceptivo (MNSA)</div>
+                    <div id="info-mnsa" style="color: #475569;">Esperando selección de paciente...</div>
+                </div>
             </div>
 
             <div class="dashboard-grid">
                 <div class="chart-box">
-                    <div class="chart-title">Curva Longitudinal: Quantum de Estrés vs Calidad de Sueño</div>
+                    <div class="chart-title">Quantum de Estrés vs Calidad de Sueño (Protocolo Activo)</div>
                     <canvas id="mnsaLineChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <div class="chart-title">Distribución de Frecuencia de Marcas Somáticas</div>
+                    <div class="chart-title">Frecuencia de Marcas Somáticas Registradas</div>
                     <canvas id="mnsaBarChart"></canvas>
                 </div>
-            </div>
-
-            <div class="records-table-container">
-                <h3 style="font-size: 1rem; color: var(--primary-color); margin: 20px 0 10px 0;">Historial de Registros Cotidianos MNSA</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Estrés (1-10)</th>
-                            <th>Sueño (1-10)</th>
-                            <th>Zonas Somáticas Registradas</th>
-                            <th>Notas / Disparadores</th>
-                        </tr>
-                    $</thead>
-                    <tbody id="tabla-registros-body">
-                        <tr><td colspan="5" style="text-align: center; color: #64748b;">Seleccione un paciente para visualizar su historial.</td></tr>
-                    </tbody>
-                </table>
             </div>
         </div>
     </main>
@@ -120,61 +115,70 @@
 
         let lineChartInstance = null;
         let barChartInstance = null;
+        let pacientesMap = new Map();
 
         async function initPacientes() {
             const selectEl = document.getElementById('select-patient');
-            selectEl.innerHTML = '<option value="">-- Cargando pacientes --</option>';
-            let lista = [];
-
             try {
                 const querySnapshot = await getDocs(collection(db, "patients"));
                 querySnapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    lista.push({ id: docSnap.id, nombre: data.name || data.nombre || "Sin Nombre" });
+                    pacientesMap.set(docSnap.id, data);
+                    selectEl.innerHTML += `<option value="${docSnap.id}">${(data.name || data.nombre || "Sin Nombre").toUpperCase()}</option>`;
                 });
             } catch (e) {
-                console.warn("Firestore inaccesible:", e);
+                console.warn("Error al cargar pacientes:", e);
             }
-
-            selectEl.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
-            lista.forEach(p => {
-                selectEl.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`;
-            });
         }
 
-        window.cargarDatosPaciente = async function() {
-            const selectEl = document.getElementById('select-patient');
-            const patientId = selectEl.value;
-            if(!patientId) return;
-
-            try {
-                const docRef = doc(db, "patients", patientId);
-                const docSnap = await getDoc(docRef);
-
-                if(docSnap.exists()) {
-                    const data = docSnap.data();
-                    const registros = data.mnsa_registros || [];
-                    procesarYGraficarMNSA(registros);
-                } else {
-                    alert("No se encontraron registros para este paciente.");
-                }
-            } catch (e) {
-                console.error("Error al recuperar datos:", e);
-                alert("Error al conectar con la base de datos.");
-            }
-        };
-
-        function procesarYGraficarMNSA(registros) {
-            const tbody = document.getElementById('tabla-registros-body');
-            tbody.innerHTML = '';
-
-            if(registros.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">El paciente aún no registra entradas en el MNSA.</td></tr>';
-                document.getElementById('alerta-riesgo').style.display = 'none';
+        window.cargarDatosTriangulacion = function() {
+            const patientId = document.getElementById('select-patient').value;
+            const badge = document.getElementById('protocolo-activo-badge');
+            
+            if(!patientId) {
+                badge.textContent = "Sin asignar";
                 return;
             }
 
-            // Ordenar por fecha
+            const data = pacientesMap.get(patientId);
+            const admision = data.admision_protocolo;
+
+            if(!admision) {
+                badge.textContent = "Sin protocolo asignado";
+                document.getElementById('info-convergente').textContent = "No registra protocolo activo.";
+                document.getElementById('info-defensiva').textContent = "Sin datos defensivos bajo marco.";
+                document.getElementById('info-mnsa').textContent = "Sin registros.";
+                return;
+            }
+
+            const protocoloActivo = admision.protocolo;
+            badge.textContent = protocoloActivo.toUpperCase();
+
+            // 1. Dimensión Convergente filtrada por el protocolo activo
+            const evaluacionKey = `evaluacion_${protocoloActivo.toLowerCase()}`;
+            const evalData = data[evaluacionKey] || { puntaje: "Pendiente", informe: "Sin evaluación convergente registrada bajo este protocolo." };
+            document.getElementById('info-convergente').innerHTML = `<strong>Puntaje:</strong> ${evalData.puntaje}<br><small>${evalData.informe}</small>`;
+
+            // 2. Dimensión Operatividad Defensiva filtrada por el protocolo activo
+            const defensivaKey = `defensiva_${protocoloActivo.toLowerCase()}`;
+            const defData = data[defensivaKey] || { estado: "Pendiente", mecanismo: "Sin diagnóstico funcional registrado." };
+            document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${defData.estado}<br><small>Mecanismo: ${defData.mecanismo}</small>`;
+
+            // 3. Dimensión MNSA (Registros del paciente)
+            const registros = data.mnsa_registros || [];
+            document.getElementById('info-mnsa').innerHTML = `<strong>Registros MNSA:</strong> ${registros.length}<br><small>Sincronizado con protocolo ${protocoloActivo}.</small>`;
+
+            procesarYGraficarMNSA(registros);
+        };
+
+        function procesarYGraficarMNSA(registros) {
+            if(registros.length === 0) {
+                document.getElementById('alerta-riesgo').style.display = 'none';
+                if(lineChartInstance) lineChartInstance.destroy();
+                if(barChartInstance) barChartInstance.destroy();
+                return;
+            }
+
             registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
             const fechas = [];
@@ -197,21 +201,10 @@
                         conteoSomatico[soma] = (conteoSomatico[soma] || 0) + 1;
                     });
                 }
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${reg.fecha}</td>
-                        <td><strong style="color: ${reg.quantumEstres >= 8 ? '#dc2626' : 'inherit'}">${reg.quantumEstres}/10</strong></td>
-                        <td>${reg.calidadSueno}/10</td>
-                        <td>${reg.marcasSomaticas ? reg.marcasSomaticas.join(", ") : 'Ninguna'}</td>
-                        <td>${reg.observaciones || '-'}</td>
-                    </tr>
-                `;
             });
 
             document.getElementById('alerta-riesgo').style.display = hayAlerta ? 'block' : 'none';
 
-            // Renderizar Gráfico de Líneas (Estrés vs Sueño)
             const ctxLine = document.getElementById('mnsaLineChart').getContext('2d');
             if(lineChartInstance) lineChartInstance.destroy();
 
@@ -220,28 +213,13 @@
                 data: {
                     labels: fechas,
                     datasets: [
-                        {
-                            label: 'Quantum de Estrés',
-                            data: estresData,
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.2
-                        },
-                        {
-                            label: 'Calidad de Sueño',
-                            data: suenoData,
-                            borderColor: '#059669',
-                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.2
-                        }
+                        { label: 'Quantum de Estrés', data: estresData, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderWidth: 2, tension: 0.2 },
+                        { label: 'Calidad de Sueño', data: suenoData, borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.1)', borderWidth: 2, tension: 0.2 }
                     ]
                 },
                 options: { responsive: true, scales: { y: { min: 0, max: 10 } } }
             });
 
-            // Renderizar Gráfico de Barras (Frecuencia de Síntomas Somáticos)
             const ctxBar = document.getElementById('mnsaBarChart').getContext('2d');
             if(barChartInstance) barChartInstance.destroy();
 
@@ -252,11 +230,7 @@
                 type: 'bar',
                 data: {
                     labels: somasLabels.length > 0 ? somasLabels : ['Sin registros'],
-                    datasets: [{
-                        label: 'Frecuencia de Aparición',
-                        data: somasValues.length > 0 ? somasValues : [0],
-                        backgroundColor: '#0891b2'
-                    }]
+                    datasets: [{ label: 'Frecuencia de Aparición', data: somasValues.length > 0 ? somasValues : [0], backgroundColor: '#0891b2' }]
                 },
                 options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
