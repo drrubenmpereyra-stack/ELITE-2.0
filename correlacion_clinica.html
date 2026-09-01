@@ -157,7 +157,7 @@
             const protocoloActivo = admision.protocolo.toLowerCase(); // ej: "crisis", "duelos", "suicidio"
             badge.textContent = admision.protocolo.toUpperCase();
 
-            // 1. Lectura robusta de Evaluación Convergente (busca múltiples variantes de campos)
+            // 1. Lectura robusta de Evaluación Convergente
             const evalData = data[`evaluacion_${protocoloActivo}`] || 
                              data[`eval_conv_${protocoloActivo}`] || 
                              data[`evaluacionConvergente`] || 
@@ -171,18 +171,33 @@
                 document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada bajo este protocolo.</span>`;
             }
 
-            // 2. Lectura robusta de Operatividad Defensiva (busca múltiples variantes de campos)
+            // 2. Lectura robusta y ampliada de Operatividad Defensiva
             const defData = data[`defensiva_${protocoloActivo}`] || 
                             data[`diagn_func_op_${protocoloActivo}`] || 
+                            data[`diagn_funcional_operativo_${protocoloActivo}`] || 
                             data[`diagnosticoDefensivo`] || 
+                            data[`operatividadDefensiva`] ||
                             null;
 
             if (defData) {
-                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || "Registrado";
-                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || "Diagnóstico funcional completado.";
+                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || defData.resultado || "Registrado";
+                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || defData.informe || "Diagnóstico funcional completado.";
                 document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
             } else {
-                document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico funcional registrado bajo este protocolo.</span>`;
+                let encontradoPlano = false;
+                for (let key in data) {
+                    if (key.toLowerCase().includes('defensiv') || key.toLowerCase().includes('operatividad') || key.toLowerCase().includes('diagn_func')) {
+                        const val = data[key];
+                        if (typeof val === 'object' && val !== null) {
+                            document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${val.estado || val.resultado || val.diagnostico || 'Registrado'}<br><small>${val.mecanismo || val.descripcion || val.detalles || JSON.stringify(val)}</small>`;
+                            encontradoPlano = true;
+                            break;
+                        }
+                    }
+                }
+                if (!encontradoPlano) {
+                    document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico funcional registrado bajo este protocolo.</span>`;
+                }
             }
 
             // 3. Dimensión MNSA
