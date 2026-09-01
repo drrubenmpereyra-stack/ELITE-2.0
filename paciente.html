@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración - Pacientes | ELITE 2.0</title>
+    <title>Gestión de Pacientes - ELITE 2.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #1e3c72;
             --secondary-color: #2a5298;
-            --success-color: #16a34a;
-            --admin-pacientes: #2563eb;
+            --accent-bg: #f0f4f8;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #334155;
@@ -19,103 +18,238 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
 
-        .container { max-width: 1400px; margin: 0 auto; }
-        .patients-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .card { background: var(--card-bg); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { font-size: 1.1rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-        input[type="text"], input[type="url"], textarea, select { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; }
-        input:focus, textarea:focus { outline: none; border-color: var(--secondary-color); }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-decoration: none; }
-        .btn-primary { background-color: var(--primary-color); color: white; width: 100%; }
-        .btn-primary:hover { background-color: #172554; }
-        .btn-secondary { background-color: var(--secondary-color); color: white; }
-        .btn-success { background-color: var(--success-color); color: white; }
-        .patients-list { max-height: 400px; overflow-y: auto; }
-        .patient-item { padding: 10px; border-bottom: 1px solid #e2e8f0; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
-        .patient-item:hover, .patient-item.active { background-color: #f1f5f9; border-left: 4px solid var(--primary-color); }
-        .placeholder-card { text-align: center; padding: 60px 20px; color: #64748b; }
-        .placeholder-card i { font-size: 3rem; margin-bottom: 15px; color: #94a3b8; }
-        .hidden { display: none; }
-        .patient-header { display: flex; justify-content: space-between; align-items: center; }
-        .divider { border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0; }
-        .inline-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 20px; }
-        .doc-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-bottom: 15px; }
-        .doc-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .notes-section textarea { margin-top: 8px; resize: vertical; }
-        @media (max-width: 900px) { .patients-layout { grid-template-columns: 1fr; } .inline-form { grid-template-columns: 1fr; } }
+        .container { max-width: 950px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; background: var(--accent-bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        input[type="text"], input[type="date"], input[type="tel"], input[type="email"] { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; background: #fff; outline: none; }
+        input:focus { border-color: var(--secondary-color); }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-guardar { background-color: #059669; }
+        .btn-editar { background-color: #d97706; }
+        .btn-eliminar { background-color: #dc2626; }
+
+        .table-container { margin-top: 25px; overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+        .data-table th { background-color: var(--accent-bg); color: var(--primary-color); font-weight: 700; }
     </style>
 </head>
 <body>
 
     <main class="container">
-        <div class="patients-layout">
-            <section class="sidebar">
-                <div class="card">
-                    <h2><i class="fa-solid fa-user-plus"></i> Nuevo Paciente</h2>
-                    <form id="patient-form">
-                        <div class="form-group">
-                            <label for="patient-name">Nombre y Apellido</label>
-                            <input type="text" id="patient-name" required placeholder="Ej. Juan Pérez">
-                        </div>
-                        <div class="form-group">
-                            <label for="patient-phone">Teléfono / WhatsApp</label>
-                            <input type="text" id="patient-phone" required placeholder="Ej. +549351...">
-                        </div>
-                        <div class="form-group">
-                            <label for="patient-motivo">Motivo de Consulta</label>
-                            <textarea id="patient-motivo" rows="2" placeholder="Breve descripción..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Registrar Paciente</button>
-                    </form>
-                </div>
+        <div class="card">
+            <h2><i class="fa-solid fa-user-pen"></i> Registro y Administración de Pacientes</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Alta de nuevos pacientes en la base de datos central de Firestore para su vinculación transversal en toda la suite.
+            </p>
 
-                <div class="card">
-                    <h2><i class="fa-solid fa-address-book"></i> Listado de Pacientes</h2>
-                    <input type="text" id="search-patient" placeholder="Buscar paciente..." style="margin-bottom: 10px; width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-                    <div id="patients-list" class="patients-list"></div>
-                </div>
-            </section>
-
-            <section class="content-area">
-                <div id="no-patient-selected" class="card placeholder-card">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <h3>Seleccione un paciente del listado</h3>
-                    <p>Para ver su historial de documentos, adjuntar PDFs y gestionar notas clínicas.</p>
-                </div>
-
-                <div id="patient-detail" class="card hidden">
-                    <div class="patient-header">
-                        <div>
-                            <h2 id="detail-name">Nombre del Paciente</h2>
-                            <p><strong id="detail-phone">Tel: </strong> | <span id="detail-motivo">Motivo</span></p>
-                        </div>
-                        <a id="whatsapp-direct-btn" href="#" target="_blank" class="btn btn-success">
-                            <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
-                        </a>
+            <form id="paciente-form">
+                <input type="hidden" id="patient-id" value="">
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="nombre-paciente"><i class="fa-solid id-card"></i> Nombre y Apellido:</label>
+                        <input type="text" id="nombre-paciente" required placeholder="Ej: Juan Pérez">
                     </div>
-
-                    <hr class="divider">
-
-                    <div class="section-block">
-                        <h3><i class="fa-solid fa-file-pdf"></i> Reservorio de Documentos</h3>
-                        <form id="document-form" class="inline-form">
-                            <input type="text" id="doc-title" placeholder="Título (Ej. Plan Terapéutico N°1)" required>
-                            <input type="url" id="doc-url" placeholder="Enlace del PDF (Google Drive / Gamma)" required>
-                            <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Agregar</button>
-                        </form>
+                    <div class="form-group">
+                        <label for="dni-paciente"><i class="fa-solid fa-id-card"></i> DNI / Identificación:</label>
+                        <input type="text" id="dni-paciente" placeholder="Número de documento">
                     </div>
-
-                    <div id="documents-container" class="documents-container"></div>
+                    <div class="form-group">
+                        <label for="fecha-nacimiento"><i class="fa-solid fa-calendar-days"></i> Fecha de Nacimiento:</label>
+                        <input type="date" id="fecha-nacimiento">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono-paciente"><i class="fa-solid fa-phone"></i> Teléfono / Celular:</label>
+                        <input type="tel" id="telefono-paciente" placeholder="Número de contacto">
+                    </div>
+                    <div class="form-group">
+                        <label for="email-paciente"><i class="fa-solid fa-envelope"></i> Correo Electrónico:</label>
+                        <input type="email" id="email-paciente" placeholder="correo@ejemplo.com">
+                    </div>
                 </div>
-            </section>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-guardar" onclick="guardarPaciente()"><i class="fa-solid fa-floppy-disk"></i> Guardar Paciente</button>
+                    <button type="button" class="btn" onclick="limpiarFormulario()" style="background-color: #64748b;"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-address-book"></i> Listado General de Pacientes Registrados</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre y Apellido</th>
+                            <th>DNI</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pacientes-body">
+                        <tr><td colspan="5" style="text-align: center; color: #64748b;">Cargando pacientes desde Firestore...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
-    <!-- Firebase SDKs y Script Principal -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="app.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let listaPacientesCache = [];
+
+        async function initPacientes() {
+            await cargarPacientes();
+        }
+
+        async function cargarPacientes() {
+            const tbody = document.getElementById('tabla-pacientes-body');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">Cargando registros...</td></tr>';
+            listaPacientesCache = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listaPacientesCache.push({
+                        id: docSnap.id,
+                        nombre: data.name || data.nombre || "Sin Nombre",
+                        dni: data.dni || "-",
+                        telefono: data.telefono || "-",
+                        email: data.email || "-"
+                    });
+                });
+
+                renderizarTabla();
+            } catch (e) {
+                console.error("Error al obtener pacientes de Firestore:", e);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc2626;">Error al conectar con la base de datos.</td></tr>';
+            }
+        }
+
+        function renderizarTabla() {
+            const tbody = document.getElementById('tabla-pacientes-body');
+            tbody.innerHTML = '';
+
+            if (listaPacientesCache.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b;">No hay pacientes registrados en el sistema.</td></tr>';
+                return;
+            }
+
+            listaPacientesCache.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.nombre.toUpperCase()}</strong></td>
+                        <td>${p.dni}</td>
+                        <td>${p.telefono}</td>
+                        <td>${p.email}</td>
+                        <td>
+                            <button class="btn btn-editar" style="padding: 5px 10px; font-size: 0.8rem;" onclick="prepararEdicion('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-eliminar" style="padding: 5px 10px; font-size: 0.8rem;" onclick="eliminarPaciente('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.guardarPaciente = async function() {
+            const patientId = document.getElementById('patient-id').value.trim();
+            const nombre = document.getElementById('nombre-paciente').value.trim();
+            const dni = document.getElementById('dni-paciente').value.trim();
+            const fechaNac = document.getElementById('fecha-nacimiento').value;
+            const telefono = document.getElementById('telefono-paciente').value.trim();
+            const email = document.getElementById('email-paciente').value.trim();
+
+            if (!nombre) {
+                alert("Por favor, ingrese al menos el nombre y apellido del paciente.");
+                return;
+            }
+
+            const pacienteData = {
+                name: nombre,
+                nombre: nombre, // Compatibilidad con ambos esquemas
+                dni: dni,
+                fechaNacimiento: fechaNac,
+                telefono: telefono,
+                email: email,
+                fechaRegistro: new Date().toISOString()
+            };
+
+            try {
+                if (patientId) {
+                    // Actualizar registro existente
+                    const ref = doc(db, "patients", patientId);
+                    await updateDoc(ref, pacienteData);
+                    alert("¡Paciente actualizado exitosamente!");
+                } else {
+                    // Crear nuevo registro en Firestore
+                    await addDoc(collection(db, "patients"), pacienteData);
+                    alert("¡Paciente registrado exitosamente en la base de datos!");
+                }
+
+                limpiarFormulario();
+                await cargarPacientes();
+            } catch (e) {
+                console.error("Error al guardar paciente en Firestore:", e);
+                alert("Error al guardar en la base de datos. Verifique su conexión.");
+            }
+        };
+
+        window.prepararEdicion = function(id) {
+            const p = listaPacientesCache.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('patient-id').value = p.id;
+            document.getElementById('nombre-paciente').value = p.nombre;
+            document.getElementById('dni-paciente').value = p.dni === '-' ? '' : p.dni;
+            document.getElementById('telefono-paciente').value = p.telefono === '-' ? '' : p.telefono;
+            document.getElementById('email-paciente').value = p.email === '-' ? '' : p.email;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.eliminarPaciente = async function(id) {
+            if (!confirm("¿Está seguro de eliminar este paciente de la base de datos? Esto afectará los vínculos con los protocolos especiales.")) return;
+
+            try {
+                await deleteDoc(doc(db, "patients", id));
+                alert("¡Paciente eliminado correctamente!");
+                await cargarPacientes();
+            } catch (e) {
+                console.error("Error al eliminar paciente:", e);
+                alert("No se pudo eliminar el registro de la base de datos.");
+            }
+        };
+
+        window.limpiarFormulario = function() {
+            document.getElementById('paciente-form').reset();
+            document.getElementById('patient-id').value = '';
+        };
+
+        initPacientes();
+    </script>
 </body>
 </html>
