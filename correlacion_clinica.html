@@ -37,8 +37,35 @@
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
         @media (max-width: 992px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .chart-title { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
+
+        /* Contenedor de la imagen human.jpg con marcas superpuestas */
+        .human-map-container {
+            position: relative;
+            width: 200px;
+            height: 250px;
+            margin: 0 auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .human-map-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .marca-corporal {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background-color: rgba(239, 68, 68, 0.85);
+            border: 2px solid #b91c1c;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 4px rgba(0,0,0,0.4);
+        }
 
         .action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
         .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
@@ -109,19 +136,21 @@
                 <div id="contenedor-mapa-somatico" style="text-align: center; margin-top: 10px;"></div>
             </div>
 
-            <!-- Gráficos distribuidos en 3 columnas independientes -->
+            <!-- Dashboard con human.jpg real -->
             <div class="dashboard-grid">
                 <div class="chart-box">
                     <div class="chart-title">Quantum de Estrés vs Sueño</div>
-                    <canvas id="mnsaLineChart"></canvas>
+                    <canvas id="mnsaLineChart" style="width:100%; max-height:220px;"></canvas>
                 </div>
                 <div class="chart-box">
-                    <div class="chart-title">Frecuencia de Marcas Somáticas</div>
-                    <canvas id="mnsaBarChart"></canvas>
+                    <div class="chart-title">Cartografía Corporal (human.jpg)</div>
+                    <div id="humanMapWrapper" class="human-map-container">
+                        <img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">
+                    </div>
                 </div>
                 <div class="chart-box">
                     <div class="chart-title">Correlación Multidimensional (Radar)</div>
-                    <canvas id="mnsaRadarChart"></canvas>
+                    <canvas id="mnsaRadarChart" style="width:100%; max-height:220px;"></canvas>
                 </div>
             </div>
         </div>
@@ -144,7 +173,6 @@
         const db = getFirestore(app);
 
         let lineChartInstance = null;
-        let barChartInstance = null;
         let radarChartInstance = null;
         let pacientesMap = new Map();
         let pacienteActualId = null;
@@ -176,6 +204,7 @@
                 document.getElementById('info-convergente').textContent = "Esperando selección de paciente...";
                 document.getElementById('info-defensiva').textContent = "Esperando selección de paciente...";
                 document.getElementById('info-mnsa').textContent = "Esperando selección de paciente...";
+                limpiarMarcasHumanMap();
                 return;
             }
 
@@ -187,6 +216,7 @@
                 document.getElementById('info-convergente').textContent = "No registra protocolo activo.";
                 document.getElementById('info-defensiva').textContent = "Sin datos defensivos bajo marco.";
                 document.getElementById('info-mnsa').textContent = "Sin registros.";
+                limpiarMarcasHumanMap();
                 return;
             }
 
@@ -249,7 +279,7 @@
                 document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico defensivo registrado.</span>`;
             }
 
-            // 3. MNSA y búsqueda de imagen de mapeo somático
+            // 3. MNSA y búsqueda de cartografía corporal del paciente
             const registros = data.mnsa_registros || [];
             let promedioEstres = 0;
             let ultimoRegistroMNSA = null;
@@ -271,21 +301,20 @@
             };
 
             procesarYGraficarMNSA(registros);
-            generarGraficoRadar(); // Genera automáticamente el radar en su propia columna
+            renderizarMarcasHumanMap(ultimoRegistroMNSA);
+            generarGraficoRadar();
         };
 
         function procesarYGraficarMNSA(registros) {
             if(registros.length === 0) {
                 document.getElementById('alerta-riesgo').style.display = 'none';
                 if(lineChartInstance) lineChartInstance.destroy();
-                if(barChartInstance) barChartInstance.destroy();
                 return;
             }
 
             const fechas = [];
             const estresData = [];
             const suenoData = [];
-            let conteoSomatico = {};
             let hayAlerta = false;
 
             registros.forEach(reg => {
@@ -295,12 +324,6 @@
 
                 if(reg.quantumEstres >= 8 || (reg.marcasSomaticas && reg.marcasSomaticas.length >= 3)) {
                     hayAlerta = true;
-                }
-
-                if(reg.marcasSomaticas) {
-                    reg.marcasSomaticas.forEach(soma => {
-                        conteoSomatico[soma] = (conteoSomatico[soma] || 0) + 1;
-                    });
                 }
             });
 
@@ -320,24 +343,49 @@
                 },
                 options: { responsive: true, scales: { y: { min: 0, max: 10 } } }
             });
-
-            const ctxBar = document.getElementById('mnsaBarChart').getContext('2d');
-            if(barChartInstance) barChartInstance.destroy();
-
-            const somasLabels = Object.keys(conteoSomatico);
-            const somasValues = Object.values(conteoSomatico);
-
-            barChartInstance = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: somasLabels.length > 0 ? somasLabels : ['Sin registros'],
-                    datasets: [{ label: 'Frecuencia de Aparición', data: somasValues.length > 0 ? somasValues : [0], backgroundColor: '#0891b2' }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-            });
         }
 
-        // Gráfico de Radar independiente en su propio contenedor
+        // Renderizado de marcas sobre human.jpg usando porcentajes (coordenadas relativas)
+        function renderizarMarcasHumanMap(registro) {
+            const wrapper = document.getElementById('humanMapWrapper');
+            // Limpiar marcas anteriores manteniendo la imagen human.jpg
+            wrapper.innerHTML = `<img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">`;
+
+            // Mapeo porcentual aproximado sobre human.jpg
+            const porcMapa = {
+                "Cabeza / Sien": {x: 50, y: 15},
+                "Garganta / Opresión": {x: 50, y: 25},
+                "Pecho / Corazón": {x: 50, y: 35},
+                "Estómago / Plexo": {x: 50, y: 45},
+                "Hombro Izquierdo": {x: 35, y: 30},
+                "Hombro Derecho": {x: 65, y: 30},
+                "Brazo Izquierdo": {x: 25, y: 45},
+                "Brazo Derecho": {x: 75, y: 45},
+                "Abdomen": {x: 50, y: 55},
+                "Pierna Izquierda": {x: 42, y: 75},
+                "Pierna Derecha": {x: 58, y: 75}
+            };
+
+            if (registro && registro.marcasSomaticas && registro.marcasSomaticas.length > 0) {
+                registro.marcasSomaticas.forEach(marca => {
+                    let p = porcMapa[marca] || {x: 50 + (Math.random() * 20 - 10), y: 40 + (Math.random() * 20 - 10)};
+                    
+                    const dot = document.createElement('div');
+                    dot.className = 'marca-corporal';
+                    dot.style.left = `${p.x}%`;
+                    dot.style.top = `${p.y}%`;
+                    dot.title = marca;
+                    wrapper.appendChild(dot);
+                });
+            }
+        }
+
+        function limpiarMarcasHumanMap() {
+            const wrapper = document.getElementById('humanMapWrapper');
+            wrapper.innerHTML = `<img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">`;
+        }
+
+        // Gráfico de Radar
         window.generarGraficoRadar = function() {
             if(!pacienteActualId || !datosTriangulacionCache.metrics) {
                 return;
@@ -364,7 +412,7 @@
             });
         };
 
-        // 2. Generar Orientaciones Terapéuticas
+        // Generar Orientaciones Terapéuticas
         window.generarOrientaciones = function() {
             if(!pacienteActualId || !datosTriangulacionCache.metrics) {
                 alert("Seleccione un paciente activo.");
@@ -386,7 +434,7 @@
             document.getElementById('seccion-orientaciones').style.display = 'block';
         };
 
-        // 3. Exportar Informe Final y Guardar en BD
+        // Exportar Informe Final y Guardar en BD
         window.exportarInformeFinal = async function() {
             if(!pacienteActualId || !datosTriangulacionCache.protocolo) {
                 alert("Seleccione un paciente con protocolo activo.");
@@ -399,15 +447,8 @@
             const ultimoMNSA = c.ultimoMNSA;
 
             let marcasTexto = "Sin marcas somáticas registradas";
-            let imagenMapaHtml = "";
-
-            if (ultimoMNSA) {
-                if (ultimoMNSA.marcasSomaticas && ultimoMNSA.marcasSomaticas.length > 0) {
-                    marcasTexto = ultimoMNSA.marcasSomaticas.join(", ");
-                }
-                if (ultimoMNSA.chartImage) {
-                    imagenMapaHtml = `<br><strong>Cartografía Corporal Interactiva (Último Registro):</strong><br><img src="${ultimoMNSA.chartImage}" alt="Mapa Somático del Paciente" style="max-width:280px; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px;">`;
-                }
+            if (ultimoMNSA && ultimoMNSA.marcasSomaticas && ultimoMNSA.marcasSomaticas.length > 0) {
+                marcasTexto = ultimoMNSA.marcasSomaticas.join(", ");
             }
 
             const textoInforme = `INFORME FINAL - PROTOCOLO DE ${protocoloNombre.toUpperCase()}
@@ -421,7 +462,7 @@ Fecha de Emisión: ${fechaHoy}
 CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de protocolo. Datos validados para historia clínica.`;
 
             document.getElementById('texto-informe-final').textContent = textoInforme;
-            document.getElementById('contenedor-mapa-somatico').innerHTML = imagenMapaHtml;
+            document.getElementById('contenedor-mapa-somatico').innerHTML = `<br><strong>Cartografía Corporal:</strong><br><img src="human.jpg" alt="Silueta Humana" style="max-width:140px; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px;">`;
             document.getElementById('seccion-informe').style.display = 'block';
 
             const claveInforme = `informe_final_${protocoloNombre.toLowerCase()}`;
@@ -431,11 +472,10 @@ CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de pro
                     [claveInforme]: {
                         fecha: fechaHoy,
                         contenido: textoInforme,
-                        chartImage: ultimoMNSA ? ultimoMNSA.chartImage : null,
                         metricas: c.metrics
                     }
                 });
-                alert(`¡Informe Final "${protocoloNombre}" con cartografía somática guardado exitosamente en la base de datos!`);
+                alert(`¡Informe Final "${protocoloNombre}" guardado exitosamente en la base de datos!`);
             } catch (e) {
                 console.error("Error al guardar informe:", e);
                 alert("Error al guardar el informe final en Firestore.");
