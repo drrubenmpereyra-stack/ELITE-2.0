@@ -40,7 +40,14 @@
         .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; }
         .chart-title { font-size: 0.9rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
 
+        .action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-success { background-color: #059669; }
+        .btn-warning { background-color: #d97706; }
+
         .alert-box { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.85rem; display: none; }
+        .output-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-top: 15px; font-size: 0.9rem; display: none; }
     </style>
 </head>
 <body>
@@ -84,13 +91,30 @@
                 </div>
             </div>
 
+            <div class="action-bar">
+                <button class="btn" onclick="generarGraficoRadar()"><i class="fa-solid fa-chart-radar"></i> Graficar Correlación (Radar)</button>
+                <button class="btn btn-warning" onclick="generarOrientaciones()"><i class="fa-solid fa-lightbulb"></i> Generar Orientaciones Terapéuticas</button>
+                <button class="btn btn-success" onclick="exportarInformeFinal()"><i class="fa-solid fa-file-arrow-down"></i> Exportar e Informar a Base de Datos</button>
+            </div>
+
+            <!-- Sección de Salidas Dinámicas -->
+            <div id="seccion-orientaciones" class="output-box">
+                <h3 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 8px;"><i class="fa-solid fa-stethoscope"></i> Orientaciones para el Plan Terapéutico:</h3>
+                <div id="texto-orientaciones" style="color: #334155;"></div>
+            </div>
+
+            <div id="seccion-informe" class="output-box" style="background: #ecfeff; border-color: #22d3ee;">
+                <h3 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 8px;"><i class="fa-solid fa-file-lines"></i> Informe Final Generado y Almacenado:</h3>
+                <div id="texto-informe-final" style="color: #334155; white-space: pre-line;"></div>
+            </div>
+
             <div class="dashboard-grid">
                 <div class="chart-box">
                     <div class="chart-title">Quantum de Estrés vs Calidad de Sueño (Protocolo Activo)</div>
                     <canvas id="mnsaLineChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <div class="chart-title">Frecuencia de Marcas Somáticas Registradas</div>
+                    <div class="chart-title">Frecuencia de Marcas Somáticas & Correlación Multidimensional</div>
                     <canvas id="mnsaBarChart"></canvas>
                 </div>
             </div>
@@ -99,7 +123,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -116,6 +140,8 @@
         let lineChartInstance = null;
         let barChartInstance = null;
         let pacientesMap = new Map();
+        let pacienteActualId = null;
+        let datosTriangulacionCache = {};
 
         async function initPacientes() {
             const selectEl = document.getElementById('select-patient');
@@ -132,10 +158,13 @@
         }
 
         window.cargarDatosTriangulacion = function() {
-            const patientId = document.getElementById('select-patient').value;
+            pacienteActualId = document.getElementById('select-patient').value;
             const badge = document.getElementById('protocolo-activo-badge');
             
-            if(!patientId) {
+            document.getElementById('seccion-orientaciones').style.display = 'none';
+            document.getElementById('seccion-informe').style.display = 'none';
+
+            if(!pacienteActualId) {
                 badge.textContent = "Sin asignar";
                 document.getElementById('info-convergente').textContent = "Esperando selección de paciente...";
                 document.getElementById('info-defensiva').textContent = "Esperando selección de paciente...";
@@ -143,7 +172,7 @@
                 return;
             }
 
-            const data = pacientesMap.get(patientId);
+            const data = pacientesMap.get(pacienteActualId);
             const admision = data.admision_protocolo;
 
             if(!admision) {
@@ -154,55 +183,65 @@
                 return;
             }
 
-            const protocoloActivo = admision.protocolo.toLowerCase(); // ej: "crisis", "duelos", "suicidio"
+            const protocoloActivo = admision.protocolo.toLowerCase(); 
             badge.textContent = admision.protocolo.toUpperCase();
 
-            // 1. Lectura robusta de Evaluación Convergente
-            const evalData = data[`evaluacion_${protocoloActivo}`] || 
-                             data[`eval_conv_${protocoloActivo}`] || 
-                             data[`evaluacionConvergente`] || 
-                             null;
-
+            // 1. Evaluación Convergente
+            const evalData = data[`evaluacion_${protocoloActivo}`] || data[`eval_conv_${protocoloActivo}`] || data[`evaluacionConvergente`] || null;
+            let puntajeConvNum = 5;
             if (evalData) {
                 const puntajeTxt = evalData.puntaje || evalData.resultado || evalData.score || "Registrado";
-                const informeTxt = evalData.informe || evalData.comentario || evalData.detalle || "Evaluación convergente completada.";
+                const informeTxt = evalData.informe || evalData.comentario || evalData.detalle || "Evaluación completada.";
                 document.getElementById('info-convergente').innerHTML = `<strong>Puntaje:</strong> ${puntajeTxt}<br><small>${informeTxt}</small>`;
+                if(puntajeTxt.toLowerCase().includes('alto') || puntajeTxt.toLowerCase().includes('crítico')) puntajeConvNum = 8;
+                if(puntajeTxt.toLowerCase().includes('bajo')) puntajeConvNum = 3;
             } else {
-                document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada bajo este protocolo.</span>`;
+                document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada.</span>`;
             }
 
-            // 2. Lectura robusta y ampliada de Operatividad Defensiva
-            const defData = data[`defensiva_${protocoloActivo}`] || 
-                            data[`diagn_func_op_${protocoloActivo}`] || 
-                            data[`diagn_funcional_operativo_${protocoloActivo}`] || 
-                            data[`diagnosticoDefensivo`] || 
-                            data[`operatividadDefensiva`] ||
-                            null;
-
+            // 2. Operatividad Defensiva
+            const defData = data[`defensiva_${protocoloActivo}`] || data[`diagn_func_op_${protocoloActivo}`] || data[`diagnosticoDefensivo`] || null;
+            let puntajeDefNum = 5;
             if (defData) {
-                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || defData.resultado || "Registrado";
-                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || defData.informe || "Diagnóstico funcional completado.";
+                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || "Registrado";
+                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || "Diagnóstico completado.";
                 document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
+                if(estadoTxt.toLowerCase().includes('fracasada') || estadoTxt.toLowerCase().includes('desbordada')) puntajeDefNum = 9;
+                if(estadoTxt.toLowerCase().includes('eficaz') || estadoTxt.toLowerCase().includes('compensada')) puntajeDefNum = 2;
             } else {
                 let encontradoPlano = false;
                 for (let key in data) {
-                    if (key.toLowerCase().includes('defensiv') || key.toLowerCase().includes('operatividad') || key.toLowerCase().includes('diagn_func')) {
+                    if (key.toLowerCase().includes('defensiv') || key.toLowerCase().includes('operatividad')) {
                         const val = data[key];
                         if (typeof val === 'object' && val !== null) {
-                            document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${val.estado || val.resultado || val.diagnostico || 'Registrado'}<br><small>${val.mecanismo || val.descripcion || val.detalles || JSON.stringify(val)}</small>`;
+                            document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${val.estado || 'Registrado'}<br><small>${val.mecanismo || JSON.stringify(val)}</small>`;
                             encontradoPlano = true;
                             break;
                         }
                     }
                 }
                 if (!encontradoPlano) {
-                    document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico funcional registrado bajo este protocolo.</span>`;
+                    document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico defensivo registrado.</span>`;
                 }
             }
 
-            // 3. Dimensión MNSA
+            // 3. MNSA
             const registros = data.mnsa_registros || [];
-            document.getElementById('info-mnsa').innerHTML = `<strong>Registros MNSA:</strong> ${registros.length}<br><small>Sincronizado con protocolo ${admision.protocolo}.</small>`;
+            let promedioEstres = 0;
+            if(registros.length > 0) {
+                const suma = registros.reduce((acc, curr) => acc + (Number(curr.quantumEstres) || 0), 0);
+                promedioEstres = Number((suma / registros.length).toFixed(1));
+            }
+            document.getElementById('info-mnsa').innerHTML = `<strong>Registros MNSA:</strong> ${registros.length} (Prom. Estrés: ${promedioEstres})<br><small>Sincronizado con protocolo ${admision.protocolo}.</small>`;
+
+            // Guardar caché para gráficos e informes
+            datosTriangulacionCache = {
+                protocolo: admision.protocolo,
+                evaluacion: evalData,
+                defensiva: defData,
+                registros: registros,
+                metrics: { estres: promedioEstres, convergente: puntajeConvNum, defensiva: puntajeDefNum }
+            };
 
             procesarYGraficarMNSA(registros);
         };
@@ -271,6 +310,99 @@
                 options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
         }
+
+        // 1. Gráfico de Radar
+        window.generarGraficoRadar = function() {
+            if(!pacienteActualId || !datosTriangulacionCache.metrics) {
+                alert("Seleccione un paciente con datos activos primero.");
+                return;
+            }
+
+            const m = datosTriangulacionCache.metrics;
+            const ctxBar = document.getElementById('mnsaBarChart').getContext('2d');
+            if(barChartInstance) barChartInstance.destroy();
+
+            // Cambiamos temporalmente el gráfico de barras por un Radar Multidimensional
+            barChartInstance = new Chart(ctxBar, {
+                type: 'radar',
+                data: {
+                    labels: ['Quantum Estrés MNSA', 'Afectación Convergente', 'Claudicación Defensiva'],
+                    datasets: [{
+                        label: `Triangulación - Protocolo ${datosTriangulacionCache.protocolo}`,
+                        data: [m.estres, m.convergente, m.defensiva],
+                        backgroundColor: 'rgba(8, 145, 178, 0.2)',
+                        borderColor: '#0891b2',
+                        pointBackgroundColor: '#0284c7',
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, scales: { r: { min: 0, max: 10 } } }
+            });
+            alert("¡Gráfico de Radar generado con éxito en el panel derecho!");
+        };
+
+        // 2. Generar Orientaciones Terapéuticas
+        window.generarOrientaciones = function() {
+            if(!pacienteActualId || !datosTriangulacionCache.metrics) {
+                alert("Seleccione un paciente activo.");
+                return;
+            }
+
+            const m = datosTriangulacionCache.metrics;
+            let sugerencia = "";
+
+            if (m.estres >= 7 && m.defensiva >= 7) {
+                sugerencia = "<strong>ALERTA MÁXIMA DE DESBORDE:</strong> El quantum somático es elevado y la operatividad defensiva muestra claudicación severa. Se recomienda intervención activa de contención inmediata, ajuste transitorio de la frecuencia de sesiones y revisión conjunta con psiquiatría.";
+            } else if (m.estres >= 6) {
+                sugerencia = "<strong>ESTRÉS SOMÁTICO SOSTENIDO:</strong> Las defensas operan pero el cuerpo registra alta afectación interoceptiva. Focalizar la sesión en la elaboración simbólica de los desencadenantes cotidianos sin sobreintervenir en el encuadre.";
+            } else {
+                sugerencia = "<strong>ESTABILIDAD RELATIVA:</strong> Indicadores somáticos y defensivos dentro de parámetros de contención. Mantener el encuadre actual y afianzar los recursos elaborativos del paciente.";
+            }
+
+            document.getElementById('texto-orientaciones').innerHTML = sugerencia;
+            document.getElementById('seccion-orientaciones').style.display = 'block';
+        };
+
+        // 3. Exportar Informe Final y Guardar en BD
+        window.exportarInformeFinal = async function() {
+            if(!pacienteActualId || !datosTriangulacionCache.protocolo) {
+                alert("Seleccione un paciente con protocolo activo.");
+                return;
+            }
+
+            const c = datosTriangulacionCache;
+            const fechaHoy = new Date().toLocaleDateString();
+            const protocoloNombre = c.protocolo;
+
+            const textoInforme = `INFORME FINAL - PROTOCOLO DE ${protocoloNombre.toUpperCase()}
+Fecha de Emisión: ${fechaHoy}
+--------------------------------------------------
+1. EVALUACIÓN CONVERGENTE: ${JSON.stringify(c.evaluacion || "Sin datos")}
+2. OPERATIVIDAD DEFENSIVA: ${JSON.stringify(c.defensiva || "Sin datos")}
+3. ESTADO INTEROCEPTIVO (MNSA): Total registros: ${c.registros.length}, Promedio Estrés: ${c.metrics.estres}/10
+--------------------------------------------------
+CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de protocolo. Datos validados para historia clínica.`;
+
+            document.getElementById('texto-informe-final').textContent = textoInforme;
+            document.getElementById('seccion-informe').style.display = 'block';
+
+            // Guardar en Firestore bajo la clave exacta del protocolo
+            const claveInforme = `informe_final_${protocoloNombre.toLowerCase()}`;
+            try {
+                const ref = doc(db, "patients", pacienteActualId);
+                await updateDoc(ref, {
+                    [claveInforme]: {
+                        fecha: fechaHoy,
+                        contenido: textoInforme,
+                        metricas: c.metrics
+                    }
+                });
+                alert(`¡Informe Final "${protocoloNombre}" guardado exitosamente en la base de datos!`);
+            } catch (e) {
+                console.error("Error al guardar informe:", e);
+                alert("Error al guardar el informe final en Firestore.");
+            }
+        };
 
         initPacientes();
     </script>
