@@ -199,7 +199,7 @@
                 document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada.</span>`;
             }
 
-            // 2. Operatividad Defensiva - Búsqueda Universal corregida
+            // 2. Operatividad Defensiva - Extracción Robusta (Soporte para Arrays u Objetos)
             let defData = data[`defensiva_${protocoloActivo}`] || 
                           data[`diagn_func_op_${protocoloActivo}`] || 
                           data[`diagn_funcional_operativo_${protocoloActivo}`] || 
@@ -211,7 +211,7 @@
                 for (let key in data) {
                     const k = key.toLowerCase();
                     if (k.includes('defensiv') || k.includes('operatividad') || k.includes('diagn_func')) {
-                        if (typeof data[key] === 'object' && data[key] !== null) {
+                        if (data[key] !== null) {
                             defData = data[key];
                             break;
                         }
@@ -221,9 +221,15 @@
 
             let puntajeDefNum = 5;
             if (defData) {
-                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || defData.resultado || "Registrado";
-                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || defData.informe || JSON.stringify(defData);
-                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
+                let itemDef = defData;
+                if (Array.isArray(defData) && defData.length > 0) {
+                    itemDef = defData[defData.length - 1];
+                }
+
+                const estadoTxt = itemDef.estado || itemDef.diagnostico || itemDef.operatividad || itemDef.resultado || "Diagnóstico Funcional Operativo Registrado";
+                const mecanismoTxt = itemDef.mecanismo || itemDef.descripcion || itemDef.detalles || itemDef.informe || (itemDef.totalScore ? `Score Total: ${itemDef.totalScore}` : "Evaluación completada.");
+                
+                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo / Detalle: ${mecanismoTxt}</small>`;
                 
                 const txtLower = String(estadoTxt + " " + mecanismoTxt).toLowerCase();
                 if(txtLower.includes('fracasada') || txtLower.includes('desbordada') || txtLower.includes('colapso')) puntajeDefNum = 9;
