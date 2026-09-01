@@ -19,7 +19,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
 
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
         .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
         h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         
@@ -34,11 +34,11 @@
         .dimension-card { background: #f1f5f9; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 4px; font-size: 0.85rem; }
         .dimension-title { font-weight: 700; color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        @media (max-width: 992px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .chart-title { font-size: 0.9rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
+        .chart-title { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
 
         .action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
         .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
@@ -109,14 +109,19 @@
                 <div id="contenedor-mapa-somatico" style="text-align: center; margin-top: 10px;"></div>
             </div>
 
+            <!-- Gráficos distribuidos en 3 columnas independientes -->
             <div class="dashboard-grid">
                 <div class="chart-box">
-                    <div class="chart-title">Quantum de Estrés vs Calidad de Sueño (Protocolo Activo)</div>
+                    <div class="chart-title">Quantum de Estrés vs Sueño</div>
                     <canvas id="mnsaLineChart"></canvas>
                 </div>
                 <div class="chart-box">
-                    <div class="chart-title">Frecuencia de Marcas Somáticas & Correlación Multidimensional</div>
+                    <div class="chart-title">Frecuencia de Marcas Somáticas</div>
                     <canvas id="mnsaBarChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">Correlación Multidimensional (Radar)</div>
+                    <canvas id="mnsaRadarChart"></canvas>
                 </div>
             </div>
         </div>
@@ -140,6 +145,7 @@
 
         let lineChartInstance = null;
         let barChartInstance = null;
+        let radarChartInstance = null;
         let pacientesMap = new Map();
         let pacienteActualId = null;
         let datosTriangulacionCache = {};
@@ -187,16 +193,16 @@
             const protocoloActivo = admision.protocolo.toLowerCase(); 
             badge.textContent = admision.protocolo.toUpperCase();
 
-            // 1. Evaluación Convergente (Extracción Limpia de Textos)
+            // 1. Evaluación Convergente
             const evalData = data[`evaluacion_${protocoloActivo}`] || data[`eval_conv_${protocoloActivo}`] || data[`evaluacionConvergente`] || null;
             let puntajeConvNum = 5;
             let evalTextoLimpio = "Sin datos registrados";
             if (evalData) {
                 let itemConv = Array.isArray(evalData) ? evalData[evalData.length - 1] : evalData;
                 const puntajeTxt = itemConv.puntaje || itemConv.resultado || itemConv.score || (itemConv.totalScore ? `Score: ${itemConv.totalScore}` : "Registrado");
-                const informeTxt = itemConv.informe || itemConv.comentario || itemConv.detalle || itemConv.observaciones || "Evaluación completada con éxito.";
+                const informeTxt = itemConv.informe || itemConv.comentario || itemConv.detalle || itemConv.observaciones || "Evaluación completada.";
                 
-                evalTextoLimpio = `Puntaje Total: ${puntajeTxt} | Observaciones: ${informeTxt}`;
+                evalTextoLimpio = `Puntaje: ${puntajeTxt} | Observaciones: ${informeTxt}`;
                 document.getElementById('info-convergente').innerHTML = `<strong>Puntaje:</strong> ${puntajeTxt}<br><small>${informeTxt}</small>`;
                 
                 const txtL = String(puntajeTxt + " " + informeTxt).toLowerCase();
@@ -206,7 +212,7 @@
                 document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada.</span>`;
             }
 
-            // 2. Operatividad Defensiva (Extracción Limpia de Textos)
+            // 2. Operatividad Defensiva
             let defData = data[`defensiva_${protocoloActivo}`] || 
                           data[`diagn_func_op_${protocoloActivo}`] || 
                           data[`diagn_funcional_operativo_${protocoloActivo}`] || 
@@ -265,6 +271,7 @@
             };
 
             procesarYGraficarMNSA(registros);
+            generarGraficoRadar(); // Genera automáticamente el radar en su propia columna
         };
 
         function procesarYGraficarMNSA(registros) {
@@ -330,23 +337,22 @@
             });
         }
 
-        // 1. Gráfico de Radar
+        // Gráfico de Radar independiente en su propio contenedor
         window.generarGraficoRadar = function() {
             if(!pacienteActualId || !datosTriangulacionCache.metrics) {
-                alert("Seleccione un paciente con datos activos primero.");
                 return;
             }
 
             const m = datosTriangulacionCache.metrics;
-            const ctxBar = document.getElementById('mnsaBarChart').getContext('2d');
-            if(barChartInstance) barChartInstance.destroy();
+            const ctxRadar = document.getElementById('mnsaRadarChart').getContext('2d');
+            if(radarChartInstance) radarChartInstance.destroy();
 
-            barChartInstance = new Chart(ctxBar, {
+            radarChartInstance = new Chart(ctxRadar, {
                 type: 'radar',
                 data: {
                     labels: ['Quantum Estrés MNSA', 'Afectación Convergente', 'Claudicación Defensiva'],
                     datasets: [{
-                        label: `Triangulación - Protocolo ${datosTriangulacionCache.protocolo}`,
+                        label: `Protocolo ${datosTriangulacionCache.protocolo}`,
                         data: [m.estres, m.convergente, m.defensiva],
                         backgroundColor: 'rgba(8, 145, 178, 0.2)',
                         borderColor: '#0891b2',
@@ -356,7 +362,6 @@
                 },
                 options: { responsive: true, scales: { r: { min: 0, max: 10 } } }
             });
-            alert("¡Gráfico de Radar generado con éxito en el panel derecho!");
         };
 
         // 2. Generar Orientaciones Terapéuticas
@@ -381,7 +386,7 @@
             document.getElementById('seccion-orientaciones').style.display = 'block';
         };
 
-        // 3. Exportar Informe Final Limpio y con Cartografía Somática Interactiva
+        // 3. Exportar Informe Final y Guardar en BD
         window.exportarInformeFinal = async function() {
             if(!pacienteActualId || !datosTriangulacionCache.protocolo) {
                 alert("Seleccione un paciente con protocolo activo.");
@@ -430,7 +435,7 @@ CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de pro
                         metricas: c.metrics
                     }
                 });
-                alert(`¡Informe Final "${protocoloNombre}" limpio y con mapa somático guardado exitosamente en la base de datos!`);
+                alert(`¡Informe Final "${protocoloNombre}" con cartografía somática guardado exitosamente en la base de datos!`);
             } catch (e) {
                 console.error("Error al guardar informe:", e);
                 alert("Error al guardar el informe final en Firestore.");
