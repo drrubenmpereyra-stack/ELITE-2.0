@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admisión y Credenciales - Protocolos Especiales | ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0891b2;
+            --secondary-color: #22d3ee;
+            --accent-bg: #ecfeff;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cffafe;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .container { max-width: 950px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; background: var(--accent-bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select, input[type="date"], input[type="text"], input[type="password"] { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; background: #fff; outline: none; }
+        select:focus, input:focus { border-color: var(--primary-color); }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center; }
+        .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-guardar { background-color: #059669; }
+        .btn-editar { background-color: #d97706; }
+        .btn-eliminar { background-color: #dc2626; }
+
+        .table-container { margin-top: 25px; overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+        .data-table th { background-color: var(--accent-bg); color: var(--primary-color); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-user-plus"></i> Admisión de Pacientes a Protocolos Especiales (MNSA)</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Gestión de altas, asignación de protocolos específicos y credenciales de acceso para el portal del paciente.
+            </p>
+
+            <form id="admission-form">
+                <input type="hidden" id="edit-index" value="">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="select-patient"><i class="fa-solid fa-user"></i> Seleccionar Paciente:</label>
+                        <select id="select-patient" required>
+                            <option value="">-- Seleccionar Paciente --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha-alta"><i class="fa-solid fa-calendar"></i> Fecha de Alta en Protocolo:</label>
+                        <input type="date" id="fecha-alta" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo-protocolo"><i class="fa-solid fa-notes-medical"></i> Tipo de Protocolo:</label>
+                        <select id="tipo-protocolo" required>
+                            <option value="">-- Seleccionar Protocolo --</option>
+                            <option value="Duelos">Protocolo de Duelos</option>
+                            <option value="Crisis">Protocolo de Crisis</option>
+                            <option value="Suicidio">Protocolo de Suicidio</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="usuario-login"><i class="fa-solid fa-id-badge"></i> Usuario (Login Paciente):</label>
+                        <input type="text" id="usuario-login" required placeholder="Ej: perez_2026">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="password-login"><i class="fa-solid fa-lock"></i> Contraseña (Login Paciente):</label>
+                        <input type="text" id="password-login" required placeholder="Contraseña de acceso">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-guardar" onclick="guardarAdmision()"><i class="fa-solid fa-floppy-disk"></i> Dar de Alta / Guardar</button>
+                    <button type="button" class="btn" onclick="limpiarFormulario()" style="background-color: #64748b;"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-list-check"></i> Pacientes Admitidos en Protocolos Especiales</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Protocolo</th>
+                            <th>Fecha Alta</th>
+                            <th>Usuario</th>
+                            <th>Contraseña</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-admisiones-body">
+                        <tr><td colspan="6" style="text-align: center; color: #64748b;">Cargando registros...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let listaPacientesGlobal = [];
+
+        async function initSistema() {
+            document.getElementById('fecha-alta').value = new Date().toISOString().split('T')[0];
+            await cargarPacientesYAdmisiones();
+        }
+
+        async function cargarPacientesYAdmisiones() {
+            const selectEl = document.getElementById('select-patient');
+            selectEl.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            listaPacientesGlobal = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listaPacientesGlobal.push({ 
+                        id: docSnap.id, 
+                        nombre: data.name || data.nombre || "Sin Nombre",
+                        admision: data.admision_protocolo || null
+                    });
+                });
+            } catch (e) {
+                console.warn("Firestore inaccesible:", e);
+            }
+
+            listaPacientesGlobal.forEach(p => {
+                selectEl.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()}</option>`;
+            });
+
+            renderizarTablaAdmisiones();
+        }
+
+        function renderizarTablaAdmisiones() {
+            const tbody = document.getElementById('tabla-admisiones-body');
+            tbody.innerHTML = '';
+
+            let admitidos = listaPacientesGlobal.filter(p => p.admision);
+
+            if(admitidos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748b;">No hay pacientes dados de alta en protocolos especiales.</td></tr>';
+                return;
+            }
+
+            admitidos.forEach(p => {
+                const adm = p.admision;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.nombre.toUpperCase()}</strong></td>
+                        <td>${adm.protocolo}</td>
+                        <td>${adm.fechaAlta}</td>
+                        <td><code>${adm.usuario}</code></td>
+                        <td><code>${adm.password}</code></td>
+                        <td>
+                            <button class="btn btn-editar" style="padding: 5px 10px; font-size: 0.8rem;" onclick="prepararEdicion('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-eliminar" style="padding: 5px 10px; font-size: 0.8rem;" onclick="eliminarAdmision('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.guardarAdmision = async function() {
+            const patientId = document.getElementById('select-patient').value;
+            const fechaAlta = document.getElementById('fecha-alta').value;
+            const protocolo = document.getElementById('tipo-protocolo').value;
+            const usuario = document.getElementById('usuario-login').value.trim();
+            const password = document.getElementById('password-login').value.trim();
+
+            if(!patientId || !fechaAlta || !protocolo || !usuario || !password) {
+                alert("Por favor, complete todos los campos del formulario.");
+                return;
+            }
+
+            const admisionData = { protocolo, fechaAlta, usuario, password };
+
+            try {
+                const ref = doc(db, "patients", patientId);
+                await updateDoc(ref, { 
+                    admision_protocolo: admisionData,
+                    usuario: usuario,
+                    password: password
+                });
+
+                alert("¡Admisión y credenciales guardadas exitosamente en la base de datos!");
+                limpiarFormulario();
+                await cargarPacientesYAdmisiones();
+            } catch (e) {
+                console.error("Error al guardar en base de datos:", e);
+                alert("Error al guardar la admisión en Firestore.");
+            }
+        };
+
+        window.prepararEdicion = function(patientId) {
+            const p = listaPacientesGlobal.find(item => item.id === patientId);
+            if(!p || !p.admision) return;
+
+            document.getElementById('select-patient').value = p.id;
+            document.getElementById('fecha-alta').value = p.admision.fechaAlta;
+            document.getElementById('tipo-protocolo').value = p.admision.protocolo;
+            document.getElementById('usuario-login').value = p.admision.usuario;
+            document.getElementById('password-login').value = p.admision.password;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.eliminarAdmision = async function(patientId) {
+            if(!confirm("¿Está seguro de eliminar la admisión de este paciente en el protocolo especial?")) return;
+
+            try {
+                const ref = doc(db, "patients", patientId);
+                await updateDoc(ref, { 
+                    admision_protocolo: null,
+                    usuario: null,
+                    password: null
+                });
+
+                alert("¡Admisión eliminada correctamente!");
+                await cargarPacientesYAdmisiones();
+            } catch (e) {
+                console.error("Error al eliminar:", e);
+                alert("Error al actualizar la base de datos.");
+            }
+        };
+
+        window.limpiarFormulario = function() {
+            document.getElementById('admission-form').reset();
+            document.getElementById('fecha-alta').value = new Date().toISOString().split('T')[0];
+        };
+
+        initSistema();
+    </script>
+</body>
+</html>
