@@ -99,7 +99,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -137,6 +137,9 @@
             
             if(!patientId) {
                 badge.textContent = "Sin asignar";
+                document.getElementById('info-convergente').textContent = "Esperando selección de paciente...";
+                document.getElementById('info-defensiva').textContent = "Esperando selección de paciente...";
+                document.getElementById('info-mnsa').textContent = "Esperando selección de paciente...";
                 return;
             }
 
@@ -151,22 +154,40 @@
                 return;
             }
 
-            const protocoloActivo = admision.protocolo;
-            badge.textContent = protocoloActivo.toUpperCase();
+            const protocoloActivo = admision.protocolo.toLowerCase(); // ej: "crisis", "duelos", "suicidio"
+            badge.textContent = admision.protocolo.toUpperCase();
 
-            // 1. Dimensión Convergente filtrada por el protocolo activo
-            const evaluacionKey = `evaluacion_${protocoloActivo.toLowerCase()}`;
-            const evalData = data[evaluacionKey] || { puntaje: "Pendiente", informe: "Sin evaluación convergente registrada bajo este protocolo." };
-            document.getElementById('info-convergente').innerHTML = `<strong>Puntaje:</strong> ${evalData.puntaje}<br><small>${evalData.informe}</small>`;
+            // 1. Lectura robusta de Evaluación Convergente (busca múltiples variantes de campos)
+            const evalData = data[`evaluacion_${protocoloActivo}`] || 
+                             data[`eval_conv_${protocoloActivo}`] || 
+                             data[`evaluacionConvergente`] || 
+                             null;
 
-            // 2. Dimensión Operatividad Defensiva filtrada por el protocolo activo
-            const defensivaKey = `defensiva_${protocoloActivo.toLowerCase()}`;
-            const defData = data[defensivaKey] || { estado: "Pendiente", mecanismo: "Sin diagnóstico funcional registrado." };
-            document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${defData.estado}<br><small>Mecanismo: ${defData.mecanismo}</small>`;
+            if (evalData) {
+                const puntajeTxt = evalData.puntaje || evalData.resultado || evalData.score || "Registrado";
+                const informeTxt = evalData.informe || evalData.comentario || evalData.detalle || "Evaluación convergente completada.";
+                document.getElementById('info-convergente').innerHTML = `<strong>Puntaje:</strong> ${puntajeTxt}<br><small>${informeTxt}</small>`;
+            } else {
+                document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada bajo este protocolo.</span>`;
+            }
 
-            // 3. Dimensión MNSA (Registros del paciente)
+            // 2. Lectura robusta de Operatividad Defensiva (busca múltiples variantes de campos)
+            const defData = data[`defensiva_${protocoloActivo}`] || 
+                            data[`diagn_func_op_${protocoloActivo}`] || 
+                            data[`diagnosticoDefensivo`] || 
+                            null;
+
+            if (defData) {
+                const estadoTxt = defData.estado || defData.diagnostico || defData.operatividad || "Registrado";
+                const mecanismoTxt = defData.mecanismo || defData.descripcion || defData.detalles || "Diagnóstico funcional completado.";
+                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
+            } else {
+                document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico funcional registrado bajo este protocolo.</span>`;
+            }
+
+            // 3. Dimensión MNSA
             const registros = data.mnsa_registros || [];
-            document.getElementById('info-mnsa').innerHTML = `<strong>Registros MNSA:</strong> ${registros.length}<br><small>Sincronizado con protocolo ${protocoloActivo}.</small>`;
+            document.getElementById('info-mnsa').innerHTML = `<strong>Registros MNSA:</strong> ${registros.length}<br><small>Sincronizado con protocolo ${admision.protocolo}.</small>`;
 
             procesarYGraficarMNSA(registros);
         };
