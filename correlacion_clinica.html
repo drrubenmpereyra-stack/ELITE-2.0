@@ -40,10 +40,10 @@
         .chart-box { background: #fff; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .chart-title { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
 
-        /* Contenedor de la imagen human.jpg con marcas superpuestas */
+        /* Contenedor idéntico al de la app del paciente para human.jpg dual */
         .human-map-container {
             position: relative;
-            width: 200px;
+            width: 220px;
             height: 250px;
             margin: 0 auto;
             border: 1px solid #cbd5e1;
@@ -58,13 +58,13 @@
         }
         .marca-corporal {
             position: absolute;
-            width: 14px;
-            height: 14px;
-            background-color: rgba(239, 68, 68, 0.85);
+            width: 12px;
+            height: 12px;
+            background-color: rgba(239, 68, 68, 0.9);
             border: 2px solid #b91c1c;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 4px rgba(0,0,0,0.4);
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
         }
 
         .action-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
@@ -136,16 +136,16 @@
                 <div id="contenedor-mapa-somatico" style="text-align: center; margin-top: 10px;"></div>
             </div>
 
-            <!-- Dashboard con human.jpg real -->
+            <!-- Dashboard con human.jpg dual idéntico al app del paciente -->
             <div class="dashboard-grid">
                 <div class="chart-box">
                     <div class="chart-title">Quantum de Estrés vs Sueño</div>
                     <canvas id="mnsaLineChart" style="width:100%; max-height:220px;"></canvas>
                 </div>
                 <div class="chart-box">
-                    <div class="chart-title">Cartografía Corporal (human.jpg)</div>
+                    <div class="chart-title">Cartografía Corporal (human.jpg Dual)</div>
                     <div id="humanMapWrapper" class="human-map-container">
-                        <img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">
+                        <img src="human.jpg" alt="Esquema Corporal Interactivo" onerror="this.onerror=null; this.src='https://via.placeholder.com/220x250?text=human.jpg+no+encontrada';">
                     </div>
                 </div>
                 <div class="chart-box">
@@ -345,54 +345,68 @@
             });
         }
 
-        // --- MAPEO ANATÓMICO ROBUSTO Y TOLERANTE SOBRE human.jpg ---
+        // --- MAPEO ANATÓMICO CON LAS COORDENADAS EXACTAS DE LA APP DEL PACIENTE ---
         function renderizarMarcasHumanMap(registro) {
             const wrapper = document.getElementById('humanMapWrapper');
-            wrapper.innerHTML = `<img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">`;
+            wrapper.innerHTML = `<img src="human.jpg" alt="Esquema Corporal Interactivo" onerror="this.onerror=null; this.src='https://via.placeholder.com/220x250?text=human.jpg+no+encontrada';">`;
 
-            const porcMapa = {
-                "cabeza": {x: 50, y: 14},
-                "sien": {x: 50, y: 14},
-                "garganta": {x: 50, y: 24},
-                "pecho": {x: 50, y: 35},
-                "corazon": {x: 54, y: 35},
-                "estomago": {x: 50, y: 46},
-                "plexo": {x: 50, y: 46},
-                "hombro": {x: 35, y: 32},
-                "brazo": {x: 26, y: 48},
-                "abdomen": {x: 50, y: 56},
-                "pierna": {x: 44, y: 75}
+            // Tabla de coordenadas porcentuales exactas provistas por la vista interactiva del paciente
+            const mapaCoordenadasExactas = {
+                // Vista Frontal (Izquierda)
+                'Cefalea / Presión Cefálica (Frontal)': {top: '13%', left: '26%'},
+                'Cabeza / Cefalea': {top: '13%', left: '26%'},
+                'Nudo en la Garganta / Cuello': {top: '20%', left: '26%'},
+                'Garganta / Cuello': {top: '20%', left: '26%'},
+                'Opresión en el Pecho / Taquicardia': {top: '27%', left: '26%'},
+                'Pecho / Corazón': {top: '27%', left: '26%'},
+                'Molestia Estomacal / Visceral': {top: '36%', left: '26%'},
+                'Abdomen / Estómago': {top: '36%', left: '26%'},
+                'Tensión en Hombro Izquierdo': {top: '24%', left: '19%'},
+                'Hombro Izquierdo': {top: '24%', left: '19%'},
+                'Tensión en Hombro Derecho': {top: '24%', left: '33%'},
+                'Hombro Derecho': {top: '24%', left: '33%'},
+
+                // Vista Posterior (Derecha)
+                'Cefalea Tensional / Occipital': {top: '13%', left: '74%'},
+                'Cabeza Posterior': {top: '13%', left: '74%'},
+                'Tensión Cervical Posterior': {top: '21%', left: '74%'},
+                'Cervical': {top: '21%', left: '74%'},
+                'Dolor Lumbar / Dorsal': {top: '30%', left: '74%'},
+                'Espalda / Lumbar': {top: '30%', left: '74%'},
+                'Fatiga en Extremidades Inferiores': {top: '48%', left: '74%'},
+                'Zona Glútea / Cadera': {top: '48%', left: '74%'}
             };
 
             if (registro && registro.marcasSomaticas && registro.marcasSomaticas.length > 0) {
-                registro.marcasSomaticas.forEach((marca, index) => {
-                    let p = {x: 50, y: 30 + (index * 12)};
-
-                    if (typeof marca === 'object' && marca !== null && marca.x !== undefined && marca.y !== undefined) {
-                        p = { x: marca.x, y: marca.y };
-                    } else if (typeof marca === 'string') {
-                        const mLower = marca.toLowerCase();
-                        for (let clave in porcMapa) {
-                            if (mLower.includes(clave)) {
-                                p = porcMapa[clave];
+                registro.marcasSomaticas.forEach(marca => {
+                    // Buscar coincidencia exacta o parcial con los textos de la app
+                    let pos = mapaCoordenadasExactas[marca];
+                    
+                    if (!pos) {
+                        // Búsqueda tolerante por subcadenas si el texto varía ligeramente
+                        for (let clave in mapaCoordenadasExactas) {
+                            if (marca.toLowerCase().includes(clave.toLowerCase()) || clave.toLowerCase().includes(marca.toLowerCase())) {
+                                pos = mapaCoordenadasExactas[clave];
                                 break;
                             }
                         }
                     }
 
-                    const dot = document.createElement('div');
-                    dot.className = 'marca-corporal';
-                    dot.style.left = `${p.x}%`;
-                    dot.style.top = `${p.y}%`;
-                    dot.title = typeof marca === 'string' ? marca : 'Marca somática';
-                    wrapper.appendChild(dot);
+                    if (pos) {
+                        const dot = document.createElement('div');
+                        dot.className = 'marca-corporal';
+                        dot.style.top = pos.top;
+                        dot.style.left = pos.left;
+                        dot.title = marca;
+                        wrapper.appendChild(dot);
+                    }
                 });
             }
         }
 
         function limpiarMarcasHumanMap() {
             const wrapper = document.getElementById('humanMapWrapper');
-            wrapper.innerHTML = `<img src="human.jpg" alt="Silueta Humana" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x250?text=human.jpg+no+encontrada';">`;
+            wrapper.innerHTML = `<img src="human.jpg" alt="Esquema Corporal Interactivo" onerror="this.onerror=null; this.src='https://via.placeholder.com/220x250?text=human.jpg+no+encontrada';">`;
         }
 
         // Gráfico de Radar
@@ -472,7 +486,7 @@ Fecha de Emisión: ${fechaHoy}
 CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de protocolo. Datos validados para historia clínica.`;
 
             document.getElementById('texto-informe-final').textContent = textoInforme;
-            document.getElementById('contenedor-mapa-somatico').innerHTML = `<br><strong>Cartografía Corporal:</strong><br><img src="human.jpg" alt="Silueta Humana" style="max-width:140px; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px;">`;
+            document.getElementById('contenedor-mapa-somatico').innerHTML = `<br><strong>Cartografía Corporal:</strong><br><img src="human.jpg" alt="Esquema Corporal Interactivo" style="max-width:140px; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px;">`;
             document.getElementById('seccion-informe').style.display = 'block';
 
             const claveInforme = `informe_final_${protocoloNombre.toLowerCase()}`;
