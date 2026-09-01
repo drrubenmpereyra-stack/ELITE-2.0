@@ -105,7 +105,8 @@
 
             <div id="seccion-informe" class="output-box" style="background: #ecfeff; border-color: #22d3ee;">
                 <h3 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 8px;"><i class="fa-solid fa-file-lines"></i> Informe Final Generado y Almacenado:</h3>
-                <div id="texto-informe-final" style="color: #334155; white-space: pre-line;"></div>
+                <div id="texto-informe-final" style="color: #334155; white-space: pre-line; margin-bottom: 12px;"></div>
+                <div id="contenedor-mapa-somatico" style="text-align: center; margin-top: 10px;"></div>
             </div>
 
             <div class="dashboard-grid">
@@ -186,20 +187,26 @@
             const protocoloActivo = admision.protocolo.toLowerCase(); 
             badge.textContent = admision.protocolo.toUpperCase();
 
-            // 1. Evaluación Convergente
+            // 1. Evaluación Convergente (Extracción Limpia de Textos)
             const evalData = data[`evaluacion_${protocoloActivo}`] || data[`eval_conv_${protocoloActivo}`] || data[`evaluacionConvergente`] || null;
             let puntajeConvNum = 5;
+            let evalTextoLimpio = "Sin datos registrados";
             if (evalData) {
-                const puntajeTxt = evalData.puntaje || evalData.resultado || evalData.score || "Registrado";
-                const informeTxt = evalData.informe || evalData.comentario || evalData.detalle || "Evaluación completada.";
+                let itemConv = Array.isArray(evalData) ? evalData[evalData.length - 1] : evalData;
+                const puntajeTxt = itemConv.puntaje || itemConv.resultado || itemConv.score || (itemConv.totalScore ? `Score: ${itemConv.totalScore}` : "Registrado");
+                const informeTxt = itemConv.informe || itemConv.comentario || itemConv.detalle || itemConv.observaciones || "Evaluación completada con éxito.";
+                
+                evalTextoLimpio = `Puntaje Total: ${puntajeTxt} | Observaciones: ${informeTxt}`;
                 document.getElementById('info-convergente').innerHTML = `<strong>Puntaje:</strong> ${puntajeTxt}<br><small>${informeTxt}</small>`;
-                if(puntajeTxt.toLowerCase().includes('alto') || puntajeTxt.toLowerCase().includes('crítico')) puntajeConvNum = 8;
-                if(puntajeTxt.toLowerCase().includes('bajo')) puntajeConvNum = 3;
+                
+                const txtL = String(puntajeTxt + " " + informeTxt).toLowerCase();
+                if(txtL.includes('alto') || txtL.includes('crítico')) puntajeConvNum = 8;
+                if(txtL.includes('bajo')) puntajeConvNum = 3;
             } else {
                 document.getElementById('info-convergente').innerHTML = `<span style="color:#b91c1c;">Sin evaluación convergente registrada.</span>`;
             }
 
-            // 2. Operatividad Defensiva - Extracción Robusta (Soporte para Arrays u Objetos)
+            // 2. Operatividad Defensiva (Extracción Limpia de Textos)
             let defData = data[`defensiva_${protocoloActivo}`] || 
                           data[`diagn_func_op_${protocoloActivo}`] || 
                           data[`diagn_funcional_operativo_${protocoloActivo}`] || 
@@ -220,16 +227,14 @@
             }
 
             let puntajeDefNum = 5;
+            let defTextoLimpio = "Sin datos registrados";
             if (defData) {
-                let itemDef = defData;
-                if (Array.isArray(defData) && defData.length > 0) {
-                    itemDef = defData[defData.length - 1];
-                }
-
-                const estadoTxt = itemDef.estado || itemDef.diagnostico || itemDef.operatividad || itemDef.resultado || "Diagnóstico Funcional Operativo Registrado";
+                let itemDef = Array.isArray(defData) ? defData[defData.length - 1] : defData;
+                const estadoTxt = itemDef.estado || itemDef.diagnostico || itemDef.operatividad || itemDef.resultado || "Diagnóstico Registrado";
                 const mecanismoTxt = itemDef.mecanismo || itemDef.descripcion || itemDef.detalles || itemDef.informe || (itemDef.totalScore ? `Score Total: ${itemDef.totalScore}` : "Evaluación completada.");
                 
-                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo / Detalle: ${mecanismoTxt}</small>`;
+                defTextoLimpio = `Estado: ${estadoTxt} | Detalle: ${mecanismoTxt}`;
+                document.getElementById('info-defensiva').innerHTML = `<strong>Estado:</strong> ${estadoTxt}<br><small>Mecanismo: ${mecanismoTxt}</small>`;
                 
                 const txtLower = String(estadoTxt + " " + mecanismoTxt).toLowerCase();
                 if(txtLower.includes('fracasada') || txtLower.includes('desbordada') || txtLower.includes('colapso')) puntajeDefNum = 9;
@@ -238,10 +243,13 @@
                 document.getElementById('info-defensiva').innerHTML = `<span style="color:#b91c1c;">Sin diagnóstico defensivo registrado.</span>`;
             }
 
-            // 3. MNSA
+            // 3. MNSA y búsqueda de imagen de mapeo somático
             const registros = data.mnsa_registros || [];
             let promedioEstres = 0;
+            let ultimoRegistroMNSA = null;
             if(registros.length > 0) {
+                registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                ultimoRegistroMNSA = registros[registros.length - 1];
                 const suma = registros.reduce((acc, curr) => acc + (Number(curr.quantumEstres) || 0), 0);
                 promedioEstres = Number((suma / registros.length).toFixed(1));
             }
@@ -249,9 +257,10 @@
 
             datosTriangulacionCache = {
                 protocolo: admision.protocolo,
-                evaluacion: evalData,
-                defensiva: defData,
+                evaluacionTexto: evalTextoLimpio,
+                defensivaTexto: defTextoLimpio,
                 registros: registros,
+                ultimoMNSA: ultimoRegistroMNSA,
                 metrics: { estres: promedioEstres, convergente: puntajeConvNum, defensiva: puntajeDefNum }
             };
 
@@ -265,8 +274,6 @@
                 if(barChartInstance) barChartInstance.destroy();
                 return;
             }
-
-            registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
             const fechas = [];
             const estresData = [];
@@ -374,7 +381,7 @@
             document.getElementById('seccion-orientaciones').style.display = 'block';
         };
 
-        // 3. Exportar Informe Final y Guardar en BD
+        // 3. Exportar Informe Final Limpio y con Cartografía Somática Interactiva
         window.exportarInformeFinal = async function() {
             if(!pacienteActualId || !datosTriangulacionCache.protocolo) {
                 alert("Seleccione un paciente con protocolo activo.");
@@ -384,17 +391,32 @@
             const c = datosTriangulacionCache;
             const fechaHoy = new Date().toLocaleDateString();
             const protocoloNombre = c.protocolo;
+            const ultimoMNSA = c.ultimoMNSA;
+
+            let marcasTexto = "Sin marcas somáticas registradas";
+            let imagenMapaHtml = "";
+
+            if (ultimoMNSA) {
+                if (ultimoMNSA.marcasSomaticas && ultimoMNSA.marcasSomaticas.length > 0) {
+                    marcasTexto = ultimoMNSA.marcasSomaticas.join(", ");
+                }
+                if (ultimoMNSA.chartImage) {
+                    imagenMapaHtml = `<br><strong>Cartografía Corporal Interactiva (Último Registro):</strong><br><img src="${ultimoMNSA.chartImage}" alt="Mapa Somático del Paciente" style="max-width:280px; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px;">`;
+                }
+            }
 
             const textoInforme = `INFORME FINAL - PROTOCOLO DE ${protocoloNombre.toUpperCase()}
 Fecha de Emisión: ${fechaHoy}
 --------------------------------------------------
-1. EVALUACIÓN CONVERGENTE: ${JSON.stringify(c.evaluacion || "Sin datos")}
-2. OPERATIVIDAD DEFENSIVA: ${JSON.stringify(c.defensiva || "Sin datos")}
+1. EVALUACIÓN CONVERGENTE: ${c.evaluacionTexto}
+2. OPERATIVIDAD DEFENSIVA: ${c.defensivaTexto}
 3. ESTADO INTEROCEPTIVO (MNSA): Total registros: ${c.registros.length}, Promedio Estrés: ${c.metrics.estres}/10
+- Localizaciones / Marcas Somáticas: ${marcasTexto}
 --------------------------------------------------
 CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de protocolo. Datos validados para historia clínica.`;
 
             document.getElementById('texto-informe-final').textContent = textoInforme;
+            document.getElementById('contenedor-mapa-somatico').innerHTML = imagenMapaHtml;
             document.getElementById('seccion-informe').style.display = 'block';
 
             const claveInforme = `informe_final_${protocoloNombre.toLowerCase()}`;
@@ -404,10 +426,11 @@ CONCLUSIÓN CLÍNICA: Triangulación completada bajo estricto aislamiento de pro
                     [claveInforme]: {
                         fecha: fechaHoy,
                         contenido: textoInforme,
+                        chartImage: ultimoMNSA ? ultimoMNSA.chartImage : null,
                         metricas: c.metrics
                     }
                 });
-                alert(`¡Informe Final "${protocoloNombre}" guardado exitosamente en la base de datos!`);
+                alert(`¡Informe Final "${protocoloNombre}" limpio y con mapa somático guardado exitosamente en la base de datos!`);
             } catch (e) {
                 console.error("Error al guardar informe:", e);
                 alert("Error al guardar el informe final en Firestore.");
