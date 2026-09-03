@@ -54,7 +54,11 @@ const menuData = {
                 "Ventana creadora": {}
             },
             "9 Interconsultas": {},
-            "10 Creación de Documentos": {}
+            "10 Creación de Documentos": {},
+            "2.10 Documentos Terapeuticos": {
+                "2.10.1 Creación de Documentos": {},
+                "2.10.2 Consulta Documentos creados": {}
+            }
         }
     },
     "3": {
@@ -378,6 +382,10 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("eval_convergente_suicidio.html");
             } else if (terKey === "6.3.2 Diagnóstico Funcional Operatividad Defensiva/Suicidio") {
                 cargarVistaIframe("diagn_funcional_operativo_suicidio.html");
+            } else if (terKey === "2.10.1 Creación de Documentos") {
+                cargarVistaIframe("creacion_documentos.html");
+            } else if (terKey === "2.10.2 Consulta Documentos creados") {
+                cargarVistaIframe("consulta_doc_creados.html");
             } else {
                 mostrarContenido(terKey);
             }
