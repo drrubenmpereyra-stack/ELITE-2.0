@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Documentos Creados - ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #0d9488;
+            --success-color: #16a34a;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 15px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #38bdf8;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 2px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: #38bdf8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        .btn-secondary:hover { background-color: #0f766e; }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+
+        .patient-info-box {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            display: none;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .doc-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .doc-title {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .doc-date {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .empty-message {
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1><i class="fa-solid fa-folder-open"></i> Consulta de Documentos Creados</h1>
+            <p>Módulo Integrado ELITE 2.0</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-user-search"></i> Selección de Paciente</h2>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="select-paciente">Buscar / Seleccionar Paciente Activo:</label>
+                <select id="select-paciente">
+                    <option value="">-- Cargando pacientes desde Firebase --</option>
+                </select>
+            </div>
+            <div id="patient-selected-display" class="patient-info-box">
+                <strong>Paciente Seleccionado:</strong> <span id="disp-nombre">-</span> | <strong>Motivo:</strong> <span id="disp-motivo">-</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-file-lines"></i> Reservorio de Documentos del Paciente</h2>
+            <div id="documents-container" class="empty-message">
+                Seleccione un paciente para ver los documentos creados y enlazados en su carpeta.
+            </div>
+        </div>
+    </main>
+
+    <!-- Script de Firebase y Gestión de Visualización de Documentos -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let patients = [];
+        const selectPaciente = document.getElementById('select-paciente');
+        const patientDisplay = document.getElementById('patient-selected-display');
+        const dispNombre = document.getElementById('disp-nombre');
+        const dispMotivo = document.getElementById('disp-motivo');
+        const documentsContainer = document.getElementById('documents-container');
+
+        async function initPacientes() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                patients = [];
+                selectPaciente.innerHTML = '<option value="">-- Seleccione un paciente --</option>';
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    patients.push({ id: docSnap.id, ...data });
+                    const opt = document.createElement('option');
+                    opt.value = docSnap.id;
+                    opt.textContent = data.name;
+                    selectPaciente.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Error al cargar pacientes: ", error);
+                selectPaciente.innerHTML = '<option value="">-- Error al cargar la lista --</option>';
+            }
+        }
+
+        selectPaciente.addEventListener('change', (e) => {
+            const selectedId = e.target.value;
+            const patient = patients.find(p => p.id === selectedId);
+            
+            if (patient) {
+                dispNombre.textContent = patient.name;
+                dispMotivo.textContent = patient.motivo || 'Sin motivo especificado';
+                patientDisplay.style.display = 'block';
+                renderDocuments(patient.documents || []);
+            } else {
+                patientDisplay.style.display = 'none';
+                documentsContainer.className = 'empty-message';
+                documentsContainer.innerHTML = 'Seleccione un paciente para ver los documentos creados y enlazados en su carpeta.';
+            }
+        });
+
+        function formatDriveUrl(url) {
+            if (!url) return '#';
+            // Si el enlace de Google Drive es de vista (/view), lo transformamos a formato de exportación/descarga directa si es posible, o se mantiene el preview
+            if (url.includes('drive.google.com') && url.includes('/view')) {
+                return url.replace('/view?usp=sharing', '/preview').replace('/view', '/preview');
+            }
+            return url;
+        }
+
+        function renderDocuments(docs) {
+            if (!docs || docs.length === 0) {
+                documentsContainer.className = 'empty-message';
+                documentsContainer.innerHTML = 'Este paciente no registra documentos enlazados actualmente.';
+                return;
+            }
+
+            documentsContainer.className = 'documents-grid';
+            documentsContainer.innerHTML = '';
+
+            docs.forEach(doc => {
+                const safeUrl = formatDriveUrl(doc.url);
+                const rawUrl = doc.url;
+
+                const card = document.createElement('div');
+                card.className = 'doc-card';
+                card.innerHTML = `
+                    <div>
+                        <div class="doc-title"><i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> ${doc.title || 'Documento sin título'}</div>
+                        <div class="doc-date"><i class="fa-regular fa-calendar"></i> Creado el: ${doc.date || 'Fecha no registrada'}</div>
+                    </div>
+                    <div class="doc-actions">
+                        <a href="${safeUrl}" target="_blank" class="btn btn-secondary">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </a>
+                        <a href="${rawUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fa-solid fa-download"></i> Bajar / Imprimir
+                        </a>
+                    </div>
+                `;
+                documentsContainer.appendChild(card);
+            });
+        }
+
+        initPacientes();
+    </script>
+</body>
+</html>
