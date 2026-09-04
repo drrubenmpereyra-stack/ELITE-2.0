@@ -4,33 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite 2.0 - Clínica de la Convergencia</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- FontAwesome para los iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --color-azul-1: #1e3c72; --color-azul-2: #2a5298;
-            --color-verde-1: #134e5e; --color-verde-2: #71b280;
-            --color-amarillo-1: #f39c12; --color-amarillo-2: #f1c40f;
-            --color-naranja-1: #d35400; --color-naranja-2: #e67e22;
-            --color-violeta-1: #512b58; --color-violeta-2: #8c52ff;
+            --color-azul-1: #0f172a; 
+            --color-azul-2: #1e3a8a;
+            --color-acento: #38bdf8;
+            --color-verde-1: #134e5e; 
+            --color-verde-2: #71b280;
+            --color-amarillo-1: #f39c12; 
+            --color-amarillo-2: #f1c40f;
+            --color-naranja-1: #d35400; 
+            --color-naranja-2: #e67e22;
+            --color-violeta-1: #512b58; 
+            --color-violeta-2: #8c52ff;
         }
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; }
         
-        /* Pantalla de Login */
+        /* Pantalla de Login Rediseñada con Glassmorphism y Animación */
         #login-container {
             display: flex; justify-content: center; align-items: center; height: 100vh;
             background: linear-gradient(135deg, var(--color-azul-1), var(--color-azul-2));
+            position: relative;
+            overflow: hidden;
         }
+        /* Círculos decorativos de fondo para dar profundidad */
+        #login-container::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(56, 189, 248, 0.1);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+            animation: floatShape 8s infinite alternate ease-in-out;
+        }
+        @keyframes floatShape {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+
         .login-box {
-            background: white; padding: 40px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center; width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 380px;
+            z-index: 10;
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .login-box img, .app-header img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-azul-2); }
-        .login-box h2 { font-size: 18px; color: #333; margin: 5px 0; }
-        .login-box h3 { font-size: 14px; color: #666; margin-bottom: 20px; font-weight: normal; }
-        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .login-box button { width: 100%; padding: 10px; background: var(--color-azul-2); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .login-box button:hover { background: var(--color-azul-1); }
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box img, .app-header img { 
+            width: 80px; height: 80px; border-radius: 50%; object-fit: cover; 
+            border: 3px solid var(--color-acento); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        .login-box h2 { font-size: 1.1rem; color: #1e293b; margin: 5px 0; font-weight: 600; }
+        .login-box h3 { font-size: 0.85rem; color: #64748b; margin-bottom: 25px; font-weight: 400; }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .input-group i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .login-box input { 
+            width: 100%; padding: 12px 12px 12px 42px; 
+            border: 1px solid #cbd5e1; border-radius: 8px; 
+            box-sizing: border-box; font-size: 0.9rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+        .login-box input:focus { 
+            outline: none; 
+            border-color: var(--color-acento); 
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        .login-box button { 
+            width: 100%; padding: 12px; 
+            background: linear-gradient(135deg, #1e3a8a, #0284c7); 
+            color: white; border: none; border-radius: 8px; 
+            font-weight: 600; font-size: 0.95rem; cursor: pointer; 
+            margin-top: 10px; 
+            font-family: 'Poppins', sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+        .login-box button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(2, 132, 199, 0.4);
+        }
 
         /* Aplicación Principal */
         #app-container { display: none; height: 100vh; flex-direction: column; }
@@ -39,20 +123,22 @@
         .app-header {
             display: flex; align-items: center; padding: 10px 20px; background: #ffffff; border-bottom: 1px solid #ddd; gap: 15px;
         }
-        .app-header-text h2 { font-size: 16px; color: #333; margin: 0; }
+        .app-header img { width: 50px; height: 50px; margin-bottom: 0; }
+        .app-header-text h2 { font-size: 15px; color: #333; margin: 0; font-weight: 600; }
         .app-header-text h3 { font-size: 12px; color: #666; margin: 2px 0 0 0; font-weight: normal; }
 
         /* Barras de Navegación */
         .nav-bar { display: flex; align-items: center; padding: 10px; min-height: 45px; gap: 10px; overflow-x: auto; }
-        #barras-principales { background: #222; border-bottom: 2px solid #444; }
-        #barras-secundarias { background: #333; border-bottom: 1px solid #555; }
-        #barras-terciarias { background: #444; }
+        #barras-principales { background: #1e293b; border-bottom: 2px solid #334155; }
+        #barras-secundarias { background: #334155; border-bottom: 1px solid #475569; }
+        #barras-terciarias { background: #475569; }
 
         .nav-btn {
-            padding: 8px 15px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap;
-            transition: opacity 0.2s;
+            padding: 8px 15px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 500; font-size: 13px; white-space: nowrap;
+            font-family: 'Poppins', sans-serif;
+            transition: opacity 0.2s, transform 0.1s;
         }
-        .nav-btn:hover { opacity: 0.85; }
+        .nav-btn:hover { opacity: 0.85; transform: translateY(-1px); }
         .nav-btn.active { box-shadow: inset 0 0 0 2px white; }
 
         /* Estilos específicos para el Botón Salir */
@@ -60,7 +146,7 @@
             background: #000000 !important;
             color: #ffffff !important;
             border: 1px solid #333333 !important;
-            margin-left: auto; /* Empuja el botón salir hacia la derecha si el contenedor lo permite */
+            margin-left: auto;
         }
         .nav-btn-salir:hover {
             background: #1a1a1a !important;
@@ -68,7 +154,7 @@
 
         /* Contenido Dinámico */
         #content-area { flex: 1; padding: 30px; background: #fff; overflow-y: auto; }
-        .error-msg { color: red; font-size: 12px; margin-top: 5px; }
+        .error-msg { color: #ef4444; font-size: 0.8rem; margin-top: 10px; font-weight: 500; }
 
         /* Animación Vectorial de Salida */
         #logout-animation-overlay {
@@ -93,7 +179,7 @@
         }
         .vector-goodbye-text {
             font-size: 1.8rem;
-            font-weight: 700;
+            font-weight: 600;
             background: linear-gradient(135deg, #38bdf8, #22d3ee, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -125,9 +211,15 @@
             <img src="logotipo.jpg" alt="Logotipo Clínica">
             <h2>Clínica de la Convergencia</h2>
             <h3>Dr. y Mgter. Rubén M. Pereyra</h3>
-            <input type="text" id="userInput" placeholder="Usuario">
-            <input type="password" id="passInput" placeholder="Contraseña">
-            <button id="loginBtn">Ingresar</button>
+            <div class="input-group">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="userInput" placeholder="Usuario">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="passInput" placeholder="Contraseña">
+            </div>
+            <button id="loginBtn">Ingresar <i class="fa-solid fa-arrow-right-to-bracket" style="margin-left: 6px;"></i></button>
             <div id="loginError" class="error-msg"></div>
         </div>
     </div>
