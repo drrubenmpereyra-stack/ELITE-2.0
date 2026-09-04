@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite 2.0 - Clínica de la Convergencia</title>
+    <!-- FontAwesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --color-azul-1: #1e3c72; --color-azul-2: #2a5298;
@@ -53,9 +55,66 @@
         .nav-btn:hover { opacity: 0.85; }
         .nav-btn.active { box-shadow: inset 0 0 0 2px white; }
 
+        /* Estilos específicos para el Botón Salir */
+        .nav-btn-salir {
+            background: #000000 !important;
+            color: #ffffff !important;
+            border: 1px solid #333333 !important;
+            margin-left: auto; /* Empuja el botón salir hacia la derecha si el contenedor lo permite */
+        }
+        .nav-btn-salir:hover {
+            background: #1a1a1a !important;
+        }
+
         /* Contenido Dinámico */
         #content-area { flex: 1; padding: 30px; background: #fff; overflow-y: auto; }
         .error-msg { color: red; font-size: 12px; margin-top: 5px; }
+
+        /* Animación Vectorial de Salida */
+        #logout-animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #logout-animation-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .vector-goodbye-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #22d3ee, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            animation: pulseText 2s infinite alternate;
+            padding: 0 20px;
+        }
+        .vector-icon-container {
+            font-size: 3.5rem;
+            color: #38bdf8;
+            margin-bottom: 20px;
+            animation: bounceIcon 1.5s infinite;
+        }
+        @keyframes pulseText {
+            0% { transform: scale(1); opacity: 0.9; }
+            100% { transform: scale(1.05); opacity: 1; }
+        }
+        @keyframes bounceIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -91,6 +150,16 @@
         <div id="content-area">
             <h2>Bienvenido a Elite 2.0</h2>
             <p>Seleccione una opción de los menús superiores para comenzar.</p>
+        </div>
+    </div>
+
+    <!-- Contenedor de Animación Vectorial de Salida -->
+    <div id="logout-animation-overlay">
+        <div class="vector-icon-container">
+            <i class="fa-solid fa-shield-heart"></i>
+        </div>
+        <div class="vector-goodbye-text">
+            Gracias por usar ELITE 2.0,<br>lo esperamos nuevamente pronto...
         </div>
     </div>
 
