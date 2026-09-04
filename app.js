@@ -57,8 +57,7 @@ const menuData = {
             "10 Documentos Terapéuticos": {
                 "10.1 Creación de Documentos": {},
                 "10.2 Consulta Documentos creados": {} 
-            },
-            
+            }
         }
     },
     "3": {
@@ -195,6 +194,9 @@ function inicializarSistema() {
         };
         barPrincipal.appendChild(btn);
     });
+
+    // Agregar el botón Salir al final de la barra principal
+    agregarBotonSalir();
 }
 
 function cargarBarraSecundaria(hijosSecundarios, colorBase) {
@@ -239,8 +241,6 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("herramientas_usadas.html");
                 } else if (secKey === "9 Interconsultas") {
                     cargarVistaIframe("interconsulta.html");
-                } else if (secKey === "10 Creación de Documentos") {
-                    cargarVistaIframe("creacion_documentos.html");
                 } else if (secKey === "3.1 Potencial acting out") {
                     cargarVistaIframe("acting_out.html");
                 } else if (secKey === "3.2 Exp emocional creativa") {
@@ -400,7 +400,7 @@ function cargarVistaIframe(archivoHtml) {
     contentArea.innerHTML = `<iframe src="${archivoHtml}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;"></iframe>`;
 }
 
-// Función para cargar URLs externas (como el lanzador de GitHub) mediante iframe
+// Function to load external URLs via iframe
 function cargarVistaIframeExterna(urlExterna) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<iframe src="${urlExterna}" style="width: 100%; height: 75vh; border: none; background: #f8fafc;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
@@ -409,5 +409,33 @@ function cargarVistaIframeExterna(urlExterna) {
 function mostrarContenido(seccion) {
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `<h2>Sección: ${seccion}</h2><p>Módulo interactivo conectado a Firebase (materiales-terapeuticos). Listo para programar formularios y persistencia específica.</p>`;
+}
+
+// Función para agregar el botón Salir con animación vectorial
+function agregarBotonSalir() {
+    const barPrincipal = document.getElementById('barras-principales');
+    
+    // Evita duplicados si se llama varias veces
+    if (document.getElementById('btn-salir-sistema')) return;
+
+    const btnSalir = document.createElement('button');
+    btnSalir.id = 'btn-salir-sistema';
+    btnSalir.className = 'nav-btn nav-btn-salir';
+    btnSalir.innerHTML = '<i class="fa-solid fa-power-off"></i> Salir';
+    
+    btnSalir.onclick = () => {
+        // Mostrar animación vectorial
+        const overlay = document.getElementById('logout-animation-overlay');
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+
+        // Esperar 3 segundos para mostrar la animación y luego recargar o volver al login
+        setTimeout(() => {
+            location.reload(); 
+        }, 3000);
+    };
+
+    barPrincipal.appendChild(btnSalir);
 }
 
