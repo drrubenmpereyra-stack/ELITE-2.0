@@ -145,7 +145,8 @@ const menuData = {
         color: "linear-gradient(135deg, #0891b2, #22d3ee)",
         hijos: {
             "7.1 Admisión pacientes": {},
-            "7.2 Panel Correlación Clínica": {}
+            "7.2 Panel Correlación Clínica": {},
+            "7.3 Analizador onírico": {}
         }
     }
 };
@@ -281,6 +282,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("admision_protocolos.html");
                 } else if (secKey === "7.2 Panel Correlación Clínica") {
                     cargarVistaIframe("correlacion_clinica.html");
+                } else if (secKey === "7.3 Analizador onírico") {
+                    cargarVistaIframe("analizador_onirico.html");
                 } else {
                     mostrarContenido(secKey);
                 }
