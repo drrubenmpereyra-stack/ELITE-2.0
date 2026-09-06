@@ -20,7 +20,11 @@ const menuData = {
             "Pacientes": {},
             "Agenda": {},
             "Contabilidad": {},
-            "Centro de impresiones": {}
+            "Centro de impresiones": {},
+            "Supervisión": {
+                "Registro de Supervisión": {},
+                "Valoración Supervisión": {}
+            }
         }
     },
     "2": {
@@ -307,7 +311,11 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
             document.querySelectorAll('#barras-terciarias .nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            if (terKey === "4.1 Eje 1 Foco") {
+            if (terKey === "Registro de Supervisión") {
+                cargarVistaIframe("supervison.html");
+            } else if (terKey === "Valoración Supervisión") {
+                cargarVistaIframe("eval_sup.html");
+            } else if (terKey === "4.1 Eje 1 Foco") {
                 cargarVistaIframe("eje1.html");
             } else if (terKey === "4.2 Eje 2 Func yoicas") {
                 cargarVistaIframe("elite_func_yoicas.html");
