@@ -23,7 +23,8 @@ const menuData = {
             "Centro de impresiones": {},
             "Supervisión": {
                 "Registro de Supervisión": {},
-                "Valoración Supervisión": {}
+                "Valoración Supervisión": {},
+                "Material supervisión": {}
             }
         }
     },
@@ -315,6 +316,8 @@ function cargarBarraTerciaria(hijosTerciarios, colorBase) {
                 cargarVistaIframe("supervison.html");
             } else if (terKey === "Valoración Supervisión") {
                 cargarVistaIframe("eval_sup.html");
+            } else if (terKey === "Material supervisión") {
+                cargarVistaIframe("mat_supervision.html");  
             } else if (terKey === "4.1 Eje 1 Foco") {
                 cargarVistaIframe("eje1.html");
             } else if (terKey === "4.2 Eje 2 Func yoicas") {
