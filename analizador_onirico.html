@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Arquitectura Onírica - ELITE 2.0</title>
+    <!-- Librerías de Vanguardia para Gráficos y Exportación PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { background-color: #000000; width: 100%; height: 100%; font-family: Arial, sans-serif; color: #ffffff; padding: 20px; }
+        
+        /* BARRA DE SELECCIÓN DE PACIENTES ENVIADOS */
+        .selector-paciente-bar { width: 100%; max-width: 1000px; margin: 0 auto 20px auto; background: #050508; border: 1px solid #7b2cbf; border-radius: 8px; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+        .selector-paciente-bar select { background: #000; border: 1px solid #7b2cbf; color: #fff; padding: 8px 12px; border-radius: 6px; font-family: Arial, sans-serif; outline: none; width: 60%; }
+
+        /* ENTORNOS ESPECÍFICOS DEL ANALIZADOR DE SUEÑO */
+        .cbc-panel { display: flex; flex-direction: column; width: 100%; max-width: 1000px; margin: 0 auto; background: #050508; border: 1px solid #7b2cbf; border-radius: 8px; padding: 25px; justify-content: space-between; }
+        .onirico-input-row { display: flex; justify-content: space-between; align-items: center; background: #000; border: 1px solid #334155; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+        .onirico-slider { width: 60%; accent-color: #7b2cbf; cursor: pointer; }
+        .onirico-badge { background: #7b2cbf; color: #fff; font-family: monospace; font-size: 12px; font-weight: bold; padding: 3px 8px; border-radius: 4px; min-width: 50px; text-align: center; }
+
+        /* INTERFAZ DE AUDITORÍA Y REPORTES */
+        #auditoria-viewport { display: none; flex-direction: column; width: 100%; max-width: 1000px; margin: 0 auto; background: #050508; border: 1px solid #7b2cbf; border-radius: 8px; padding: 25px; overflow-y: auto; }
+        #pdf-render-area { background: #ffffff; color: #000000; padding: 40px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; }
+        .pdf-header { border-bottom: 2px solid #000000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .pdf-subtitle { font-size: 10px; color: #555555; margin-top: 3px; }
+        .pdf-section-title { font-size: 12px; font-weight: bold; text-transform: uppercase; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-top: 25px; margin-bottom: 12px; }
+        .feedback-box { background: #f8f9fa; border-left: 4px solid #000000; padding: 15px; margin-top: 15px; font-size: 12px; line-height: 1.5; }
+
+        /* NOTIFICACIONES TOAST */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 150000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast-card { pointer-events: auto; background: #050508; color: #ffffff; padding: 12px 20px; border-radius: 4px; font-size: 12px; font-family: monospace; box-shadow: 0 4px 15px rgba(0,0,0,0.8); display: flex; align-items: center; gap: 10px; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .scroller-mini::-webkit-scrollbar { width: 4px; }
+        .scroller-mini::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+    <!-- CONTENEDOR DE ALERTAS TOAST -->
+    <div id="toast-container"></div>
+
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; min-height: 90vh;">
+        
+        <!-- BARRA SELECTOR DE PROTOCOLOS ENVIADOS POR PACIENTES -->
+        <div class="selector-paciente-bar">
+            <div>
+                <h4 style="font-size: 12px; color: #c084fc; letter-spacing: 1px; text-transform: uppercase;">Recuperación de Protocolos</h4>
+                <p style="font-size: 9px; color: #94a3b8; font-family: monospace;" id="info-registros">Conectando a Firebase...</p>
+            </div>
+            <select id="select-protocolos-pacientes" onchange="cargarProtocoloSeleccionado()">
+                <option value="">-- Seleccionar Envío de Paciente --</option>
+            </select>
+        </div>
+
+        <!-- MÓDULO 4: ANALIZADOR DE ARQUITECTURA ONÍRICA Y CONVERGENCIA PROSPECTIVA -->
+        <div id="onirico-display-panel" class="cbc-panel">
+            <div style="border-bottom: 1px solid #7b2cbf; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="font-size:14px; letter-spacing:2px; color:#7b2cbf;">GABINETE DE ARQUITECTURA ONÍRICA (NEUROCIENCIA DEL SUEÑO)</h3>
+                    <p style="font-size:10px; color:#64748b; font-family:monospace; margin-top:2px;">ANÁLISIS DE TELEMETRÍA NOCTURNA & ESTIMACIÓN CORTICAL</p>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1.1fr; gap:25px; flex-grow:1; align-items:stretch;">
+                <!-- Panel de Controles/Deslizadores del Sueño -->
+                <div style="display:flex; flex-direction:column; justify-content:center; gap:5px;">
+                    <p style="font-size:11px; font-family:monospace; color:#94a3b8; margin-bottom:15px; font-style:italic;" id="lbl-info-paciente">
+                        Seleccione un envío superior o ajuste los porcentajes macro-estructurales:
+                    </p>
+                    
+                    <div class="onirico-input-row">
+                        <span style="font-size:11px; font-weight:bold; color:#a78bfa;">SUEÑO PROFUNDO (DELTA)</span>
+                        <input type="range" id="slide-profundo" class="onirico-slider" min="0" max="100" value="20" oninput="actualizarValoresOniricos()">
+                        <span id="badge-profundo" class="onirico-badge">20%</span>
+                    </div>
+                    
+                    <div class="onirico-input-row">
+                        <span style="font-size:11px; font-weight:bold; color:#c084fc;">MOVIMIENTO OCULAR (REM)</span>
+                        <input type="range" id="slide-rem" class="onirico-slider" min="0" max="100" value="25" oninput="actualizarValoresOniricos()">
+                        <span id="badge-rem" class="onirico-badge">25%</span>
+                    </div>
+                    
+                    <div class="onirico-input-row">
+                        <span style="font-size:11px; font-weight:bold; color:#e9d5ff;">SUEÑO POCO PROFUNDO</span>
+                        <input type="range" id="slide-ligero" class="onirico-slider" min="0" max="100" value="55" oninput="actualizarValoresOniricos()">
+                        <span id="badge-ligero" class="onirico-badge">55%</span>
+                    </div>
+                    
+                    <div class="onirico-input-row" style="border-color:#00ff88;">
+                        <span style="font-size:11px; font-weight:bold; color:#00ff88;">ÍNDICE SOBRIEDAD METABÓLICA</span>
+                        <input type="range" id="slide-sobriedad" class="onirico-slider" min="0" max="100" value="95" oninput="actualizarValoresOniricos()">
+                        <span id="badge-sobriedad" class="onirico-badge" style="background:#00ff88; color:#000;">95%</span>
+                    </div>
+                </div>
+
+                <!-- Panel de Consola Explicativa Rápida en Pantalla -->
+                <div style="display:flex; flex-direction:column; justify-content:space-between; background:#000; border:1px solid #1e293b; padding:20px; border-radius:6px;">
+                    <div>
+                        <span style="font-size:10px; font-family:monospace; color:#7b2cbf; font-weight:bold; display:block; text-transform:uppercase; letter-spacing:1px;">Monitoreo de Áreas de Activación Cortical Estimadas:</span>
+                        <div id="onirico-consola-live" style="font-family:monospace; font-size:11px; color:#cbd5e1; margin-top:10px; line-height:1.4;">
+                            Moviendo los parámetros se recalcula la hipótesis neurobiológica de la arquitectura onírica...
+                        </div>
+                    </div>
+                    <div style="font-size:10px; color:#475569; font-family:monospace; border-top:1px solid #1e293b; padding-top:10px;">
+                        ✓ PARÁMETROS PREALINEADOS CON METAPSICOLOGÍA FORENSE.
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:15px;">
+                <button onclick="finalizarSesionGabinete('onirico')" style="width:100%; height:38px; background:#7b2cbf; color:#fff; font-weight:bold; font-size:11px; border:none; cursor:pointer; text-transform:uppercase; letter-spacing:1px; border-radius:4px;">
+                    Generar Dictamen de Arquitectura Onírica & PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA DE AUDITORÍA INFORME (AISLADA PARA REPORTE ONÍRICO) -->
+        <div id="auditoria-viewport" class="scroller-mini">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; width: 100%;">
+                <button onclick="exportarInformePDF()" style="height:36px; background:#D4AF37; color:#000; font-weight:bold; font-size:10px; border:none; padding:0 20px; cursor:pointer; text-transform:uppercase;">⬇ DESCARGAR PDF MEMBRETADO</button>
+                <button id="btn-volver-auditoria" onclick="regresarAlPanelOriginal()" style="height:36px; background:transparent; color:#fff; font-weight:bold; font-size:10px; border:1px solid #475569; padding:0 20px; cursor:pointer; text-transform:uppercase;">← VOLVER AL PANEL</button>
+            </div>
+            <div id="pdf-render-area">
+                <div class="pdf-header">
+                    <div>
+                        <div class="pdf-title" id="pdf-header-institución">CONVERGENCE ELITE ACADEMY</div>
+                        <div class="pdf-subtitle" id="pdf-sub-tipo">REGISTRO INDEPENDIENTE DE FLUJO CLÍNICO</div>
+                    </div>
+                    <div style="text-align:right; font-size:9px; line-height:1.4;">
+                        <strong>SISTEMA ÉLITE 7.0</strong><br>
+                        AUDITORÍA PARAMÉTRICA MODULAR
+                    </div>
+                </div>
+                <div style="font-size:11px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px; border-bottom:1px solid #000; padding-bottom:10px;">
+                    <div><strong>DIRECCIÓN MÉTODO:</strong> DR. RUBÉN M. PEREYRA</div>
+                    <div style="text-align:right;" id="pdf-meta-fecha">EVALUACIÓN ISOLADA</div>
+                </div>
+                <div class="pdf-section-title">I. Registro de Parámetros y Percepción del Paciente</div>
+                <div id="pdf-tabla-marcas" style="font-size:11px; margin-bottom:25px;"></div>
+                <div class="pdf-section-title">II. Devolución Clínico-Heurística y Líneas de Orientación</div>
+                <div id="pdf-texto-feedback" class="feedback-box"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDKs (Compatibles) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Configuración de Firebase unificada (materiales-terapeuticos)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let moduloActualAuditoria = 'onirico';
+        let protocolosGlobales = [];
+        let protocoloSeleccionadoActual = null;
+
+        function showNotification(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast-card';
+            
+            let colorHex = "#D4AF37";
+            let symbol = "ℹ";
+            if (type === "success") { colorHex = "#00FF88"; symbol = "✓"; }
+            else if (type === "error") { colorHex = "#ff2a5f"; symbol = "⚠️"; }
+            else if (type === "info") { colorHex = "#00e5ff"; symbol = "⚡"; }
+
+            toast.style.border = `1.5px solid ${colorHex}`;
+            toast.innerHTML = `<span style="color: ${colorHex}; font-weight: bold; font-size: 14px;">${symbol}</span><span style="line-height: 1.4;">${message}</span>`;
+            
+            container.appendChild(toast);
+            toast.offsetHeight;
+            toast.style.transform = "translateX(0)";
+            
+            setTimeout(() => {
+                toast.style.transform = "translateX(120%)";
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 4000);
+        }
+
+        window.onload = async function() {
+            await cargarProtocolosPacientes();
+            actualizarValoresOniricos();
+        };
+
+        async function cargarProtocolosPacientes() {
+            const selectEl = document.getElementById('select-protocolos-pacientes');
+            const infoReg = document.getElementById('info-registros');
+            protocolosGlobales = [];
+
+            try {
+                // Recuperar registros de la colección correcta generada por el paciente
+                const snapshot = await db.collection("protocolos_oniricos_pacientes").get();
+                
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    protocolosGlobales.push({ id: docSnap.id, ...data });
+                });
+
+                if (protocolosGlobales.length === 0) {
+                    infoReg.innerText = "No se encontraron protocolos enviados por pacientes.";
+                    return;
+                }
+
+                infoReg.innerText = `${protocolosGlobales.length} protocolo(s) recuperado(s) de Firestore.`;
+                selectEl.innerHTML = '<option value="">-- Seleccionar Envío de Paciente --</option>';
+
+                protocolosGlobales.forEach((p, index) => {
+                    // Compatible con los campos guardados en el formulario del paciente
+                    const nombrePaciente = p.pacienteNombre || p.usuarioNombre || p.usuario || "Paciente Anónimo";
+                    const fechaEnvio = p.fecha || "Sin fecha";
+                    selectEl.innerHTML += `<option value="${index}">[${fechaEnvio}] - ${nombrePaciente.toUpperCase()}</option>`;
+                });
+            } catch (error) {
+                console.error("Error al recuperar protocolos de Firebase:", error);
+                infoReg.innerText = "Error de conexión con Firestore.";
+                showNotification("Error al cargar datos desde Firebase.", "error");
+            }
+        }
+
+        function cargarProtocoloSeleccionado() {
+            const index = document.getElementById('select-protocolos-pacientes').value;
+            if (index === "") {
+                protocoloSeleccionadoActual = null;
+                document.getElementById('lbl-info-paciente').innerText = "Seleccione un envío superior o ajuste los porcentajes macro-estructurales:";
+                return;
+            }
+
+            protocoloSeleccionadoActual = protocolosGlobales[index];
+            
+            // Limpieza de cadenas de porcentaje ("20%" a número) para mover los sliders automáticamente
+            const profundoVal = parseInt(protocoloSeleccionadoActual.suenoProfundoDelta) || 20;
+            const remVal = parseInt(protocoloSeleccionadoActual.movimientoOcularREM) || 25;
+            const ligeroVal = parseInt(protocoloSeleccionadoActual.suenoPocoProfundo) || 55;
+            const sobriedadVal = parseInt(protocoloSeleccionadoActual.indiceSobriedadMetabolica) || 90;
+
+            document.getElementById('slide-profundo').value = profundoVal;
+            document.getElementById('slide-rem').value = remVal;
+            document.getElementById('slide-ligero').value = ligeroVal;
+            document.getElementById('slide-sobriedad').value = sobriedadVal;
+
+            actualizarValoresOniricos();
+
+            const nombreP = protocoloSeleccionadoActual.pacienteNombre || protocoloSeleccionadoActual.usuarioNombre || protocoloSeleccionadoActual.usuario || "Paciente";
+            document.getElementById('lbl-info-paciente').innerHTML = `<strong>Paciente Cargado:</strong> ${nombreP.toUpperCase()} (${protocoloSeleccionadoActual.fecha})`;
+            showNotification(`Protocolo de ${nombreP} sincronizado correctamente.`, "success");
+        }
+
+        function actualizarValoresOniricos() {
+            const prof = parseInt(document.getElementById('slide-profundo').value);
+            const rem = parseInt(document.getElementById('slide-rem').value);
+            const lig = parseInt(document.getElementById('slide-ligero').value);
+            const sob = parseInt(document.getElementById('slide-sobriedad').value);
+
+            document.getElementById('badge-profundo').innerText = prof + "%";
+            document.getElementById('badge-rem').innerText = rem + "%";
+            document.getElementById('badge-ligero').innerText = lig + "%";
+            document.getElementById('badge-sobriedad').innerText = sob + "%";
+
+            const consola = document.getElementById('onirico-consola-live');
+            let corticalLive = "";
+            
+            if (prof < 15) corticalLive += "⚠️ ALERTA: Déficit agudo de Fase N3 Delta. Hipofunción de restauración subcortical. Eje HPA vulnerable a hiperexcitabilidad cortical inmediata.<br><br>";
+            else corticalLive += "✓ Fase Delta controlada: Correcta atenuación cortical global nocturna.<br><br>";
+            
+            if (rem > 30) corticalLive += "• Hiperactividad Límbica REM: Actividad intensa estimada en Amígdala y Corteza Cingulada Anterior. Onirismo denso o desborde de material proyectivo traumático.<br><br>";
+            else if (rem < 15) corticalLive += "• Fase REM Deprimida: Riesgo de consolidación de memoria inestable y fatiga asociativa en el diván.<br><br>";
+            else corticalLive += "✓ Fase REM Equilibrada: Correcta plasticidad asociativa inconsciente.<br><br>";
+
+            if (sob < 85) corticalLive += "⚠️ CRISIS METABÓLICA: Sobriedad en " + sob + "%. Fragmentación severa de husos del sueño. Desactivación Prefrontal Dorsolateral alterada.";
+            else corticalLive += "✓ Metabolismo limpio: Estabilidad homeostática garantizada.";
+
+            consola.innerHTML = corticalLive;
+        }
+
+        function finalizarSesionGabinete(origen) {
+            moduloActualAuditoria = origen;
+            document.getElementById('onirico-display-panel').style.display = 'none';
+            document.getElementById('auditoria-viewport').style.display = 'flex';
+
+            const tablaArea = document.getElementById('pdf-tabla-marcas');
+            const feedbackArea = document.getElementById('pdf-texto-feedback');
+
+            const nombreP = protocoloSeleccionadoActual ? (protocoloSeleccionadoActual.pacienteNombre || protocoloSeleccionadoActual.usuarioNombre || protocoloSeleccionadoActual.usuario || "Paciente") : "Evaluación Manual";
+            const fechaP = protocoloSeleccionadoActual ? protocoloSeleccionadoActual.fecha : new Date().toISOString().split('T')[0];
+            const percepcionP = protocoloSeleccionadoActual ? (protocoloSeleccionadoActual.percepcionPaciente || "Sin descripción registrada por el paciente.") : "Sin descripción adjunta (Modo manual).";
+
+            document.getElementById('pdf-sub-tipo').innerText = `DICTAMEN DE ARQUITECTURA ONÍRICA - PACIENTE: ${nombreP.toUpperCase()}`;
+            document.getElementById('pdf-meta-fecha').innerText = `FECHA DE REGISTRO: ${fechaP}`;
+
+            const prof = parseInt(document.getElementById('slide-profundo').value);
+            const rem = parseInt(document.getElementById('slide-rem').value);
+            const lig = parseInt(document.getElementById('slide-ligero').value);
+            const sob = parseInt(document.getElementById('slide-sobriedad').value);
+
+            tablaArea.innerHTML = `
+                <table style="width:100%; border-collapse:collapse; margin-top:5px;">
+                    <tr style="border-bottom:1px solid #000; text-align:left;">
+                        <th>FASE BIOLÓGICA REGISTRADA</th>
+                        <th>MÉTRICA</th>
+                        <th>ESTIMACIÓN METAPSÍQUICA ASOCIADA</th>
+                    </tr>
+                    <tr style="border-bottom:1px dashed #ccc; height:26px;">
+                        <td><strong>SUEÑO PROFUNDO (DELTA)</strong></td>
+                        <td>${prof}%</td>
+                        <td>Atenuación Cortical / Regulación Eje HPA</td>
+                    </tr>
+                    <tr style="border-bottom:1px dashed #ccc; height:26px;">
+                        <td><strong>MOVIMIENTO OCULAR (REM)</strong></td>
+                        <td>${rem}%</td>
+                        <td>Onirismo Activo / Descarga Amígdala e Hipocampo</td>
+                    </tr>
+                    <tr style="border-bottom:1px dashed #ccc; height:26px;">
+                        <td><strong>SUEÑO POCO PROFUNDO</strong></td>
+                        <td>${lig}%</td>
+                        <td>Umbral Transicional Yoico</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #000; height:26px; background:#f8f9fa;">
+                        <td><strong>ÍNDICE SOBRIEDAD METABÓLICA</strong></td>
+                        <td>${sob}%</td>
+                        <td>Estabilidad Sináptica y Limpieza Neurotóxica</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 15px; background: #f1f5f9; padding: 12px; border-radius: 4px;">
+                    <strong>PERCEPCIÓN SUBJETIVA DEL PACIENTE:</strong>
+                    <p style="margin-top: 5px; font-style: italic; color: #334155;">"${percepcionP}"</p>
+                </div>
+            `;
+
+            let hipotesis = `<strong>I. ESTIMACIÓN DE ACTIVACIÓN CORTICAL Y CEREBRAL PROBABLE:</strong><br>`;
+            if (prof < 18) {
+                hipotesis += `• El rango crítico de Fase Delta (${prof}%) indica una <strong>falla severa en la desactivación de la amígdala nocturna</strong>. La corteza prefrontal amanece con fatiga metabólica y saturación de receptores de adenosina.<br>`;
+            } else {
+                hipotesis += `• Nivel Delta controlado. Restauración subcortical óptima y correcto reseteo homeostático del eje HPA en la estructura basal.<br>`;
+            }
+
+            if (rem > 28) {
+                hipotesis += `• Densidad REM elevada (${rem}%). Se infiere una <strong>hiperactivación del Sistema Límbico y la Corteza Cingulada Anterior</strong>, coordinada con una desconexión de la Corteza Prefrontal Dorsolateral. Esto genera un campo de onirismo hiperintenso donde el inconsciente procesa defensas de forma masiva.<br>`;
+            } else {
+                hipotesis += `• Fase REM normalizada. Procesamiento asociativo fluido de las huellas mnémicas.<br>`;
+            }
+
+            if (sob < 88) {
+                hipotesis += `• El marcador de sobriedad cayó a ${sob}%. Esto delata una irrupción neuroquímica nocturna que fragmentó los husos del sueño.<br>`;
+            }
+
+            hipotesis += `<br><strong>II. RECOMENDACIONES PROSPECTIVAS DE CONVERGENCIA PARA EL ENCUADRE:</strong><br>`;
+            if (prof < 18 || sob < 88) {
+                hipotesis += `<div style="background:#fff3f5; padding:8px; border-left:3px solid #ff2a5f; margin-top:5px;">⚠️ <strong>DIRECCIÓN DEL MÉTODO ADVERTENCIA:</strong> Ante la fatiga neurocognitiva y la hiperreactividad del eje HPA estimada por la falta de descanso reparador Delta, el sujeto se presentará con una coraza yoica altamente reactiva. El analista <strong>debe abstenerse de realizar interpretaciones mutativas directas o confrontaciones</strong> en el primer bloque de la sesión. Se prescribe un uso reglado del silencio y señalamientos de contención estructural para evitar el acting-out.</div>`;
+            } else {
+                hipotesis += `✓ Estructura homeostática ideal para la intervención profunda. El campo de la transferencia se encuentra libre de sesgos por fatiga metabólica; se pueden aplicar metodologías de confrontación avanzadas.`;
+            }
+
+            feedbackArea.innerHTML = hipotesis;
+        }
+
+        function exportarInformePDF() {
+            const elemento = document.getElementById('pdf-render-area');
+            let nameFile = 'DICTAMEN_ARQUITECTURA_ONIRICA_PEREYRA.pdf';
+            
+            html2pdf().set({ margin: 10, filename: nameFile, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(elemento).save();
+            showNotification("Compilando reporte y descargando PDF membretado...", "success");
+        }
+
+        function regresarAlPanelOriginal() {
+            document.getElementById('auditoria-viewport').style.display = 'none';
+            document.getElementById('onirico-display-panel').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
