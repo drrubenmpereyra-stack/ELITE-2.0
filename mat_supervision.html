@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservorio Documental - Material de Supervisión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #050508;
+            --panel-bg: #0b0f19;
+            --border-color: #1e3a8a;
+            --accent-color: #3b82f6;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 800px; }
+        .card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(30, 58, 138, 0.2); }
+        h2 { font-size: 1.15rem; color: var(--accent-color); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        p.subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 25px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; }
+        input[type="text"], input[type="url"], textarea { padding: 12px 14px; border: 1px solid #334155; border-radius: 8px; font-size: 0.9rem; background: #000; color: #fff; outline: none; }
+        input:focus, textarea:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+        textarea { resize: vertical; min-height: 90px; }
+        .btn-submit { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; border: none; padding: 14px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; width: 100%; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+        .btn-submit:hover { opacity: 0.9; }
+        #toast { position: fixed; top: 20px; right: 20px; background: #050508; border: 1px solid var(--accent-color); color: #fff; padding: 12px 20px; border-radius: 6px; font-size: 0.85rem; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.8); z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Registro guardado exitosamente en el reservorio.</div>
+
+    <div class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-folder-open"></i> Registro de Material de Supervisión</h2>
+            <p class="subtitle">Módulo de archivo documental para el resguardo de registros audiovisuales analizados.</p>
+
+            <form id="form-material" onsubmit="guardarMaterial(event)">
+                <div class="form-group">
+                    <label for="supervisor"><i class="fa-solid fa-user-tie"></i> Nombre del Supervisor:</label>
+                    <input type="text" id="supervisor" placeholder="Ej. Dr. Rubén M. Pereyra" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="caso_id"><i class="fa-solid id-card"></i> Identificación del Caso / Sesión:</label>
+                    <input type="text" id="caso_id" placeholder="Ej. Caso Clínico N° 12 - Cohorte 2026" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="url_audiovisual"><i class="fa-solid fa-link"></i> Enlace de Resguardo Audiovisual (Drive / Servidor Local):</label>
+                    <input type="url" id="url_audiovisual" placeholder="https://drive.google.com/file/d/..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="notas_documentales"><i class="fa-solid fa-file-lines"></i> Notas Técnicas y Conclusiones del Análisis:</label>
+                    <textarea id="notas_documentales" placeholder="Ingrese las observaciones registradas durante la revisión del material..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit"><i class="fa-solid fa-cloud-arrow-up"></i> Registrar en el Reservorio Documental</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function guardarMaterial(e) {
+            e.preventDefault();
+            
+            const payload = {
+                supervisor: document.getElementById('supervisor').value.trim(),
+                caso_id: document.getElementById('caso_id').value.trim(),
+                url_audiovisual: document.getElementById('url_audiovisual').value.trim(),
+                notas_documentales: document.getElementById('notas_documentales').value.trim(),
+                fecha_registro: new Date().toISOString()
+            };
+
+            try {
+                await db.collection("reservorio_material_supervision").add(payload);
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                setTimeout(() => toast.style.display = 'none', 4000);
+                document.getElementById('form-material').reset();
+            } catch (error) {
+                console.error("Error al registrar el material:", error);
+                alert("Error al conectar con la base de datos.");
+            }
+        }
+    </script>
+</body>
+</html>
