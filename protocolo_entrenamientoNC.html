@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta y Monitoreo - Protocolo Entrenamiento NC | ELITE 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0891b2;
+            --secondary-color: #22d3ee;
+            --accent-bg: #ecfeff;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --border-color: #cffafe;
+            --optimo: #10b981;
+            --regular: #f59e0b;
+            --malo: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
+
+        .container { max-width: 1050px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 4px solid var(--primary-color); }
+        h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; background: var(--accent-bg); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary-color); }
+        select { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; background: #fff; outline: none; }
+        select:focus { border-color: var(--primary-color); }
+
+        /* Botones Estadísticos */
+        .stats-buttons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+        .btn-stat { background-color: var(--primary-color); color: white; border: none; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+        .btn-stat:hover { opacity: 0.9; }
+        .btn-sueno { background-color: #3b82f6; }
+        .btn-alim { background-color: #10b981; }
+        .btn-fatiga { background-color: #f59e0b; }
+        .btn-animo { background-color: #8b5cf6; }
+
+        /* Contenedor de Reportes y Gráficos Estadísticos */
+        .stats-report-panel { margin-top: 25px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #f8fafc; display: none; }
+        .chart-container { position: relative; width: 100%; max-width: 400px; height: 250px; margin: 15px auto; }
+        .alarm-box { padding: 12px 15px; border-radius: 6px; margin-top: 15px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .alarm-critical { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .alarm-ok { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        
+        .semaforo-container { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
+        .semaforo-light { width: 50px; height: 50px; border-radius: 50%; opacity: 0.3; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; border: 2px solid #333; }
+        .semaforo-light.active { opacity: 1; box-shadow: 0 0 15px rgba(0,0,0,0.4); }
+        .light-rojo { background-color: #ef4444; }
+        .light-amarillo { background-color: #f59e0b; }
+        .light-verde { background-color: #10b981; }
+
+        .progress-summary { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
+        .progress-summary h3 { font-size: 1rem; color: #166534; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: #15803d; margin-bottom: 6px; font-weight: 600; }
+        .progress-bar-container { width: 100%; height: 12px; background: #dcfce7; border-radius: 6px; overflow: hidden; border: 1px solid #bbf7d0; margin-bottom: 15px; }
+        .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.3s ease; }
+        .activities-tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .activity-tag { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 5px; }
+
+        .table-container { margin-top: 25px; overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; }
+        .data-table th { background-color: var(--accent-bg); color: var(--primary-color); font-weight: 700; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; display: inline-block; }
+        .badge-optimo { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="card">
+            <h2><i class="fa-solid fa-brain"></i> Monitoreo Clínico y Estadísticas - Protocolo Entrenamiento NC</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                Consulta de registros históricos, barra de progreso acumulada y herramientas estadísticas analíticas avanzadas.
+            </p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="select-patient"><i class="fa-solid fa-user-injured"></i> Seleccionar Paciente para Consulta:</label>
+                    <select id="select-patient" onchange="cargarRegistrosPaciente()">
+                        <option value="">-- Seleccionar Paciente --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- BOTONES DE FUNCIONES ESTADÍSTICAS -->
+            <div id="stats-buttons-wrapper" style="display: none;">
+                <label style="color: var(--primary-color); font-size: 0.85rem; margin-top: 10px; display: block; font-weight: 700;"><i class="fa-solid fa-chart-pie"></i> Módulos Estadísticos y Analíticos:</label>
+                <div class="stats-buttons-grid">
+                    <button type="button" class="btn-stat btn-sueno" onclick="generarEstadisticaSueno()"><i class="fa-solid fa-moon"></i> Estadística Sueño</button>
+                    <button type="button" class="btn-stat btn-alim" onclick="generarEstadisticaAlimentacion()"><i class="fa-solid fa-utensils"></i> Estadística Alimentación</button>
+                    <button type="button" class="btn-stat btn-fatiga" onclick="generarEstadisticaFatiga()"><i class="fa-solid fa-battery-half"></i> Estadística Fatiga</button>
+                    <button type="button" class="btn-stat btn-animo" onclick="generarEstadisticaAnimo()"><i class="fa-solid fa-face-smile"></i> Estado de Ánimo</button>
+                </div>
+
+                <!-- PANEL DE VISUALIZACIÓN DE ESTADÍSTICAS -->
+                <div id="stats-report-panel" class="stats-report-panel">
+                    <h3 id="stat-title" style="color: var(--primary-color); margin-bottom: 10px; font-size: 1rem;"><i class="fa-solid fa-chart-bar"></i> Reporte Estadístico</h3>
+                    <div id="stat-content-area"></div>
+                </div>
+            </div>
+
+            <!-- BARRA DE PROGRESO Y ACTIVIDADES ACUMULADAS -->
+            <div id="progress-card" class="progress-summary" style="margin-top: 25px;">
+                <h3><i class="fa-solid fa-chart-line"></i> Progreso Acumulado del Plan Neurocognitivo</h3>
+                <div class="progress-info">
+                    <span id="progress-title-text">Actividades únicas completadas</span>
+                    <span id="progress-percentage-text">0% (0 / 10 totales)</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-bar-global"></div>
+                </div>
+                <label style="color: #166534; font-size: 0.8rem; margin-top: 5px; display: block;">Actividades únicas registradas a lo largo de las sesiones:</label>
+                <div class="activities-tag-container" id="listado-actividades-unicas"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-timeline"></i> Historial de Registros Evolutivos</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Sueño</th>
+                            <th>Alimentación</th>
+                            <th>Ánimo</th>
+                            <th>Fatiga</th>
+                            <th>Checklist Sesión</th>
+                            <th>Observaciones Clínicas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-registros-body">
+                        <tr><td colspan="7" style="text-align: center; color: #64748b;">Seleccione un paciente para ver su historial evolutivo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
+            authDomain: "materiales-terapeuticos.firebaseapp.com",
+            projectId: "materiales-terapeuticos",
+            storageBucket: "materiales-terapeuticos.firebasestorage.app",
+            messagingSenderId: "827133493876",
+            appId: "1:827133493876:web:7d51b4befe64e0f8dfc721"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let listaPacientesGlobal = [];
+        let registrosPacienteActual = [];
+        let pacienteSeleccionadoObj = null;
+        let chartInstancia = null;
+
+        async function initSistema() {
+            await cargarPacientesAsignados();
+        }
+
+        async function cargarPacientesAsignados() {
+            const selectEl = document.getElementById('select-patient');
+            selectEl.innerHTML = '<option value="">-- Seleccionar Paciente --</option>';
+            listaPacientesGlobal = [];
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "patients"));
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const nombrePaciente = data.name || data.nombre || data.usuario || "Sin Nombre";
+                    const usuarioPaciente = data.usuario || (data.admision_protocolo ? data.admision_protocolo.usuario : null);
+                    
+                    listaPacientesGlobal.push({ 
+                        id: docSnap.id, 
+                        nombre: nombrePaciente,
+                        usuario: usuarioPaciente
+                    });
+                });
+            } catch (e) {
+                console.warn("Error al cargar pacientes de Firestore:", e);
+            }
+
+            listaPacientesGlobal.forEach(p => {
+                selectEl.innerHTML += `<option value="${p.id}">${p.nombre.toUpperCase()} (${p.usuario || 'Sin usuario'})</option>`;
+            });
+        }
+
+        window.cargarRegistrosPaciente = async function() {
+            const pacienteSeleccionadoId = document.getElementById('select-patient').value;
+            const tbody = document.getElementById('tabla-registros-body');
+            const progressCard = document.getElementById('progress-card');
+            const statsButtonsWrapper = document.getElementById('stats-buttons-wrapper');
+            const statsPanel = document.getElementById('stats-report-panel');
+            
+            if(!pacienteSeleccionadoId) {
+                progressCard.style.display = 'none';
+                statsButtonsWrapper.style.display = 'none';
+                statsPanel.style.display = 'none';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #64748b;">Seleccione un paciente para ver su historial evolutivo.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #64748b;">Cargando registros desde la base de datos...</td></tr>';
+
+            try {
+                pacienteSeleccionadoObj = listaPacientesGlobal.find(p => p.id === pacienteSeleccionadoId);
+                if (!pacienteSeleccionadoObj) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #ef4444;">No se encontró información del paciente seleccionado.</td></tr>';
+                    return;
+                }
+
+                const querySnapshot = await getDocs(collection(db, "elite_seguimiento_neurocognitivo"));
+                
+                registrosPacienteActual = [];
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const usuarioReg = data.usuario ? data.usuario.toLowerCase() : "";
+                    const nombreMatch = pacienteSeleccionadoObj.nombre.toLowerCase();
+                    const userMatch = pacienteSeleccionadoObj.usuario ? pacienteSeleccionadoObj.usuario.toLowerCase() : "";
+
+                    if (usuarioReg && (usuarioReg === userMatch || usuarioReg === nombreMatch)) {
+                        registrosPacienteActual.push(data);
+                    }
+                });
+
+                registrosPacienteActual.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+                if(registrosPacienteActual.length === 0) {
+                    progressCard.style.display = 'none';
+                    statsButtonsWrapper.style.display = 'none';
+                    statsPanel.style.display = 'none';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #64748b;">No se encontraron registros de seguimiento para este paciente.</td></tr>';
+                    return;
+                }
+
+                let actividadesUnicasSet = new Set();
+                registrosPacienteActual.forEach(reg => {
+                    if (reg.actividades_checklist && Array.isArray(reg.actividades_checklist)) {
+                        reg.actividades_checklist.forEach(act => actividadesUnicasSet.add(act));
+                    }
+                });
+
+                const totalActividadesUnicas = actividadesUnicasSet.size;
+                const totalPlan = 10;
+                const porcentajeGlobal = Math.round((totalActividadesUnicas / totalPlan) * 100);
+
+                document.getElementById('progress-bar-global').style.width = porcentajeGlobal + '%';
+                document.getElementById('progress-percentage-text').textContent = `${porcentajeGlobal}% (${totalActividadesUnicas} / ${totalPlan} actividades únicas del plan)`;
+                
+                const containerTags = document.getElementById('listado-actividades-unicas');
+                containerTags.innerHTML = '';
+                
+                if (totalActividadesUnicas === 0) {
+                    containerTags.innerHTML = '<span style="font-size: 0.8rem; color: #64748b;">Ninguna actividad marcada todavía en los formularios.</span>';
+                } else {
+                    actividadesUnicasSet.forEach(actNombre => {
+                        containerTags.innerHTML += `<span class="activity-tag"><i class="fa-solid fa-check-circle"></i> ${actNombre}</span>`;
+                    });
+                }
+                
+                progressCard.style.display = 'block';
+                statsButtonsWrapper.style.display = 'block';
+                statsPanel.style.display = 'none';
+
+                tbody.innerHTML = '';
+                registrosPacienteActual.forEach(reg => {
+                    const totalSesion = reg.actividades_checklist ? reg.actividades_checklist.length : 0;
+                    const porcSesion = Math.round((totalSesion / 10) * 100);
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${reg.fecha || 'N/D'}</strong></td>
+                            <td>${reg.sueno_horas} hrs</td>
+                            <td>${reg.alimentacion_calidad} (${reg.alimentacion_comidas} com.)</td>
+                            <td>${reg.estado_animo}</td>
+                            <td>${reg.nivel_fatiga}</td>
+                            <td><span class="badge badge-optimo">${porcSesion}% (${totalSesion}/10)</span></td>
+                            <td><em>${reg.observaciones || 'Sin observaciones'}</em></td>
+                        </tr>
+                    `;
+                });
+
+            } catch (e) {
+                console.error("Error al consultar el historial:", e);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #ef4444;">Error al conectar con la base de datos de Elite 2.0.</td></tr>';
+            }
+        };
+
+        async function registrarEstadisticaEnBD(tipoAnalisis, informeTexto) {
+            if (!pacienteSeleccionadoObj) return;
+            try {
+                const payloadReporte = {
+                    usuario: pacienteSeleccionadoObj.usuario || pacienteSeleccionadoObj.nombre,
+                    paciente_id: pacienteSeleccionadoObj.id,
+                    tipo_estadistica: tipoAnalisis,
+                    informe: informeTexto,
+                    fecha_generacion: new Date().toISOString()
+                };
+                await addDoc(collection(db, "elite_reportes_estadisticos"), payloadReporte);
+            } catch (e) {
+                console.error("Error al registrar reporte estadístico en Firestore:", e);
+            }
+        }
+
+        function destruirGrafico() {
+            if (chartInstancia) {
+                chartInstancia.destroy();
+                chartInstancia = null;
+            }
+        }
+
+        window.generarEstadisticaSueno = async function() {
+            const panel = document.getElementById('stats-report-panel');
+            const content = document.getElementById('stat-content-area');
+            document.getElementById('stat-title').innerHTML = '<i class="fa-solid fa-moon"></i> Análisis Estadístico de Sueño';
+            panel.style.display = 'block';
+            destruirGrafico();
+
+            let labels = registrosPacienteActual.map(r => r.fecha);
+            let dataHoras = registrosPacienteActual.map(r => r.sueno_horas);
+            let promedio = dataHoras.reduce((a, b) => a + b, 0) / dataHoras.length;
+            let alarmHtml = '';
+            let textoInforme = '';
+
+            if (promedio < 6) {
+                alarmHtml = `<div class="alarm-box alarm-critical"><i class="fa-solid fa-triangle-exclamation"></i><b>ALARMA CRÍTICA:</b> Promedio de sueño muy bajo (${promedio.toFixed(1)} hrs). Riesgo alto para la consolidación sináptica. Se recomiendan mínimo 7 horas.</div>`;
+                textoInforme = `Alarma Crítica: Promedio de ${promedio.toFixed(1)} hrs. Sueño insuficiente.`;
+            } else if (promedio >= 7) {
+                alarmHtml = `<div class="alarm-box alarm-ok"><i class="fa-solid fa-circle-check"></i><b>NIVEL ÓPTIMO:</b> Promedio de sueño adecuado (${promedio.toFixed(1)} hrs). Favorece los procesos de neuroplasticidad.</div>`;
+                textoInforme = `Nivel Óptimo: Promedio de ${promedio.toFixed(1)} hrs.`;
+            } else {
+                alarmHtml = `<div class="alarm-box" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;"><i class="fa-solid fa-triangle-exclamation"></i><b>ATENCIÓN:</b> Promedio regular (${promedio.toFixed(1)} hrs). Sugiere optimizar el descanso.</div>`;
+                textoInforme = `Atención: Promedio regular de ${promedio.toFixed(1)} hrs.`;
+            }
+
+            content.innerHTML = `
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Distribución y duraciones de sueño registradas por fecha:</p>
+                <div class="chart-container"><canvas id="canvasSueno"></canvas></div>
+                ${alarmHtml}
+            `;
+
+            const ctx = document.getElementById('canvasSueno').getContext('2d');
+            chartInstancia = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataHoras,
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            await registrarEstadisticaEnBD("Estadística Sueño", textoInforme);
+        };
+
+        window.generarEstadisticaAlimentacion = async function() {
+            const panel = document.getElementById('stats-report-panel');
+            const content = document.getElementById('stat-content-area');
+            document.getElementById('stat-title').innerHTML = '<i class="fa-solid fa-utensils"></i> Análisis Semáforo de Alimentación';
+            panel.style.display = 'block';
+            destruirGrafico();
+
+            let normocaloricas = registrosPacienteActual.filter(r => r.alimentacion_calidad === 'Normocalórica').length;
+            let hipercaloricas = registrosPacienteActual.filter(r => r.alimentacion_calidad === 'Hipercalórica').length;
+            let hipocaloricas = registrosPacienteActual.filter(r => r.alimentacion_calidad === 'Hipocalórica').length;
+            let total = registrosPacienteActual.length;
+            let porcentajeNormo = (normocaloricas / total) * 100;
+
+            let activeVerde = porcentajeNormo >= 60 ? 'active' : '';
+            let activeAmarillo = (porcentajeNormo < 60 && porcentajeNormo >= 30) ? 'active' : '';
+            let activeRojo = porcentajeNormo < 30 ? 'active' : '';
+
+            if (hipocaloricas > normocaloricas) activeRojo = 'active';
+
+            let alarmHtml = '';
+            let textoInforme = '';
+
+            if (activeRojo === 'active') {
+                alarmHtml = `<div class="alarm-box alarm-critical"><i class="fa-solid fa-triangle-exclamation"></i><b>ALARMA CRÍTICA NUTRICIONAL:</b> Desbalance calórico persistente detectado. Compromete los niveles de energía basal.</div>`;
+                textoInforme = `Alarma Crítica Nutricional: Desbalance calórico persistente.`;
+            } else if (activeVerde === 'active') {
+                alarmHtml = `<div class="alarm-box alarm-ok"><i class="fa-solid fa-circle-check"></i><b>PERFIL NUTRICIONAL ÓPTIMO:</b> Estabilidad en pautas normocalóricas. Aporte energético equilibrado.</div>`;
+                textoInforme = `Perfil Nutricional Óptimo: Estabilidad normocalórica.`;
+            } else {
+                alarmHtml = `<div class="alarm-box" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;"><i class="fa-solid fa-triangle-exclamation"></i><b>PRECAUCIÓN NUTRICIONAL:</b> Variabilidad moderada en la calidad calórica.</div>`;
+                textoInforme = `Precaución Nutricional: Variabilidad calórica moderada.`;
+            }
+
+            content.innerHTML = `
+                <div class="semaforo-container">
+                    <div class="semaforo-light light-rojo ${activeRojo}">R</div>
+                    <div class="semaforo-light light-amarillo ${activeAmarillo}">A</div>
+                    <div class="semaforo-light light-verde ${activeVerde}">V</div>
+                </div>
+                <div class="chart-container"><canvas id="canvasAlim"></canvas></div>
+                ${alarmHtml}
+            `;
+
+            const ctx = document.getElementById('canvasAlim').getContext('2d');
+            chartInstancia = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Normocalórica', 'Hipercalórica', 'Hipocalórica'],
+                    datasets: [{
+                        label: 'Frecuencia de Registros',
+                        data: [normocaloricas, hipercaloricas, hipocaloricas],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            await registrarEstadisticaEnBD("Estadística Alimentación", textoInforme);
+        };
+
+        window.generarEstadisticaFatiga = async function() {
+            const panel = document.getElementById('stats-report-panel');
+            const content = document.getElementById('stat-content-area');
+            document.getElementById('stat-title').innerHTML = '<i class="fa-solid fa-battery-half"></i> Análisis de Fatiga y Cansancio';
+            panel.style.display = 'block';
+            destruirGrafico();
+
+            let muyFatigado = registrosPacienteActual.filter(r => r.nivel_fatiga === 'Muy fatigado').length;
+            let fatigado = registrosPacienteActual.filter(r => r.nivel_fatiga === 'Fatigado').length;
+            let pocoFatigado = registrosPacienteActual.filter(r => r.nivel_fatiga === 'Poco fatigado').length;
+            let sinFatiga = registrosPacienteActual.filter(r => r.nivel_fatiga === 'Sin fatiga').length;
+
+            let alarmHtml = '';
+            let textoInforme = '';
+
+            if (muyFatigado > 0 || (fatigado / registrosPacienteActual.length) > 0.5) {
+                alarmHtml = `<div class="alarm-box alarm-critical"><i class="fa-solid fa-triangle-exclamation"></i><b>ALARMA DE FATIGA ELEVADA:</b> Presencia significativa de cansancio extremo. Sugiere sobrecarga cognitiva.</div>`;
+                textoInforme = `Alarma Fatiga Elevada: Indicadores de cansancio extremo.`;
+            } else {
+                alarmHtml = `<div class="alarm-box alarm-ok"><i class="fa-solid fa-circle-check"></i><b>CONTROL DE FATIGA ADECUADO:</b> Niveles de cansancio manejables para la práctica deliberada.</div>`;
+                textoInforme = `Control de Fatiga Adecuado.`;
+            }
+
+            content.innerHTML = `
+                <div class="chart-container"><canvas id="canvasFatiga"></canvas></div>
+                ${alarmHtml}
+            `;
+
+            const ctx = document.getElementById('canvasFatiga').getContext('2d');
+            chartInstancia = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sin fatiga', 'Poco fatigado', 'Fatigado', 'Muy fatigado'],
+                    datasets: [{
+                        data: [sinFatiga, pocoFatigado, fatigado, muyFatigado],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            await registrarEstadisticaEnBD("Estadística Fatiga", textoInforme);
+        };
+
+        window.generarEstadisticaAnimo = async function() {
+            const panel = document.getElementById('stats-report-panel');
+            const content = document.getElementById('stat-content-area');
+            document.getElementById('stat-title').innerHTML = '<i class="fa-solid fa-face-smile"></i> Análisis de Estado de Ánimo';
+            panel.style.display = 'block';
+            destruirGrafico();
+
+            let excelente = registrosPacienteActual.filter(r => r.estado_animo === 'Excelente').length;
+            let regular = registrosPacienteActual.filter(r => r.estado_animo === 'Regular').length;
+            let malo = registrosPacienteActual.filter(r => r.estado_animo === 'Malo').length;
+
+            let alarmHtml = '';
+            let textoInforme = '';
+
+            if (malo > 0) {
+                alarmHtml = `<div class="alarm-box alarm-critical"><i class="fa-solid fa-triangle-exclamation"></i><b>ALERTA ANÍMICA:</b> Se han registrado estados de ánimo malos. Requiere seguimiento clínico directo.</div>`;
+                textoInforme = `Alerta Anímica: Presencia de registros de ánimo malo.`;
+            } else if (excelente >= regular) {
+                alarmHtml = `<div class="alarm-box alarm-ok"><i class="fa-solid fa-circle-check"></i><b>ESTABILIDAD ANÍMICA POSITIVA:</b> Predominio de estados excelentes que facilitan el rendimiento.</div>`;
+                textoInforme = `Estabilidad Anímica Positiva: Predominio excelente.`;
+            } else {
+                alarmHtml = `<div class="alarm-box" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;"><i class="fa-solid fa-triangle-exclamation"></i><b>ATENCIÓN ANÍMICA:</b> Frecuencia notable de estados regulares.</div>`;
+                textoInforme = `Atención Anímica: Frecuencia notable de estados regulares.`;
+            }
+
+            content.innerHTML = `
+                <div class="chart-container"><canvas id="canvasAnimo"></canvas></div>
+                ${alarmHtml}
+            `;
+
+            const ctx = document.getElementById('canvasAnimo').getContext('2d');
+            chartInstancia = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Excelente', 'Regular', 'Malo'],
+                    datasets: [{
+                        data: [excelente, regular, malo],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            await registrarEstadisticaEnBD("Estado de Ánimo", textoInforme);
+        };
+
+        initSistema();
+    </script>
+</body>
+</html>
