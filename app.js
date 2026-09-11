@@ -151,7 +151,8 @@ const menuData = {
         hijos: {
             "7.1 Admisión pacientes": {},
             "7.2 Panel Correlación Clínica": {},
-            "7.3 Analizador onírico": {}
+            "7.3 Analizador onírico": {},
+            "7.4 Entrenamiento Neurocognitivo": {}
         }
     }
 };
@@ -289,6 +290,8 @@ function cargarBarraSecundaria(hijosSecundarios, colorBase) {
                     cargarVistaIframe("correlacion_clinica.html");
                 } else if (secKey === "7.3 Analizador onírico") {
                     cargarVistaIframe("analizador_onirico.html");
+                } else if (secKey === "7.4 Entrenamiento Neurocognitivo") {
+                    cargarVistaIframe("protocolo_entrenamientoNC.html");
                 } else {
                     mostrarContenido(secKey);
                 }
@@ -452,4 +455,3 @@ function agregarBotonSalir() {
 
     barPrincipal.appendChild(btnSalir);
 }
-
