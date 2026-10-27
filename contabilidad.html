@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administración - Contabilidad | ELITE 2.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary-color: #1e3c72;
@@ -14,11 +15,14 @@
             --card-bg: #ffffff;
             --text-color: #334155;
             --border-color: #cbd5e1;
+            --status-pendiente: #f59e0b;
+            --status-pagado: #10b981;
+            --status-adeudado: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; padding: 20px; }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1300px; margin: 0 auto; }
         .card { background: var(--card-bg); border-radius: 8px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
@@ -28,12 +32,34 @@
         input:focus, select:focus { outline: none; border-color: var(--admin-contabilidad); }
         .btn { background-color: var(--admin-contabilidad); color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         .btn:hover { background-color: #1e40af; }
+
+        /* Estilos Almanaque Financiero Semanal */
+        .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f1f5f9; padding: 10px 15px; border-radius: 6px; }
+        .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; overflow-x: auto; }
+        .day-column { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; min-height: 250px; display: flex; flex-direction: column; }
+        .day-header { background: #e2e8f0; padding: 8px; text-align: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-color); border-top-left-radius: 5px; border-top-right-radius: 5px; }
+        .day-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+        
+        .appt-finance-card { background: white; border-left: 4px solid var(--admin-contabilidad); padding: 8px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 0.8rem; display: flex; flex-direction: column; gap: 5px; }
+        .appt-finance-card.pendiente { border-left-color: var(--status-pendiente); }
+        .appt-finance-card.pagado { border-left-color: var(--status-pagado); }
+        .appt-finance-card.adeudado { border-left-color: var(--status-adeudado); }
+
+        .finance-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 4px; }
+        .status-select { font-size: 0.75rem; padding: 2px 4px; border-radius: 3px; border: 1px solid var(--border-color); }
+
+        /* Gráficos de Contabilidad */
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 15px; }
+        .chart-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .chart-container { position: relative; width: 100%; height: 220px; }
+        
         .payment-item { background: #f1f5f9; border-left: 4px solid var(--admin-contabilidad); padding: 12px 15px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     </style>
 </head>
 <body>
 
     <main class="container">
+        <!-- REGISTRAR COBRO -->
         <div class="card">
             <h2><i class="fa-solid fa-cash-register"></i> Registrar Pago de Honorarios</h2>
             <form id="payment-form">
@@ -61,6 +87,41 @@
             </form>
         </div>
 
+        <!-- ALMANAQUE SEMANAL Y CRUCE DE ESTADOS DE PAGOS DE TURNOS -->
+        <div class="card">
+            <h2><i class="fa-solid fa-calendar-week"></i> Almanaque Semanal — Estado de Pagos de Turnos</h2>
+            
+            <div class="calendar-nav">
+                <button class="btn" onclick="cambiarSemana(-1)"><i class="fa-solid fa-chevron-left"></i> Semana Anterior</button>
+                <span id="current-week-label" style="font-weight: 600; color: var(--primary-color);"></span>
+                <button class="btn" onclick="cambiarSemana(1)">Semana Siguiente <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+            <div class="week-grid" id="week-calendar-container">
+                <!-- Se generan dinámicamente los 7 días de la semana y sus turnos cruzados -->
+            </div>
+        </div>
+
+        <!-- BARRAS DE CONTABILIDAD: SEMANAL, MENSUAL Y ANUAL -->
+        <div class="card">
+            <h2><i class="fa-solid fa-chart-bar"></i> Reportes Contables (Pendiente, Pagado, Adeudado)</h2>
+            <div class="charts-grid">
+                <div class="chart-box">
+                    <h3 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 10px;">Contabilidad Semanal</h3>
+                    <div class="chart-container"><canvas id="weeklyChart"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h3 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 10px;">Contabilidad Mensual</h3>
+                    <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h3 style="font-size: 0.95rem; color: var(--primary-color); margin-bottom: 10px;">Contabilidad Anual</h3>
+                    <div class="chart-container"><canvas id="yearlyChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORIAL DE PAGOS REGISTRADOS -->
         <div class="card">
             <h2><i class="fa-solid fa-wallet"></i> Historial de Pagos Registrados</h2>
             <div id="payments-container">
@@ -71,7 +132,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCJietA0GuHsUpkN2-lk38Y3L6VDROxvZs",
@@ -85,12 +146,28 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let patientMap = {};
+        let cachedAppointments = [];
+        let cachedPayments = [];
+        let currentWeekStart = getStartOfWeek(new Date());
+        let weeklyChartInst = null;
+        let monthlyChartInst = null;
+        let yearlyChartInst = null;
+
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
         async function initContabilidad() {
             try {
+                // 1. Cargar Pacientes
                 const patientsSnap = await getDocs(collection(db, "patients"));
                 const selectEl = document.getElementById('pay-patient');
                 selectEl.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
-                const patientMap = {};
+                patientMap = {};
                 
                 patientsSnap.forEach(docSnap => {
                     const data = docSnap.data();
@@ -101,38 +178,231 @@
                     selectEl.appendChild(opt);
                 });
 
+                // 2. Cargar Turnos (Agenda) para cruzar datos de pagos
+                const apptSnap = await getDocs(collection(db, "appointments"));
+                cachedAppointments = [];
+                apptSnap.forEach(apptDoc => {
+                    cachedAppointments.push({ id: apptDoc.id, ...apptDoc.data() });
+                });
+
+                // 3. Cargar Pagos Registrados
                 const paySnap = await getDocs(collection(db, "payments"));
+                cachedPayments = [];
                 const container = document.getElementById('payments-container');
                 container.innerHTML = '';
 
                 if (paySnap.empty) {
                     container.innerHTML = '<p style="color: #64748b; font-size: 0.9rem; text-align: center; padding: 10px;">No hay pagos registrados.</p>';
-                    return;
+                } else {
+                    paySnap.forEach(payDoc => {
+                        const pay = { id: payDoc.id, ...payDoc.data() };
+                        cachedPayments.push(pay);
+                        const patientName = patientMap[pay.patientId] || 'Paciente desconocido';
+                        
+                        const div = document.createElement('div');
+                        div.className = 'payment-item';
+                        div.innerHTML = `
+                            <div>
+                                <strong><i class="fa-solid fa-user"></i> ${patientName}</strong>
+                                <p style="font-size: 0.9rem; color: #1e40af; font-weight: 600;"><i class="fa-solid fa-dollar-sign"></i> ${pay.amount} — <span style="font-weight: normal; color: #475569;">${pay.concept || 'Sin concepto'}</span></p>
+                                <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-regular fa-calendar"></i> Fecha: ${pay.date}</span>
+                            </div>
+                            <button onclick="deletePayment('${pay.id}')" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                        `;
+                        container.appendChild(div);
+                    });
                 }
 
-                paySnap.forEach(payDoc => {
-                    const pay = payDoc.data();
-                    const patientName = patientMap[pay.patientId] || 'Paciente desconocido';
-                    
-                    const div = document.createElement('div');
-                    div.className = 'payment-item';
-                    div.innerHTML = `
-                        <div>
-                            <strong><i class="fa-solid fa-user"></i> ${patientName}</strong>
-                            <p style="font-size: 0.9rem; color: #1e40af; font-weight: 600;"><i class="fa-solid fa-dollar-sign"></i> ${pay.amount} — <span style="font-weight: normal; color: #475569;">${pay.concept || 'Sin concepto'}</span></p>
-                            <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-regular fa-calendar"></i> Fecha: ${pay.date}</span>
-                        </div>
-                        <button onclick="deletePayment('${payDoc.id}')" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-                            <i class="fa-solid fa-trash"></i> Eliminar
-                        </button>
-                    `;
-                    container.appendChild(div);
-                });
+                renderCalendarAndCharts();
+
             } catch (error) {
                 console.error("Error al cargar contabilidad:", error);
             }
         }
 
+        window.cambiarSemana = function(direction) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7));
+            renderCalendarAndCharts();
+        };
+
+        function renderCalendarAndCharts() {
+            renderWeekCalendar();
+            renderAccountingCharts();
+        }
+
+        // Almanaque Semanal Cruzado con Turnos y Estados Financieros
+        function renderWeekCalendar() {
+            const container = document.getElementById('week-calendar-container');
+            const label = document.getElementById('current-week-label');
+            container.innerHTML = '';
+
+            let weekDays = [];
+            let tempDate = new Date(currentWeekStart);
+
+            for (let i = 0; i < 7; i++) {
+                weekDays.push(new Date(tempDate));
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+
+            const options = { day: 'numeric', month: 'short' };
+            label.textContent = `Semana del ${weekDays[0].toLocaleDateString('es-ES', options)} al ${weekDays[6].toLocaleDateString('es-ES', options)}`;
+
+            const diasNombres = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+            weekDays.forEach((dayObj, index) => {
+                const year = dayObj.getFullYear();
+                const month = String(dayObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dayObj.getDate()).padStart(2, '0');
+                const dateString = `${year}-${month}-${day}`;
+
+                const col = document.createElement('div');
+                col.className = 'day-column';
+                col.innerHTML = `
+                    <div class="day-header">${diasNombres[index]}<br><span style="font-size:0.75rem; font-weight:normal;">${day}/${month}</span></div>
+                    <div class="day-body" id="day-${dateString}"></div>
+                `;
+                container.appendChild(col);
+
+                const turnosDelDia = cachedAppointments.filter(appt => appt.date === dateString);
+                turnosDelDia.sort((a, b) => a.time.localeCompare(b.time));
+
+                const dayBody = document.getElementById(`day-${dateString}`);
+                if (turnosDelDia.length === 0) {
+                    dayBody.innerHTML = '<span style="font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 20px;">Sin turnos</span>';
+                } else {
+                    turnosDelDia.forEach(appt => {
+                        const patientName = patientMap[appt.patientId] || 'Paciente desconocido';
+                        const paymentStatus = appt.paymentStatus || 'pendiente'; // pendiente, pagado, adeudado
+
+                        const card = document.createElement('div');
+                        card.className = `appt-finance-card ${paymentStatus}`;
+                        card.innerHTML = `
+                            <div><strong><i class="fa-regular fa-clock"></i> ${appt.time}</strong></div>
+                            <div style="font-weight: 600; color: #1e3c72;"><i class="fa-solid fa-user"></i> ${patientName}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">Turno de agenda</div>
+                            <div class="finance-actions">
+                                <select class="status-select" onchange="updatePaymentStatus('${appt.id}', this.value)">
+                                    <option value="pendiente" ${paymentStatus === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                    <option value="pagado" ${paymentStatus === 'pagado' ? 'selected' : ''}>Pagado</option>
+                                    <option value="adeudado" ${paymentStatus === 'adeudado' ? 'selected' : ''}>Adeudado</option>
+                                </select>
+                            </div>
+                        `;
+                        dayBody.appendChild(card);
+                    });
+                }
+            });
+        }
+
+        window.updatePaymentStatus = async function(apptId, newStatus) {
+            try {
+                await updateDoc(doc(db, "appointments", apptId), { paymentStatus: newStatus });
+                const appt = cachedAppointments.find(a => a.id === apptId);
+                if (appt) appt.paymentStatus = newStatus;
+                renderAccountingCharts();
+            } catch (error) {
+                console.error("Error al actualizar estado de pago del turno:", error);
+            }
+        };
+
+        // Gráficos de Contabilidad (Semanal, Mensual, Anual)
+        function renderAccountingCharts() {
+            // Calcular métricas semanales (basado en la semana seleccionada en el almanaque)
+            let weekDaysStrings = [];
+            let tempDate = new Date(currentWeekStart);
+            for (let i = 0; i < 7; i++) {
+                const year = tempDate.getFullYear();
+                const month = String(tempDate.getMonth() + 1).padStart(2, '0');
+                const day = String(tempDate.getDate()).padStart(2, '0');
+                weekDaysStrings.push(`${year}-${month}-${day}`);
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+
+            let wPendiente = 0, wPagado = 0, wAdeudado = 0;
+            cachedAppointments.forEach(appt => {
+                if (weekDaysStrings.includes(appt.date)) {
+                    if (appt.paymentStatus === 'pagado') wPagado++;
+                    else if (appt.paymentStatus === 'adeudado') wAdeudado++;
+                    else wPendiente++;
+                }
+            });
+
+            // Calcular métricas mensuales (mes actual del sistema)
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+            let mPendiente = 0, mPagado = 0, mAdeudado = 0;
+            let yPendiente = 0, yPagado = 0, yAdeudado = 0;
+
+            cachedAppointments.forEach(appt => {
+                if (!appt.date) return;
+                const [y, m] = appt.date.split('-');
+                
+                // Anual
+                if (parseInt(y) === currentYear) {
+                    if (appt.paymentStatus === 'pagado') yPagado++;
+                    else if (appt.paymentStatus === 'adeudado') yAdeudado++;
+                    else yPendiente++;
+
+                    // Mensual
+                    if (m === currentMonth) {
+                        if (appt.paymentStatus === 'pagado') mPagado++;
+                        else if (appt.paymentStatus === 'adeudado') mAdeudado++;
+                        else mPendiente++;
+                    }
+                }
+            });
+
+            // Renderizar Gráfico Semanal
+            if (weeklyChartInst) weeklyChartInst.destroy();
+            weeklyChartInst = new Chart(document.getElementById('weeklyChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Pendiente', 'Pagado', 'Adeudado'],
+                    datasets: [{
+                        label: 'Turnos Semanales',
+                        data: [wPendiente, wPagado, wAdeudado],
+                        backgroundColor: ['#f59e0b', '#10b981', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            // Renderizar Gráfico Mensual
+            if (monthlyChartInst) monthlyChartInst.destroy();
+            monthlyChartInst = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Pendiente', 'Pagado', 'Adeudado'],
+                    datasets: [{
+                        label: 'Turnos Mensuales',
+                        data: [mPendiente, mPagado, mAdeudado],
+                        backgroundColor: ['#f59e0b', '#10b981', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            // Renderizar Gráfico Anual
+            if (yearlyChartInst) yearlyChartInst.destroy();
+            yearlyChartInst = new Chart(document.getElementById('yearlyChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Pendiente', 'Pagado', 'Adeudado'],
+                    datasets: [{
+                        label: 'Turnos Anuales',
+                        data: [yPendiente, yPagado, yAdeudado],
+                        backgroundColor: ['#f59e0b', '#10b981', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        // Registrar Cobro Directo
         document.getElementById('payment-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const newPayment = {
