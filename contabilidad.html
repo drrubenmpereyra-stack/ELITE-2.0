@@ -83,7 +83,7 @@
                     <label for="pay-concept">Concepto / Detalle</label>
                     <input type="text" id="pay-concept" placeholder="Ej. Pago de sesión semanal N°3">
                 </div>
-                <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Registrar Cobro en la Nube</button>
+                <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Registrar Cobro y Sincronizar Agenda</button>
             </form>
         </div>
 
@@ -97,9 +97,7 @@
                 <button class="btn" onclick="cambiarSemana(1)">Semana Siguiente <i class="fa-solid fa-chevron-right"></i></button>
             </div>
 
-            <div class="week-grid" id="week-calendar-container">
-                <!-- Se generan dinámicamente los 7 días de la semana y sus turnos cruzados -->
-            </div>
+            <div class="week-grid" id="week-calendar-container"></div>
         </div>
 
         <!-- BARRAS DE CONTABILIDAD: SEMANAL, MENSUAL Y ANUAL -->
@@ -163,7 +161,6 @@
 
         async function initContabilidad() {
             try {
-                // 1. Cargar Pacientes
                 const patientsSnap = await getDocs(collection(db, "patients"));
                 const selectEl = document.getElementById('pay-patient');
                 selectEl.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
@@ -178,14 +175,12 @@
                     selectEl.appendChild(opt);
                 });
 
-                // 2. Cargar Turnos (Agenda) para cruzar datos de pagos
                 const apptSnap = await getDocs(collection(db, "appointments"));
                 cachedAppointments = [];
                 apptSnap.forEach(apptDoc => {
                     cachedAppointments.push({ id: apptDoc.id, ...apptDoc.data() });
                 });
 
-                // 3. Cargar Pagos Registrados
                 const paySnap = await getDocs(collection(db, "payments"));
                 cachedPayments = [];
                 const container = document.getElementById('payments-container');
@@ -232,7 +227,6 @@
             renderAccountingCharts();
         }
 
-        // Almanaque Semanal Cruzado con Turnos y Estados Financieros
         function renderWeekCalendar() {
             const container = document.getElementById('week-calendar-container');
             const label = document.getElementById('current-week-label');
@@ -274,7 +268,7 @@
                 } else {
                     turnosDelDia.forEach(appt => {
                         const patientName = patientMap[appt.patientId] || 'Paciente desconocido';
-                        const paymentStatus = appt.paymentStatus || 'pendiente'; // pendiente, pagado, adeudado
+                        const paymentStatus = appt.paymentStatus || 'pendiente';
 
                         const card = document.createElement('div');
                         card.className = `appt-finance-card ${paymentStatus}`;
@@ -307,9 +301,7 @@
             }
         };
 
-        // Gráficos de Contabilidad (Semanal, Mensual, Anual)
         function renderAccountingCharts() {
-            // Calcular métricas semanales (basado en la semana seleccionada en el almanaque)
             let weekDaysStrings = [];
             let tempDate = new Date(currentWeekStart);
             for (let i = 0; i < 7; i++) {
@@ -329,7 +321,6 @@
                 }
             });
 
-            // Calcular métricas mensuales (mes actual del sistema)
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
@@ -341,13 +332,11 @@
                 if (!appt.date) return;
                 const [y, m] = appt.date.split('-');
                 
-                // Anual
                 if (parseInt(y) === currentYear) {
                     if (appt.paymentStatus === 'pagado') yPagado++;
                     else if (appt.paymentStatus === 'adeudado') yAdeudado++;
                     else yPendiente++;
 
-                    // Mensual
                     if (m === currentMonth) {
                         if (appt.paymentStatus === 'pagado') mPagado++;
                         else if (appt.paymentStatus === 'adeudado') mAdeudado++;
@@ -356,7 +345,6 @@
                 }
             });
 
-            // Renderizar Gráfico Semanal
             if (weeklyChartInst) weeklyChartInst.destroy();
             weeklyChartInst = new Chart(document.getElementById('weeklyChart').getContext('2d'), {
                 type: 'bar',
@@ -371,7 +359,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
 
-            // Renderizar Gráfico Mensual
             if (monthlyChartInst) monthlyChartInst.destroy();
             monthlyChartInst = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
                 type: 'bar',
@@ -386,7 +373,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
 
-            // Renderizar Gráfico Anual
             if (yearlyChartInst) yearlyChartInst.destroy();
             yearlyChartInst = new Chart(document.getElementById('yearlyChart').getContext('2d'), {
                 type: 'bar',
@@ -402,23 +388,34 @@
             });
         }
 
-        // Registrar Cobro Directo
+        // Automatización 100%: Registrar Cobro y Sincronizar Estado de Turno
         document.getElementById('payment-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const selectedPatientId = document.getElementById('pay-patient').value;
             const newPayment = {
-                patientId: document.getElementById('pay-patient').value,
+                patientId: selectedPatientId,
                 amount: parseFloat(document.getElementById('pay-amount').value),
                 date: document.getElementById('pay-date').value,
                 concept: document.getElementById('pay-concept').value.trim()
             };
 
             try {
+                // 1. Guardar el pago en la colección payments
                 await addDoc(collection(db, "payments"), newPayment);
+
+                // 2. Buscar automáticamente el turno de ese paciente para actualizarlo a 'pagado'
+                const turnoPaciente = cachedAppointments.find(appt => appt.patientId === selectedPatientId && appt.paymentStatus !== 'pagado');
+                
+                if (turnoPaciente) {
+                    await updateDoc(doc(db, "appointments", turnoPaciente.id), { paymentStatus: 'pagado' });
+                    turnoPaciente.paymentStatus = 'pagado';
+                }
+
                 document.getElementById('payment-form').reset();
-                alert('¡Pago registrado con éxito en la nube!');
+                alert('¡Cobro registrado y agenda sincronizada con éxito en la nube!');
                 initContabilidad();
             } catch (error) {
-                console.error("Error al guardar pago:", error);
+                console.error("Error al registrar pago y sincronizar agenda:", error);
             }
         });
 
